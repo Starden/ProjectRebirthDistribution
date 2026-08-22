@@ -3,3 +3,6 @@
 *.zip binary
 *.exe binary
 
+# Signed manifests and payload hashes cover the exact publisher bytes.
+# Never normalize line endings or otherwise transform this channel.
+site/stable/** -text
