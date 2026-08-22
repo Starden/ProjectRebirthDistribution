@@ -1,0 +1,20 @@
+name: validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  public-distribution:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate signed feed and public repository
+        shell: pwsh
+        run: ./tools/Test-PublicDistribution.ps1 -SkipReleaseAsset
+

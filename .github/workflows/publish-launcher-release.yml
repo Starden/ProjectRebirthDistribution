@@ -1,0 +1,54 @@
+name: publish-launcher-release
+
+on:
+  push:
+    tags:
+      - 'launcher-v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Semantic launcher version already staged under release-assets
+        required: true
+        default: 1.0.0
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Resolve release version
+        id: release
+        shell: pwsh
+        env:
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          $version = if ($env:REF_NAME -match '^launcher-v(?<version>[0-9]+\.[0-9]+\.[0-9]+)$') {
+            $Matches.version
+          } else {
+            $env:INPUT_VERSION
+          }
+          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+$') { throw 'Invalid launcher version.' }
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "tag=launcher-v$version" >> $env:GITHUB_OUTPUT
+      - name: Validate signed feed and temporarily committed launcher asset
+        shell: pwsh
+        run: ./tools/Test-PublicDistribution.ps1
+      - name: Publish immutable GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.release.outputs.version }}
+          TAG: ${{ steps.release.outputs.tag }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          $zip = "release-assets/Project-Rebirth-Launcher-$env:VERSION-win-x64.zip"
+          $hash = "$zip.sha256"
+          $notes = "docs/RELEASE-NOTES-launcher-v$env:VERSION.md"
+          gh release view $env:TAG --repo $env:REPOSITORY *> $null
+          if ($LASTEXITCODE -eq 0) { throw "Release $env:TAG already exists; refusing to overwrite it." }
+          gh release create $env:TAG $zip $hash --repo $env:REPOSITORY --title "Project Rebirth Launcher $env:VERSION" --notes-file $notes --latest
+

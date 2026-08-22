@@ -1,0 +1,18 @@
+# Local release artifacts are uploaded directly to GitHub Releases.
+release-assets/*
+!release-assets/.gitkeep
+
+# Publisher-only state and private key containers must never be committed.
+.publisher/
+publisher.settings.json
+*.pfx
+*.p12
+*.key
+*.private.pem
+
+# Local tool output.
+*.tmp
+*.log
+.DS_Store
+Thumbs.db
+

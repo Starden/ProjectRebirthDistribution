@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "repositoryOwner": "Starden",
+  "repositoryName": "ProjectRebirthDistribution",
+  "pagesBaseUri": "https://starden.github.io/ProjectRebirthDistribution/",
+  "channel": "stable",
+  "launcherVersion": "1.0.0",
+  "contentVersion": "1.1.2",
+  "authAddress": "10.50.0.2",
+  "authPort": 3724,
+  "worldPort": 8087
+}

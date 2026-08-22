@@ -1,0 +1,9 @@
+{
+  "product": "Project Rebirth",
+  "channel": "stable",
+  "manifestUri": "https://starden.github.io/ProjectRebirthDistribution/stable/manifest.json",
+  "signatureUri": "https://starden.github.io/ProjectRebirthDistribution/stable/manifest.json.sig",
+  "allowLocalFeed": false,
+  "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
+  "requiredWowBuild": 12340
+}

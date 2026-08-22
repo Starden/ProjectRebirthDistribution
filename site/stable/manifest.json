@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "product": "Project Rebirth",
+  "channel": "stable",
+  "contentVersion": "1.1.2",
+  "publishedAtUtc": "2026-08-22T23:20:29.7669130Z",
+  "expiresAtUtc": "2026-09-21T23:20:29.7669130Z",
+  "minimumLauncherVersion": "1.0.0",
+  "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
+  "requiredWowBuild": 12340,
+  "signatureAlgorithm": "ECDSA_P256_SHA256_P1363",
+  "realm": {
+    "name": "Rebirth",
+    "authAddress": "10.50.0.2",
+    "authPort": 3724,
+    "worldPort": 8087
+  },
+  "release": {
+    "headline": "Private tester networking and normalized Rebirth tooltips",
+    "summary": "Uses the signed HTTPS feed and the approved WireGuard-only Rebirth endpoint; preserves the normalized cyan Rebirth rank tracker.",
+    "updateKind": "configuration",
+    "requiresClientUpdate": true
+  },
+  "files": [
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Core.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Core.lua",
+      "size": 15058,
+      "sha256": "24066FF6832252185C3B180853E78370E9365B929CA31B6BC854EAB3A30D182C"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Data.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Data.lua",
+      "size": 4824,
+      "sha256": "F4958AFC7AAFC37D99F3EE5B0140147FD4C417FDEDE8403BF26888055A6A3A6F"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
+      "size": 516,
+      "sha256": "6F61BE28D24CC502EAC896FD6DE5EA7D1D7E297024AC77E92A9DAB644B6256FA"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/RankData.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/RankData.lua",
+      "size": 70990,
+      "sha256": "009FFFA675C076E97DA98F3190E45A0C779805B831E1CA7AA8AC5A84B2C09A63"
+    }
+  ]
+}
