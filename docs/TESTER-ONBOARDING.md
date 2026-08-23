@@ -2,14 +2,19 @@
 
 ## What you receive
 
-You receive two things:
+From GitHub, download only the latest
+`Project-Rebirth-Launcher-*-win-x64.zip` from the
+[Project Rebirth Releases page](https://github.com/Starden/ProjectRebirthDistribution/releases/latest).
+The source-code archives and `.sha256` sidecar are not required to play.
 
-1. the public Project Rebirth launcher download URL;
+You receive two things in total:
+
+1. that single public Project Rebirth launcher ZIP; and
 2. one dedicated, non-GM Project Rebirth account credential through a private channel.
 
-No VPN client or separate networking package is required. Never share the account
-password. Report a compromised credential immediately so the account can be
-revoked.
+No WireGuard installation, VPN client, separate patcher, or other networking
+package is required. Never share the account password. Report a compromised
+credential immediately so the account can be revoked.
 
 ## Requirements
 
@@ -43,4 +48,3 @@ The launcher writes the signed VPS gateway address automatically. Do not edit
   owner; do not change the realm address manually.
 - The launcher manages only Project Rebirth-owned add-on files. It does not repair
   base client files or make another WoW version compatible.
-
