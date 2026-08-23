@@ -1,47 +1,54 @@
-# One-tester go-live checklist
+# One-tester public-gateway go-live checklist
 
-The signed HTTPS distribution is only one layer. Do not send the tester package
-until every required box below is independently proven.
+The signed HTTPS distribution is only one layer. Do not send an account credential
+until every required boundary below is proven.
 
 ## Public distribution
 
 - [x] Public `Starden/ProjectRebirthDistribution` repository exists.
-- [ ] GitHub Pages is configured to deploy from GitHub Actions.
-- [ ] `validate` and `deploy-pages` workflows succeed on `main`.
-- [ ] The live manifest and detached signature return HTTP 200 over HTTPS.
-- [ ] The downloaded live manifest verifies against `site/update-signing-public-key.pem`.
-- [ ] Every live payload size and SHA-256 matches the signed manifest.
-- [ ] The launcher ZIP and `.sha256` sidecar are attached to `launcher-v1.0.0`.
-- [ ] The ZIP hash is sent to the tester over a separate trusted private channel.
-- [ ] No game client, MPQ, Data tree, password, VPN profile, or private key is public.
+- [x] GitHub Pages serves the exact signed stable feed over HTTPS.
+- [x] The launcher ZIP and checksum are published through GitHub Releases.
+- [ ] Signed content 1.1.3 advertises only `134.122.124.150:3724/8087`.
+- [ ] Live manifest, signature, and every payload hash verify after deployment.
+- [ ] Launcher 1.0.1 contains no client, MPQ, credential, VPN profile, or key.
+- [ ] The ZIP hash is sent through a separate trusted private channel.
 
-## Private network and server
+## VPS gateway and private transport
 
-- [ ] The VPS WireGuard hub is deployed with a stable public IPv4/hostname.
-- [ ] The Rebirth host has VPN address `10.50.0.2/32` and the tester has a unique `/32`.
-- [ ] Tester-to-host source address is preserved; there is no peer-to-peer NAT.
-- [ ] Only TCP 3724 and 8087 are reachable by the tester through the VPN.
-- [ ] MySQL 3306/33060, PlayerBots command service 8888, RDP, SMB, WinRM, SSH, and
-      admin consoles are unreachable from the tester peer.
-- [ ] No router port forward exposes home game, database, or administrative ports.
-- [ ] Rebirth auth/world advertise and bind the intended VPN route.
-- [ ] Skillful Beta and Skillful Dev remain unchanged and pass their local checks.
+- [ ] DigitalOcean permits inbound IPv4 TCP 3724 and 8087 only for this Droplet.
+- [ ] Public SSH, IPv6 game ingress, MySQL, RDP, SMB, WinRM, and port 8888 remain
+      closed.
+- [ ] nftables remains default-deny and applies per-source new-connection limits.
+- [ ] HAProxy owns only TCP 3724 and 8087 and both backends are healthy.
+- [ ] HAProxy sends PROXY protocol v2 to `10.50.0.2` over WireGuard.
+- [ ] The home residential address is absent from launcher files and public docs.
+- [ ] The VPS-to-home WireGuard peer remains private and healthy.
 
-## Identity and revocation
+## Rebirth host
 
-- [ ] A unique tester WireGuard key is generated; no owner/shared profile is reused.
-- [ ] The tester account is unique, least-privileged, and contains no GM access.
-- [ ] Rebirth's account allowlist is enabled fail-closed and includes only the tester.
-- [ ] A valid VPN identity plus password is insufficient without allowlist approval.
-- [ ] VPN-peer removal and account-whitelist revocation are each tested separately.
-- [ ] Account/VPN secrets are delivered separately from the public launcher URL.
+- [ ] Auth and world remain bound only to `10.50.0.2`.
+- [ ] Auth `EnableProxyProtocol` and world `Network.EnableProxyProtocol` are 1.
+- [ ] Windows Firewall allows backend TCP only from `10.50.0.1`.
+- [ ] MySQL remains loopback-only; MySQL X and PlayerBots 8888 remain absent.
+- [ ] Skillful Beta and Development remain loopback-only and unchanged.
+- [ ] Realm 1 advertises `134.122.124.150:8087` with local mask
+      `255.255.255.255`.
+- [ ] Rebirth account access remains enabled, enforcing, and fail-closed.
+
+## Identity, logging, and revocation
+
+- [ ] The tester account is unique, non-GM, and explicitly whitelisted.
+- [ ] Wrong-password bans and logs use the original public client address conveyed
+      by PROXY v2, not `10.50.0.1`.
+- [ ] HAProxy logs connection metadata but never payloads or credentials.
+- [ ] Account-whitelist revocation is tested independently.
+- [ ] Only the operator and active tester appear enabled in the whitelist.
 
 ## External proof
 
-- [ ] From a non-home residential connection, VPN connects to the VPS.
-- [ ] `10.50.0.2:3724` and `10.50.0.2:8087` are reachable after VPN connection.
-- [ ] The home residential IP is absent from launcher files, DNS, docs, and logs
-      given to the tester.
-- [ ] The tester can locate a clean build-12340 client, update, log in, enter Rebirth,
-      log out, reconnect, and preserve progression.
-- [ ] Disconnecting the VPN immediately removes game reachability.
+- [ ] From a non-home network, public TCP 3724 and 8087 connect without WireGuard.
+- [ ] Public 22, 3306, 33060, 8085, 8086, and 8888 remain unreachable.
+- [ ] A clean client can authenticate, enter Rebirth, move, chat, log out, reconnect,
+      and preserve progression.
+- [ ] The launcher alone applies the correct signed realm address.
+

@@ -33,7 +33,7 @@ try {
     }
 
     $manifest = [System.Text.Encoding]::UTF8.GetString($manifestBytes) | ConvertFrom-Json
-    if ([string]$manifest.realm.authAddress -cne '10.50.0.2') {
+    if ([string]$manifest.realm.authAddress -cne '134.122.124.150') {
         throw "The live feed advertises an unexpected realm endpoint: $($manifest.realm.authAddress)"
     }
     foreach ($entry in @($manifest.files)) {
@@ -54,4 +54,3 @@ try {
 finally {
     $client.Dispose()
 }
-

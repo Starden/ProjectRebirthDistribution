@@ -9,9 +9,9 @@ param(
     [ValidatePattern('^[A-Fa-f0-9 ]{40,}$')]
     [string]$CertificateThumbprint,
     [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$')]
-    [string]$ContentVersion = '1.1.2',
+    [string]$ContentVersion = '1.1.3',
     [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+$')]
-    [string]$LauncherVersion = '1.0.0',
+    [string]$LauncherVersion = '1.0.1',
     [ValidateRange(1, 90)]
     [int]$ManifestValidityDays = 30,
     [string]$DotNetPath = 'dotnet',
@@ -32,9 +32,9 @@ $settings = [System.IO.File]::ReadAllText($settingsPath) | ConvertFrom-Json
 if ($settings.pagesBaseUri -notmatch '^https://[^/]+/.+/$') {
     throw 'pagesBaseUri must be an absolute HTTPS project-site URI ending in a slash.'
 }
-if ([string]$settings.authAddress -cne '10.50.0.2' -or
+if ([string]$settings.authAddress -cne '134.122.124.150' -or
     [int]$settings.authPort -ne 3724 -or [int]$settings.worldPort -ne 8087) {
-    throw 'Distribution settings do not contain the approved RemotePrivate endpoint.'
+    throw 'Distribution settings do not contain the approved public VPS gateway endpoint.'
 }
 
 $publisher = Join-Path $LauncherRoot 'tools\Publish-ProjectRebirthClientFeed.ps1'
@@ -68,8 +68,8 @@ if (-not $PSCmdlet.ShouldProcess($DistributionRoot, "Create signed public conten
     -AuthAddress ([string]$settings.authAddress) `
     -AuthPort ([int]$settings.authPort) `
     -WorldPort ([int]$settings.worldPort) `
-    -ReleaseHeadline 'Private tester networking and normalized Rebirth tooltips' `
-    -ReleaseSummary 'Uses the signed HTTPS feed and the approved WireGuard-only Rebirth endpoint; preserves the normalized cyan Rebirth rank tracker.' `
+    -ReleaseHeadline 'Launcher-only public gateway and normalized Rebirth tooltips' `
+    -ReleaseSummary 'Connects through the protected Rebirth VPS gateway without requiring player-side VPN software; preserves the normalized cyan Rebirth rank tracker.' `
     -UpdateKind configuration `
     -RequiresClientUpdate $true `
     -ManifestValidityDays $ManifestValidityDays `
