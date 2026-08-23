@@ -234,13 +234,13 @@ if ($null -ne $manifest) {
         Add-Pass 'Manifest identity and content version match distribution settings'
     }
 
-    if ([string]$manifest.realm.authAddress -cne '10.50.0.2' -or
+    if ([string]$manifest.realm.authAddress -cne '134.122.124.150' -or
         [int]$manifest.realm.authPort -ne 3724 -or [int]$manifest.realm.worldPort -ne 8087 -or
         [string]$manifest.realm.authAddress -match '^(127\.|localhost$|192\.168\.|10\.0\.)') {
-        Add-Failure 'Manifest does not contain only the approved RemotePrivate service endpoint'
+        Add-Failure 'Manifest does not contain only the approved public VPS gateway endpoint'
     }
     else {
-        Add-Pass 'Manifest realm endpoint is the approved WireGuard host 10.50.0.2:3724/8087'
+        Add-Pass 'Manifest realm endpoint is the approved VPS gateway 134.122.124.150:3724/8087'
     }
 
     $expiresAt = [DateTimeOffset]::MinValue

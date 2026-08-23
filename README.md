@@ -20,10 +20,11 @@ private keys, or publisher private-key material.
 - Detached signature: `https://starden.github.io/ProjectRebirthDistribution/stable/manifest.json.sig`
 - Launcher releases: `https://github.com/Starden/ProjectRebirthDistribution/releases`
 
-The signed realm endpoint is the private WireGuard service address
-`10.50.0.2:3724`; world service status uses `10.50.0.2:8087`. Publishing this
-repository does **not** make those private services reachable. Each tester still
-needs a separately delivered, unique VPN profile and an approved game account.
+The signed realm endpoint is the public VPS gateway at `134.122.124.150:3724`;
+world service status uses `134.122.124.150:8087`. The gateway carries traffic to
+the Rebirth host over a private WireGuard link and preserves public client
+addresses with PROXY protocol v2. Testers need only the launcher, their lawful
+clean client, and an approved game account.
 
 ## Validate locally
 
