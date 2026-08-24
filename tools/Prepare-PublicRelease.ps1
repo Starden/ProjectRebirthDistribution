@@ -9,7 +9,7 @@ param(
     [ValidatePattern('^[A-Fa-f0-9 ]{40,}$')]
     [string]$CertificateThumbprint,
     [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$')]
-    [string]$ContentVersion = '1.1.3',
+    [string]$ContentVersion = '1.3.0',
     [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+$')]
     [string]$LauncherVersion = '1.0.1',
     [ValidateRange(1, 90)]
@@ -68,9 +68,9 @@ if (-not $PSCmdlet.ShouldProcess($DistributionRoot, "Create signed public conten
     -AuthAddress ([string]$settings.authAddress) `
     -AuthPort ([int]$settings.authPort) `
     -WorldPort ([int]$settings.worldPort) `
-    -ReleaseHeadline 'Launcher-only public gateway and normalized Rebirth tooltips' `
-    -ReleaseSummary 'Connects through the protected Rebirth VPS gateway without requiring player-side VPN software; preserves the normalized cyan Rebirth rank tracker.' `
-    -UpdateKind configuration `
+    -ReleaseHeadline 'Basic Rebirth progression interface' `
+    -ReleaseSummary 'Adds the server-authoritative Heritage selection card alongside the existing Manifestation and Skill panels; Prototype Heritage remains clearly marked WIP with no effect.' `
+    -UpdateKind content `
     -RequiresClientUpdate $true `
     -ManifestValidityDays $ManifestValidityDays `
     -CertificateThumbprint $CertificateThumbprint `

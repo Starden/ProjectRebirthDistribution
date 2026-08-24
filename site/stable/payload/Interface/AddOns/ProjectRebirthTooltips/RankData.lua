@@ -2,7 +2,7 @@
 -- Do not hand-edit; run scripts\Build-ProjectRebirthClassRankAddonData.ps1.
 
 local data = {
-    addonVersion = "1.1.1",
+    addonVersion = "1.2.0",
     schemaVersion = 1,
     catalogVersion = 1,
     expectedTrackedSpellCount = 2164,

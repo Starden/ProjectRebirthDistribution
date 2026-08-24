@@ -46,7 +46,7 @@ pwsh -NoProfile -File "$distributionRoot\tools\Prepare-PublicRelease.ps1" `
   -LauncherRoot $launcherRoot `
   -ProjectRoot $projectRoot `
   -CertificateThumbprint $certificateThumbprint `
-  -ContentVersion 1.1.3 `
+  -ContentVersion 1.3.0 `
   -LauncherVersion 1.0.1
 ```
 

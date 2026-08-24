@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "product": "Project Rebirth",
   "channel": "stable",
-  "contentVersion": "1.1.3",
-  "publishedAtUtc": "2026-08-23T03:45:24.5607442Z",
-  "expiresAtUtc": "2026-09-22T03:45:24.5607442Z",
+  "contentVersion": "1.3.0",
+  "publishedAtUtc": "2026-08-24T01:28:04.3678648Z",
+  "expiresAtUtc": "2026-09-23T01:28:04.3678648Z",
   "minimumLauncherVersion": "1.0.1",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
@@ -16,9 +16,9 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "Launcher-only public gateway and normalized Rebirth tooltips",
-    "summary": "Connects through the protected Rebirth VPS gateway without requiring player-side VPN software; preserves the normalized cyan Rebirth rank tracker.",
-    "updateKind": "configuration",
+    "headline": "Basic Rebirth progression interface",
+    "summary": "Adds the server-authoritative Heritage selection card alongside the existing Manifestation and Skill panels; Prototype Heritage remains clearly marked WIP with no effect.",
+    "updateKind": "content",
     "requiresClientUpdate": true
   },
   "files": [
@@ -37,14 +37,20 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
-      "size": 516,
-      "sha256": "6F61BE28D24CC502EAC896FD6DE5EA7D1D7E297024AC77E92A9DAB644B6256FA"
+      "size": 553,
+      "sha256": "CB4184C07F255B318A1F090979EA51AF9FDB71103A94D9478FB4F87A200213C7"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/RankData.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/RankData.lua",
       "size": 70990,
-      "sha256": "009FFFA675C076E97DA98F3190E45A0C779805B831E1CA7AA8AC5A84B2C09A63"
+      "sha256": "17121F5A92744A3B2DE02664FCA47D301DFED7BD1885781BA2E0A5DF6DBCF547"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
+      "size": 21139,
+      "sha256": "E5B550B0AD883BC2886CF79684A178BEA53D7045CEC30474A6FCF3EDF561699F"
     }
   ]
 }
