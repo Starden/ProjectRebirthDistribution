@@ -1,8 +1,8 @@
 ## Interface: 30300
-## Title: Project Rebirth Tooltips
-## Notes: Realm-gated all-class rank and learn-level tooltips for Project Rebirth.
+## Title: Project Rebirth
+## Notes: Realm-gated Rebirth progression interface and all-class rank tooltips.
 ## Author: Project Rebirth
-## Version: 1.1.1
+## Version: 1.3.0
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## X-Rebirth-Realm: Rebirth
@@ -10,8 +10,10 @@
 ## X-Rebirth-RankCatalogVersion: 1
 ## X-Rebirth-TrackedSpellCount: 2164
 ## X-Rebirth-VirtualRankCount: 116
+## X-Rebirth-AddonProtocolVersion: 1
 ## X-Rebirth-Package-SHA256: 234D898B1E9C41DBD35EE46A7D179853810E775604A1C2AF5E222528110ADBF1
 
 Data.lua
 RankData.lua
+Skills.lua
 Core.lua
