@@ -9,9 +9,9 @@ param(
     [ValidatePattern('^[A-Fa-f0-9 ]{40,}$')]
     [string]$CertificateThumbprint,
     [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$')]
-    [string]$ContentVersion = '1.5.0',
+    [string]$ContentVersion = '1.5.1',
     [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+$')]
-    [string]$LauncherVersion = '1.2.0',
+    [string]$LauncherVersion = '1.2.1',
     [ValidateRange(1, 90)]
     [int]$ManifestValidityDays = 30,
     [string]$DotNetPath = 'dotnet',
@@ -71,9 +71,9 @@ if (-not $PSCmdlet.ShouldProcess($DistributionRoot, "Create signed public conten
     -AuthAddress ([string]$settings.authAddress) `
     -AuthPort ([int]$settings.authPort) `
     -WorldPort ([int]$settings.worldPort) `
-    -ReleaseHeadline 'Project Reverie — Rebirth identity update' `
-    -ReleaseSummary 'Adds the proprietary Project Reverie mark to the launcher and Rebirth progression interface while preserving the Rebirth realm identity.' `
-    -UpdateKind content `
+    -ReleaseHeadline 'Project Reverie — Rebirth security update' `
+    -ReleaseSummary 'Hardens Rebirth realm isolation, authenticated addon responses, and permanent Heritage confirmation while retaining the independent Rebirth Wardrobe.' `
+    -UpdateKind hotfix `
     -RequiresClientUpdate $true `
     -ManifestValidityDays $ManifestValidityDays `
     -CertificateThumbprint $CertificateThumbprint `

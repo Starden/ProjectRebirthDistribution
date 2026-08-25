@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "product": "Project Reverie",
   "channel": "stable",
-  "contentVersion": "1.5.0",
-  "publishedAtUtc": "2026-08-25T22:35:22.5636227Z",
-  "expiresAtUtc": "2026-09-24T22:35:22.5636227Z",
-  "minimumLauncherVersion": "1.2.0",
+  "contentVersion": "1.5.1",
+  "publishedAtUtc": "2026-08-25T23:34:16.2321385Z",
+  "expiresAtUtc": "2026-09-24T23:34:16.2321385Z",
+  "minimumLauncherVersion": "1.2.1",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
   "signatureAlgorithm": "ECDSA_P256_SHA256_P1363",
@@ -16,17 +16,17 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "Project Reverie — Rebirth identity update",
-    "summary": "Adds the proprietary Project Reverie mark to the launcher and Rebirth progression interface while preserving the Rebirth realm identity.",
-    "updateKind": "content",
+    "headline": "Project Reverie — Rebirth security update",
+    "summary": "Hardens Rebirth realm isolation, authenticated addon responses, and permanent Heritage confirmation while retaining the independent Rebirth Wardrobe.",
+    "updateKind": "hotfix",
     "requiresClientUpdate": true
   },
   "files": [
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Core.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Core.lua",
-      "size": 15058,
-      "sha256": "24066FF6832252185C3B180853E78370E9365B929CA31B6BC854EAB3A30D182C"
+      "size": 15358,
+      "sha256": "40FDC9DB4A9E2EE1FE17A2022504D6520AD39C57F475BCC3D564C5189903277C"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Data.lua",
@@ -44,7 +44,7 @@
       "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "size": 565,
-      "sha256": "F2B2407A5163863E9CF4C0810A61758876A48903D7D2983C916E5FC9BCD116A2"
+      "sha256": "AF082B788F81711E9562E9D32B7D59943C7132A38A5679FBD922DD8206CCC398"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/RankData.lua",
@@ -55,8 +55,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
-      "size": 43612,
-      "sha256": "865BA1899258BEA35AA0D59C390BE764A8E30BDC7413A958A3C3D7F1C0CD0C32"
+      "size": 44962,
+      "sha256": "5A19AA646E8A081A34C5A5448BECD6D4148B42471CE6DCBD173B1F6F47881E73"
     },
     {
       "path": "Interface/AddOns/RebirthWardrobe/RebirthWardrobe.toc",

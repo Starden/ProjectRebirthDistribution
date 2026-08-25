@@ -1,5 +1,6 @@
 local numericData = ProjectRebirthTooltipData
 local rankData = ProjectRebirthClassRankData
+local ADDON_NAME = "ProjectRebirthTooltips"
 if not numericData or numericData.schemaVersion ~= 1 or numericData.dataVersion ~= 3 or
     numericData.expectedRowCount ~= 52 or not rankData or rankData.schemaVersion ~= 1 or
     rankData.catalogVersion ~= 1 or rankData.expectedTrackedSpellCount ~= 2164 or
@@ -13,6 +14,16 @@ local debugEnabled = false
 local rewriteInProgress = {}
 local numericAbilityByTitle = {}
 local registeredNumericRows = 0
+
+local function AddonVersion()
+    if GetAddOnMetadata then
+        local version = GetAddOnMetadata(ADDON_NAME, "Version")
+        if version and version ~= "" then
+            return version
+        end
+    end
+    return rankData.addonVersion or "unknown"
+end
 
 for _, ability in pairs(numericData.abilities) do
     numericAbilityByTitle[ability.title] = ability
@@ -384,6 +395,6 @@ SlashCmdList.PROJECTREBIRTHTOOLTIPS = function(message)
     local debugState = debugEnabled and "on" or "off"
     DEFAULT_CHAT_FRAME:AddMessage(string.format(
         "|cff73e6ffProject Rebirth Tooltips|r %s; realm=%s; addon=%s; numeric=%d; tracked=%d; virtual=%d; debug=%s",
-        state, GetRealmName() or "unknown", rankData.addonVersion, registeredNumericRows,
+        state, GetRealmName() or "unknown", AddonVersion(), registeredNumericRows,
         rankData.registeredTrackedSpellCount, rankData.registeredVirtualRankCount, debugState))
 end

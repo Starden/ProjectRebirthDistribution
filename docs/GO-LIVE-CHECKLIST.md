@@ -8,9 +8,9 @@ until every required boundary below is proven.
 - [x] Public `Starden/ProjectRebirthDistribution` repository exists.
 - [x] GitHub Pages serves the exact signed stable feed over HTTPS.
 - [x] The launcher ZIP and checksum are published through GitHub Releases.
-- [x] Signed content 1.5.0 advertises only `134.122.124.150:3724/8087`.
+- [ ] Signed content 1.5.1 advertises only `134.122.124.150:3724/8087` after the pending Pages deployment.
 - [x] Live manifest, signature, and every payload hash verify after deployment.
-- [x] Project Reverie Launcher 1.2.0 contains no client, MPQ, credential, VPN profile, or key.
+- [x] Project Reverie Launcher 1.2.1 contains no client, MPQ, credential, VPN profile, or key and uses only the HTTPS public feed bootstrap.
 - [ ] The ZIP hash is sent through a separate trusted private channel.
 
 ## VPS gateway and private transport

@@ -137,6 +137,15 @@ local function DecodeField(value)
     end)
 end
 
+local function IsLocalPlayerSender(sender)
+    local playerName = UnitName and UnitName("player")
+    if not playerName or playerName == "" or not sender or sender == "" then
+        return false
+    end
+
+    return sender == playerName
+end
+
 local function UpdateActivation()
     active = (GetRealmName and GetRealmName() or "") == REALM
     if toggleButton then
@@ -517,6 +526,29 @@ local function SelectTab(name)
     end
 end
 
+local function ConfirmHeritageSelection()
+    local heritage = state.heritage or {}
+    if actionPending or heritage.selected or not heritage.canSelect then
+        return
+    end
+
+    actionPending = true
+    state.notice = "Waiting for server Heritage selection…"
+    Render()
+    SendRequest("HERITAGE_SELECT")
+end
+
+StaticPopupDialogs.PROJECT_REBIRTH_CONFIRM_HERITAGE = {
+    text = "Select %s as your Heritage?\n\nThis choice is permanent for the current Life.",
+    button1 = "Select Heritage",
+    button2 = CANCEL,
+    OnAccept = ConfirmHeritageSelection,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    preferredIndex = 3,
+}
+
 local function CreateInterface()
     if panel then
         return
@@ -720,10 +752,11 @@ local function CreateInterface()
     heritageButton:SetPoint("BOTTOM", heritageDetailFrame, "BOTTOM", 0, 12)
     heritageButton:SetText("Select Heritage")
     heritageButton:SetScript("OnClick", function()
-        actionPending = true
-        state.notice = "Waiting for server Heritage selection…"
-        Render()
-        SendRequest("HERITAGE_SELECT")
+        local heritage = state.heritage or {}
+        if actionPending or heritage.selected or not heritage.canSelect then
+            return
+        end
+        StaticPopup_Show("PROJECT_REBIRTH_CONFIRM_HERITAGE", heritage.name or "this Heritage")
     end)
 
     tabFrames.manifestations = CreateFrame("Frame", nil, panel)
@@ -846,7 +879,7 @@ local function CreateInterface()
         end
     end
 
-    if MainMenuBar then
+    if active and MainMenuBar then
         toggleButton = CreateFrame("Button", "ProjectRebirthMicroButton", MainMenuBar)
         toggleButton:SetWidth(28)
         toggleButton:SetHeight(36)
@@ -874,6 +907,9 @@ local function CreateInterface()
         toggleButton:SetScript("OnLeave", function() GameTooltip:Hide() end)
 
         local function LayoutRebirthMicroButton()
+            if not active then
+                return
+            end
             if HelpMicroButton then
                 HelpMicroButton:Hide()
             end
@@ -903,7 +939,11 @@ local function CreateInterface()
         ProjectRebirth_LayoutMicroButtons = LayoutRebirthMicroButton
 
         if HelpMicroButton then
-            HelpMicroButton:HookScript("OnShow", function(self) self:Hide() end)
+            HelpMicroButton:HookScript("OnShow", function(self)
+                if active then
+                    self:Hide()
+                end
+            end)
         end
         LayoutRebirthMicroButton()
         if hooksecurefunc and UpdateMicroButtons then
@@ -916,12 +956,16 @@ local function CreateInterface()
 end
 
 local function EnsureInterface()
+    UpdateActivation()
+    if not active then
+        return false
+    end
     CreateInterface()
     return panel ~= nil
 end
 
-local function HandleAddonMessage(prefix, message)
-    if not active or prefix ~= PREFIX then
+local function HandleAddonMessage(prefix, message, channel, sender)
+    if not active or prefix ~= PREFIX or channel ~= "WHISPER" or not IsLocalPlayerSender(sender) then
         return
     end
 
@@ -998,8 +1042,10 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         if RegisterAddonMessagePrefix then
             RegisterAddonMessagePrefix(PREFIX)
         end
-        EnsureInterface()
         UpdateActivation()
+        if active then
+            EnsureInterface()
+        end
     elseif event == "PLAYER_ENTERING_WORLD" then
         UpdateActivation()
         if active then
@@ -1015,13 +1061,13 @@ end)
 SLASH_PROJECTREBIRTHSKILLS1 = "/rebirthskills"
 SLASH_PROJECTREBIRTHSKILLS2 = "/rskills"
 SlashCmdList.PROJECTREBIRTHSKILLS = function()
-    if not EnsureInterface() then
-        DEFAULT_CHAT_FRAME:AddMessage("|cffff6666Rebirth Skills:|r the progression interface could not be initialized.")
-        return
-    end
     UpdateActivation()
     if not active then
         DEFAULT_CHAT_FRAME:AddMessage("|cff73e6ffRebirth Skills:|r available only on the Rebirth realm.")
+        return
+    end
+    if not EnsureInterface() then
+        DEFAULT_CHAT_FRAME:AddMessage("|cffff6666Rebirth Skills:|r the progression interface could not be initialized.")
         return
     end
     panelWanted = not panel:IsShown()
