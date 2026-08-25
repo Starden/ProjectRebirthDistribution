@@ -1,7 +1,7 @@
 # Security
 
 Report update-signature failures, unexpected files, credential exposure, or
-network-policy failures to the Project Rebirth owner through the established
+network-policy failures to the Project Reverie owner through the established
 private channel. Do not post server VPN profiles, private keys, account names, passwords,
 home addresses, residential IP addresses, or unredacted logs in a public issue.
 

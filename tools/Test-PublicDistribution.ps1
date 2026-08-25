@@ -82,7 +82,7 @@ function Test-BootstrapObject {
 
     $expectedManifest = ([Uri]::new([Uri]$Settings.pagesBaseUri, "$($Settings.channel)/manifest.json")).AbsoluteUri
     $expectedSignature = ([Uri]::new([Uri]$Settings.pagesBaseUri, "$($Settings.channel)/manifest.json.sig")).AbsoluteUri
-    if ($Bootstrap.product -ne 'Project Rebirth' -or $Bootstrap.channel -ne $Settings.channel) {
+    if ($Bootstrap.product -ne 'Project Reverie' -or $Bootstrap.channel -ne $Settings.channel) {
         Add-Failure "$Label identifies the wrong product or channel"
     }
     elseif ([bool]$Bootstrap.allowLocalFeed) {
@@ -113,7 +113,7 @@ function Test-LauncherArchive {
     )
 
     $assetRoot = Join-Path $Root 'release-assets'
-    $expectedName = "Project-Rebirth-Launcher-$($Settings.launcherVersion)-win-x64.zip"
+    $expectedName = "Project-Reverie-Launcher-$($Settings.launcherVersion)-win-x64.zip"
     $zipPath = Join-Path $assetRoot $expectedName
     $hashPath = "$zipPath.sha256"
     if (-not (Test-Path -LiteralPath $zipPath -PathType Leaf) -or
@@ -138,7 +138,7 @@ function Test-LauncherArchive {
     $archive = [System.IO.Compression.ZipFile]::OpenRead($zipPath)
     try {
         $entryNames = @($archive.Entries | ForEach-Object { $_.FullName.Replace('\', '/') })
-        foreach ($required in @('ProjectRebirth.Launcher.exe', 'launcher.bootstrap.json', 'PLAYER-GUIDE.md', 'README.md')) {
+        foreach ($required in @('ProjectReverie.Launcher.exe', 'launcher.bootstrap.json', 'PLAYER-GUIDE.md', 'README.md')) {
             if ($entryNames -notcontains $required) {
                 Add-Failure "Launcher archive is missing required entry: $required"
             }
@@ -184,7 +184,7 @@ function Test-LauncherArchive {
 }
 
 $DistributionRoot = [System.IO.Path]::GetFullPath($DistributionRoot)
-Write-Host "Project Rebirth public distribution validation: $DistributionRoot" -ForegroundColor Cyan
+Write-Host "Project Reverie public distribution validation (Rebirth realm): $DistributionRoot" -ForegroundColor Cyan
 
 $settingsPath = Join-Path $DistributionRoot 'distribution.settings.json'
 $settings = Get-JsonFile -Path $settingsPath
@@ -224,7 +224,7 @@ if (-not (Test-Path -LiteralPath $publicKeyPath -PathType Leaf)) {
 }
 
 if ($null -ne $manifest) {
-    if ([string]$manifest.product -ne 'Project Rebirth' -or
+    if ([string]$manifest.product -ne 'Project Reverie' -or
         [string]$manifest.channel -ne [string]$settings.channel -or
         [string]$manifest.contentVersion -ne [string]$settings.contentVersion -or
         [string]$manifest.signatureAlgorithm -ne 'ECDSA_P256_SHA256_P1363') {

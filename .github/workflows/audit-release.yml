@@ -27,8 +27,7 @@ jobs:
         run: |
           $tag = if ($env:EVENT_TAG) { $env:EVENT_TAG } else { $env:INPUT_TAG }
           New-Item -ItemType Directory -Path release-assets -Force | Out-Null
-          gh release download $tag --dir release-assets --pattern 'Project-Rebirth-Launcher-*-win-x64.zip*'
+          gh release download $tag --dir release-assets --pattern 'Project-Reverie-Launcher-*-win-x64.zip*'
       - name: Audit release contents
         shell: pwsh
         run: ./tools/Test-PublicDistribution.ps1
-

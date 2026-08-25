@@ -4,7 +4,7 @@
 param(
     [string]$DistributionRoot = (Split-Path -Parent $PSScriptRoot),
     [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+$')]
-    [string]$Version = '1.1.0'
+    [string]$Version = '1.2.0'
 )
 
 Set-StrictMode -Version Latest
@@ -13,7 +13,7 @@ $DistributionRoot = [System.IO.Path]::GetFullPath($DistributionRoot)
 $settings = [System.IO.File]::ReadAllText((Join-Path $DistributionRoot 'distribution.settings.json')) | ConvertFrom-Json
 $repository = "$($settings.repositoryOwner)/$($settings.repositoryName)"
 $tag = "launcher-v$Version"
-$assetName = "Project-Rebirth-Launcher-$Version-win-x64.zip"
+$assetName = "Project-Reverie-Launcher-$Version-win-x64.zip"
 $zipPath = Join-Path $DistributionRoot "release-assets\$assetName"
 $hashPath = "$zipPath.sha256"
 $notesPath = Join-Path $DistributionRoot "docs\RELEASE-NOTES-launcher-v$Version.md"
@@ -51,7 +51,7 @@ if (-not $PSCmdlet.ShouldProcess("$repository release $tag", "Upload $assetName 
 
 & gh release create $tag $zipPath $hashPath `
     --repo $repository `
-    --title "Project Rebirth Launcher $Version" `
+    --title "Project Reverie Launcher $Version — Rebirth" `
     --notes-file $notesPath `
     --latest
 if ($LASTEXITCODE -ne 0) {

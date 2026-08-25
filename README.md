@@ -1,28 +1,28 @@
-# Project Rebirth Distribution
+# Project Reverie Distribution — Rebirth
 
 ## Player quick start
 
 From this GitHub repository, you only need to download **one file**: the latest
-`Project-Rebirth-Launcher-*-win-x64.zip` from the
+`Project-Reverie-Launcher-*-win-x64.zip` from the
 [Releases page](https://github.com/Starden/ProjectRebirthDistribution/releases/latest).
 
 You do **not** need to download the source code, the `.sha256` file, WireGuard,
 a VPN client, a separate patcher, or any other networking software. The launcher
-handles Project Rebirth updates and writes the correct server address for you.
+handles Project Reverie updates for the Rebirth realm and writes the correct server address for you.
 
 You will also need:
 
 - your own lawful, clean ChromieCraft WoW 3.3.5a client, build 12340; and
-- an approved Project Rebirth account supplied privately by the server owner.
+- an approved Rebirth account supplied privately by the server owner.
 
 To play:
 
 1. Download the launcher ZIP from the Releases page.
 2. Extract the entire ZIP into its own folder.
-3. Run `ProjectRebirth.Launcher.exe`.
+3. Run `ProjectReverie.Launcher.exe`.
 4. Choose **Locate Client** and select the folder containing your clean `Wow.exe`.
 5. Choose **Update**, wait for verification to finish, and then choose **Play**.
-6. Log in with your approved Project Rebirth account.
+6. Log in with your approved Rebirth account.
 
 Do not edit `realmlist.wtf` manually. The launcher does not include or download
 the base World of Warcraft client. Windows may show an **Unknown publisher**
@@ -37,7 +37,7 @@ Rebirth test. It contains only:
 
 - the HTTPS update site under `site/`;
 - a detached ECDSA P-256 signature for the exact update manifest bytes;
-- Project Rebirth-owned add-on payload files;
+- Project Reverie-owned Rebirth add-on payload files;
 - public verification and release automation;
 - publisher and tester documentation.
 

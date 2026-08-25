@@ -1,8 +1,8 @@
 ## Interface: 30300
-## Title: Project Rebirth
+## Title: Project Reverie — Rebirth
 ## Notes: Realm-gated Rebirth progression interface and all-class rank tooltips.
-## Author: Project Rebirth
-## Version: 1.6.3
+## Author: Project Reverie
+## Version: 1.7.0
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## X-Rebirth-Realm: Rebirth

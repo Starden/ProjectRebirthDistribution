@@ -45,10 +45,9 @@ jobs:
           TAG: ${{ steps.release.outputs.tag }}
           REPOSITORY: ${{ github.repository }}
         run: |
-          $zip = "release-assets/Project-Rebirth-Launcher-$env:VERSION-win-x64.zip"
+          $zip = "release-assets/Project-Reverie-Launcher-$env:VERSION-win-x64.zip"
           $hash = "$zip.sha256"
           $notes = "docs/RELEASE-NOTES-launcher-v$env:VERSION.md"
           gh release view $env:TAG --repo $env:REPOSITORY *> $null
           if ($LASTEXITCODE -eq 0) { throw "Release $env:TAG already exists; refusing to overwrite it." }
-          gh release create $env:TAG $zip $hash --repo $env:REPOSITORY --title "Project Rebirth Launcher $env:VERSION" --notes-file $notes --latest
-
+          gh release create $env:TAG $zip $hash --repo $env:REPOSITORY --title "Project Reverie Launcher $env:VERSION — Rebirth" --notes-file $notes --latest

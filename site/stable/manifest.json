@@ -1,11 +1,11 @@
 {
   "schemaVersion": 1,
-  "product": "Project Rebirth",
+  "product": "Project Reverie",
   "channel": "stable",
-  "contentVersion": "1.4.0",
-  "publishedAtUtc": "2026-08-25T02:40:23.0440103Z",
-  "expiresAtUtc": "2026-11-23T02:40:23.0440103Z",
-  "minimumLauncherVersion": "1.1.0",
+  "contentVersion": "1.5.0",
+  "publishedAtUtc": "2026-08-25T22:35:22.5636227Z",
+  "expiresAtUtc": "2026-09-24T22:35:22.5636227Z",
+  "minimumLauncherVersion": "1.2.0",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
   "signatureAlgorithm": "ECDSA_P256_SHA256_P1363",
@@ -16,8 +16,8 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "Rebirth Wardrobe 1.0",
-    "summary": "Adds the independent account-wide Rebirth Wardrobe, persistent cosmetic slots, outfits, and specialization bindings.",
+    "headline": "Project Reverie — Rebirth identity update",
+    "summary": "Adds the proprietary Project Reverie mark to the launcher and Rebirth progression interface while preserving the Rebirth realm identity.",
     "updateKind": "content",
     "requiresClientUpdate": true
   },
@@ -35,10 +35,16 @@
       "sha256": "F4958AFC7AAFC37D99F3EE5B0140147FD4C417FDEDE8403BF26888055A6A3A6F"
     },
     {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Media/ProjectReverie.tga",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/ProjectReverie.tga",
+      "size": 196652,
+      "sha256": "DDE4FA1AFCA48686FB5D16A4FD416CE2989B646EFD9EE5F5B2F19B3E2FD542E3"
+    },
+    {
       "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
-      "size": 553,
-      "sha256": "E32EBEF77153E3BD4FDE27EA9C7506F4B70F0076CC2080B674B6F38F0697F229"
+      "size": 565,
+      "sha256": "F2B2407A5163863E9CF4C0810A61758876A48903D7D2983C916E5FC9BCD116A2"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/RankData.lua",
@@ -49,8 +55,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
-      "size": 42947,
-      "sha256": "B5DE462FAD39E747FF4B7DFEBFDA539A6050A74D62C35D6C91C0F37764CDE529"
+      "size": 43612,
+      "sha256": "865BA1899258BEA35AA0D59C390BE764A8E30BDC7413A958A3C3D7F1C0CD0C32"
     },
     {
       "path": "Interface/AddOns/RebirthWardrobe/RebirthWardrobe.toc",

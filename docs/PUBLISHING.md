@@ -46,8 +46,8 @@ pwsh -NoProfile -File "$distributionRoot\tools\Prepare-PublicRelease.ps1" `
   -LauncherRoot $launcherRoot `
   -ProjectRoot $projectRoot `
   -CertificateThumbprint $certificateThumbprint `
-  -ContentVersion 1.4.0 `
-  -LauncherVersion 1.1.0
+  -ContentVersion 1.5.0 `
+  -LauncherVersion 1.2.0
 ```
 
 The resulting signed endpoint is `134.122.124.150:3724` and the world status
@@ -72,7 +72,7 @@ the absolute HTTPS manifest URL; they cannot escape the signed channel directory
    publisher workstation:
 
 ```powershell
-pwsh -NoProfile -File ./tools/Publish-LauncherRelease.ps1 -Version 1.1.0
+pwsh -NoProfile -File ./tools/Publish-LauncherRelease.ps1 -Version 1.2.0
 ```
 
 The script uses the authenticated GitHub CLI; it never uploads credentials or a
@@ -81,17 +81,17 @@ login` before this step.
 
 For the first test release, the `publish-launcher-release` workflow also supports
 a deliberately short-lived asset commit. Force-add only the ZIP and sidecar,
-push them with a `launcher-v1.1.0` tag, wait for the workflow to publish the
+push them with a `launcher-v1.2.0` tag, wait for the workflow to publish the
 release, then delete `release-assets/` in the next commit. This removes the files
 from the branch tip but **not** from Git history; direct `gh release create` is
 preferred for later releases.
 
 ```powershell
-git add -f release-assets/Project-Rebirth-Launcher-1.1.0-win-x64.zip
-git add -f release-assets/Project-Rebirth-Launcher-1.1.0-win-x64.zip.sha256
-git commit -m "Stage launcher 1.1.0 release assets"
-git tag launcher-v1.1.0
-git push origin main launcher-v1.1.0
+git add -f release-assets/Project-Reverie-Launcher-1.2.0-win-x64.zip
+git add -f release-assets/Project-Reverie-Launcher-1.2.0-win-x64.zip.sha256
+git commit -m "Stage Project Reverie launcher 1.2.0 release assets"
+git tag launcher-v1.2.0
+git push origin main launcher-v1.2.0
 ```
 
 ## Rollback and key incidents
