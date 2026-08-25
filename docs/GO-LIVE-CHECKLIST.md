@@ -8,9 +8,9 @@ until every required boundary below is proven.
 - [x] Public `Starden/ProjectRebirthDistribution` repository exists.
 - [x] GitHub Pages serves the exact signed stable feed over HTTPS.
 - [x] The launcher ZIP and checksum are published through GitHub Releases.
-- [ ] Signed content 1.4.0 advertises only `134.122.124.150:3724/8087`.
-- [ ] Live manifest, signature, and every payload hash verify after deployment.
-- [ ] Launcher 1.1.0 contains no client, MPQ, credential, VPN profile, or key.
+- [x] Signed content 1.4.0 advertises only `134.122.124.150:3724/8087`.
+- [x] Live manifest, signature, and every payload hash verify after deployment.
+- [x] Launcher 1.1.0 contains no client, MPQ, credential, VPN profile, or key.
 - [ ] The ZIP hash is sent through a separate trusted private channel.
 
 ## VPS gateway and private transport
