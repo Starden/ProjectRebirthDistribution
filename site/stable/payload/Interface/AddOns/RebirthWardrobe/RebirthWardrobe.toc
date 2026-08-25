@@ -1,0 +1,11 @@
+## Interface: 30300
+## Title: Rebirth Wardrobe
+## Notes: Server-authoritative account Wardrobe, outfits, and specialization bindings.
+## Author: Project Rebirth
+## Version: 1.0.1
+## DefaultState: Enabled
+## LoadOnDemand: 0
+## X-Rebirth-Realm: Rebirth
+## X-Rebirth-Wardrobe-Protocol: 1.0
+
+Wardrobe.lua

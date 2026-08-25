@@ -2,7 +2,7 @@
 ## Title: Project Rebirth
 ## Notes: Realm-gated Rebirth progression interface and all-class rank tooltips.
 ## Author: Project Rebirth
-## Version: 1.3.0
+## Version: 1.6.3
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## X-Rebirth-Realm: Rebirth

@@ -9,9 +9,9 @@ param(
     [ValidatePattern('^[A-Fa-f0-9 ]{40,}$')]
     [string]$CertificateThumbprint,
     [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$')]
-    [string]$ContentVersion = '1.3.0',
+    [string]$ContentVersion = '1.4.0',
     [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+$')]
-    [string]$LauncherVersion = '1.0.1',
+    [string]$LauncherVersion = '1.1.0',
     [ValidateRange(1, 90)]
     [int]$ManifestValidityDays = 30,
     [string]$DotNetPath = 'dotnet',
@@ -40,8 +40,11 @@ if ([string]$settings.authAddress -cne '134.122.124.150' -or
 $publisher = Join-Path $LauncherRoot 'tools\Publish-ProjectRebirthClientFeed.ps1'
 $builder = Join-Path $LauncherRoot 'tools\Build-ProjectRebirthPublicLauncher.ps1'
 $trustSource = Join-Path $LauncherRoot 'src\ProjectRebirth.Launcher\UpdateTrust.cs'
-$addonSource = Join-Path $ProjectRoot 'client-addon\ProjectRebirthTooltips'
-foreach ($required in @($publisher, $builder, $trustSource, $addonSource)) {
+$addonSources = @(
+    (Join-Path $ProjectRoot 'client-addon\ProjectRebirthTooltips'),
+    (Join-Path $ProjectRoot 'client-addon\RebirthWardrobe')
+)
+foreach ($required in @($publisher, $builder, $trustSource) + $addonSources) {
     if (-not (Test-Path -LiteralPath $required)) {
         throw "Required Project Rebirth publisher input is missing: $required"
     }
@@ -60,7 +63,7 @@ if (-not $PSCmdlet.ShouldProcess($DistributionRoot, "Create signed public conten
 & $publisher `
     -LauncherRoot $LauncherRoot `
     -ProjectRoot $ProjectRoot `
-    -AddonSource $addonSource `
+    -AddonSource $addonSources `
     -FeedRoot $siteRoot `
     -Channel ([string]$settings.channel) `
     -ContentVersion $ContentVersion `
@@ -68,8 +71,8 @@ if (-not $PSCmdlet.ShouldProcess($DistributionRoot, "Create signed public conten
     -AuthAddress ([string]$settings.authAddress) `
     -AuthPort ([int]$settings.authPort) `
     -WorldPort ([int]$settings.worldPort) `
-    -ReleaseHeadline 'Basic Rebirth progression interface' `
-    -ReleaseSummary 'Adds the server-authoritative Heritage selection card alongside the existing Manifestation and Skill panels; Prototype Heritage remains clearly marked WIP with no effect.' `
+    -ReleaseHeadline 'Rebirth Wardrobe 1.0' `
+    -ReleaseSummary 'Adds the independent account-wide Rebirth Wardrobe, persistent cosmetic slots, outfits, and specialization bindings.' `
     -UpdateKind content `
     -RequiresClientUpdate $true `
     -ManifestValidityDays $ManifestValidityDays `

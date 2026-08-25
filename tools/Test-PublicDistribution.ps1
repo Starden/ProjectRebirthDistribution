@@ -256,7 +256,9 @@ if ($null -ne $manifest) {
     foreach ($entry in @($manifest.files)) {
         $managedPath = [string]$entry.path
         $url = [string]$entry.url
-        if (-not $managedPath.StartsWith('Interface/AddOns/ProjectRebirthTooltips/', [System.StringComparison]::OrdinalIgnoreCase) -or
+        $approvedManagedPath = $managedPath.StartsWith('Interface/AddOns/ProjectRebirthTooltips/', [System.StringComparison]::OrdinalIgnoreCase) -or
+            $managedPath.StartsWith('Interface/AddOns/RebirthWardrobe/', [System.StringComparison]::OrdinalIgnoreCase)
+        if (-not $approvedManagedPath -or
             $managedPath.Contains('\') -or $managedPath.Contains('..') -or $managedPath.Contains(':') -or
             -not $seen.Add($managedPath)) {
             Add-Failure "Unsafe or duplicate managed path: $managedPath"
@@ -296,7 +298,7 @@ if ((Test-Path -LiteralPath $manifestPath -PathType Leaf) -and
             $expectedSpki = 'MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEO8fHaX+xO+04KDR7CaCaPqnuXMZv5BzPbSV9M2ArcR4qxZsSqSvQ5eeat17bt0jweCbe/Xu4wZgrk+6XG9bh2g=='
             $actualSpki = [Convert]::ToBase64String($ecdsa.ExportSubjectPublicKeyInfo())
             if ($actualSpki -cne $expectedSpki) {
-                Add-Failure 'Public verification key differs from the key pinned in launcher 1.0.0'
+                Add-Failure 'Public verification key differs from the key pinned in the launcher'
             }
             elseif (-not $ecdsa.VerifyData(
                 $manifestBytes,
