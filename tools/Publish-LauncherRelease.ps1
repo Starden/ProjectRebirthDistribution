@@ -3,14 +3,19 @@
 [CmdletBinding(SupportsShouldProcess)]
 param(
     [string]$DistributionRoot = (Split-Path -Parent $PSScriptRoot),
-    [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+$')]
-    [string]$Version = '1.2.0'
+    [string]$Version
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $DistributionRoot = [System.IO.Path]::GetFullPath($DistributionRoot)
 $settings = [System.IO.File]::ReadAllText((Join-Path $DistributionRoot 'distribution.settings.json')) | ConvertFrom-Json
+if ([string]::IsNullOrWhiteSpace($Version)) {
+    $Version = [string]$settings.launcherVersion
+}
+if ($Version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+$') {
+    throw "Invalid launcher version: $Version"
+}
 $repository = "$($settings.repositoryOwner)/$($settings.repositoryName)"
 $tag = "launcher-v$Version"
 $assetName = "Project-Reverie-Launcher-$Version-win-x64.zip"

@@ -11,8 +11,7 @@ Included:
 - SHA-256 and size verification for every managed add-on file;
 - strict `ProjectRebirthTooltips` path allowlist;
 - rollback-safe staging and repair;
-- private Rebirth endpoint status checks for `10.50.0.2:3724` and `:8087`.
+- private Rebirth backend status checks for the authentication and world services.
 
 Not included: World of Warcraft, MPQs, game data, account credentials, VPN
 profiles, signing keys, or Authenticode publisher identity.
-

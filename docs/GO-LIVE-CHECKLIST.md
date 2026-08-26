@@ -20,15 +20,15 @@ until every required boundary below is proven.
       closed.
 - [ ] nftables remains default-deny and applies per-source new-connection limits.
 - [ ] HAProxy owns only TCP 3724 and 8087 and both backends are healthy.
-- [ ] HAProxy sends PROXY protocol v2 to `10.50.0.2` over WireGuard.
+- [ ] HAProxy sends PROXY protocol v2 to the private Rebirth host over WireGuard.
 - [ ] The home residential address is absent from launcher files and public docs.
 - [ ] The VPS-to-home WireGuard peer remains private and healthy.
 
 ## Rebirth host
 
-- [x] Auth and world remain bound only to `10.50.0.2`.
+- [x] Auth and world remain bound only to the private Rebirth tunnel address.
 - [x] Auth `EnableProxyProtocol` and world `Network.EnableProxyProtocol` are 1.
-- [x] Windows Firewall allows backend TCP only from `10.50.0.1`.
+- [x] Windows Firewall allows backend TCP only from the VPS gateway peer.
 - [x] MySQL remains loopback-only; MySQL X and PlayerBots 8888 remain absent.
 - [x] Skillful Beta and Development remain loopback-only and unchanged.
 - [x] Realm 1 advertises `134.122.124.150:8087` with local mask
@@ -39,7 +39,7 @@ until every required boundary below is proven.
 
 - [ ] The tester account is unique, non-GM, and explicitly whitelisted.
 - [ ] Wrong-password bans and logs use the original public client address conveyed
-      by PROXY v2, not `10.50.0.1`.
+      by PROXY v2, not the VPS gateway peer address.
 - [ ] HAProxy logs connection metadata but never payloads or credentials.
 - [ ] Account-whitelist revocation is tested independently.
 - [ ] Only the operator and active tester appear enabled in the whitelist.

@@ -36,9 +36,9 @@ exact manifest bytes with the local certificate, builds a launcher whose bootstr
 uses absolute HTTPS URLs, and writes only below this distribution repository.
 
 ```powershell
-$distributionRoot = 'C:\Users\PC\OneDrive\Desktop\Project Skillful\.rebirth-remote-stage\public-feed'
-$launcherRoot = 'D:\Project Rebirth\launcher'
-$projectRoot = 'D:\Project Rebirth'
+$distributionRoot = (Resolve-Path '.').Path
+$launcherRoot = '<LOCAL-LAUNCHER-SOURCE>'
+$projectRoot = '<LOCAL-REBIRTH-PROJECT>'
 $certificateThumbprint = '<LOCAL-ECDSA-CERTIFICATE-THUMBPRINT>'
 
 pwsh -NoProfile -File "$distributionRoot\tools\Prepare-PublicRelease.ps1" `

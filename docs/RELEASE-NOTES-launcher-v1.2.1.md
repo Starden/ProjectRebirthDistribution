@@ -22,6 +22,9 @@ Players need only this launcher ZIP and their own lawful, clean ChromieCraft WoW
 3.3.5a build 12340 client. The archive contains no WoW client, MPQ, credential,
 VPN profile, embedded feed, or signing private key.
 
+The packaged README and player guide label the realm as a closed-alpha prototype,
+describe both managed addons, and explain the current effectless testing boundary.
+
 SHA-256 of `Project-Reverie-Launcher-1.2.1-win-x64.zip`:
 
-`E2516C90B50A48AE8F9151E2CA6C8ECAB04845838DC7E08D7A5F127C1B9EFA7C`
+`1FBF2BF2AC29D8ABB8ABB6EC53E7ABAE819D2E0B62E6DB91DFBD3AAA9C21AE90`

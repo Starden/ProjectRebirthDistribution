@@ -42,6 +42,7 @@ function Test-PublicTree {
     param([Parameter(Mandatory)][string]$Root)
 
     $forbidden = [System.Collections.Generic.List[string]]::new()
+    $textLeaks = [System.Collections.Generic.List[string]]::new()
     foreach ($file in @(Get-ChildItem -LiteralPath $Root -File -Recurse -Force)) {
         $relative = [System.IO.Path]::GetRelativePath($Root, $file.FullName).Replace('\', '/')
         if ($relative.StartsWith('.git/', [System.StringComparison]::OrdinalIgnoreCase) -or
@@ -61,6 +62,13 @@ function Test-PublicTree {
             $hasDataTree) {
             $forbidden.Add($relative)
         }
+
+        if ($file.Extension -in @('.md', '.ps1', '.json', '.yml', '.yaml', '.html', '.txt')) {
+            $text = [System.IO.File]::ReadAllText($file.FullName)
+            if ($text -match '(?i)C:\\Users\\PC(?:\\|/)|D:\\Project Rebirth(?:\\|/)|10\.50\.0\.(?:1|2)\b') {
+                $textLeaks.Add($relative)
+            }
+        }
     }
 
     if ($forbidden.Count -eq 0) {
@@ -69,6 +77,15 @@ function Test-PublicTree {
     else {
         foreach ($finding in $forbidden) {
             Add-Failure "Forbidden public artifact: $finding"
+        }
+    }
+
+    if ($textLeaks.Count -eq 0) {
+        Add-Pass 'Public repository text contains no operator-local paths or private tunnel addresses'
+    }
+    else {
+        foreach ($finding in $textLeaks) {
+            Add-Failure "Private operator/path detail in public text: $finding"
         }
     }
 }

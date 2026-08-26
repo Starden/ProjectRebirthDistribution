@@ -3,8 +3,10 @@
 [CmdletBinding(SupportsShouldProcess)]
 param(
     [string]$DistributionRoot = (Split-Path -Parent $PSScriptRoot),
-    [string]$LauncherRoot = 'D:\Project Rebirth\launcher',
-    [string]$ProjectRoot = 'D:\Project Rebirth',
+    [Parameter(Mandatory)]
+    [string]$LauncherRoot,
+    [Parameter(Mandatory)]
+    [string]$ProjectRoot,
     [Parameter(Mandatory)]
     [ValidatePattern('^[A-Fa-f0-9 ]{40,}$')]
     [string]$CertificateThumbprint,
