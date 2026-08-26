@@ -4,6 +4,11 @@ This release replaces launcher 1.2.0 for public Rebirth testers. Version 1.2.1
 uses the exact Project Reverie GitHub Pages HTTPS manifest and detached-signature
 URLs and does not bundle or permit a local update feed.
 
+This is a **closed-alpha tester release**, not a feature-complete public launch.
+The current realm exposes the effectless Skill/Heritage prototype loop and the
+independent Wardrobe, while the defining Rebirth transaction and production
+progression systems remain under active development.
+
 Signed content 1.5.1 adds:
 
 - exact-Rebirth-realm gating before the progression addon changes stock UI;
