@@ -26,14 +26,14 @@ until every required boundary below is proven.
 
 ## Rebirth host
 
-- [ ] Auth and world remain bound only to `10.50.0.2`.
-- [ ] Auth `EnableProxyProtocol` and world `Network.EnableProxyProtocol` are 1.
-- [ ] Windows Firewall allows backend TCP only from `10.50.0.1`.
-- [ ] MySQL remains loopback-only; MySQL X and PlayerBots 8888 remain absent.
-- [ ] Skillful Beta and Development remain loopback-only and unchanged.
-- [ ] Realm 1 advertises `134.122.124.150:8087` with local mask
+- [x] Auth and world remain bound only to `10.50.0.2`.
+- [x] Auth `EnableProxyProtocol` and world `Network.EnableProxyProtocol` are 1.
+- [x] Windows Firewall allows backend TCP only from `10.50.0.1`.
+- [x] MySQL remains loopback-only; MySQL X and PlayerBots 8888 remain absent.
+- [x] Skillful Beta and Development remain loopback-only and unchanged.
+- [x] Realm 1 advertises `134.122.124.150:8087` with local mask
       `255.255.255.255`.
-- [ ] Rebirth account access remains enabled, enforcing, and fail-closed.
+- [x] Rebirth account access remains enabled, enforcing, and fail-closed.
 
 ## Identity, logging, and revocation
 
