@@ -9,13 +9,14 @@ The current realm exposes the effectless Skill/Heritage prototype loop and the
 independent Wardrobe, while the defining Rebirth transaction and production
 progression systems remain under active development.
 
-Signed content 1.5.1 adds:
+The live signed feed now serves content 1.6.0. In addition to the security and
+realm-gating repairs shipped with launcher 1.2.1, content 1.6.0 adds:
 
-- exact-Rebirth-realm gating before the progression addon changes stock UI;
-- acceptance of progression state only through the local player's authenticated
-  self-whisper addon channel;
-- an explicit confirmation step before permanent current-Life Heritage selection;
-- accurate addon version reporting; and
+- a one-to-three-card Project Reverie Manifestation choice popup;
+- durable Later/relog reminders and combat-deferred presentation;
+- rarity-colored Skill cards with a separate Claim action and confirmed
+  Decline All action;
+- strict multipart Manifestation protocol 2 snapshots; and
 - the independent Rebirth Wardrobe 1.0.1 unchanged.
 
 Players need only this launcher ZIP and their own lawful, clean ChromieCraft WoW

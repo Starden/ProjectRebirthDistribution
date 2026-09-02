@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "product": "Project Reverie",
   "channel": "stable",
-  "contentVersion": "1.5.1",
-  "publishedAtUtc": "2026-08-25T23:34:16.2321385Z",
-  "expiresAtUtc": "2026-09-24T23:34:16.2321385Z",
+  "contentVersion": "1.6.0",
+  "publishedAtUtc": "2026-09-02T20:45:39.4017445Z",
+  "expiresAtUtc": "2026-10-02T20:45:39.4017445Z",
   "minimumLauncherVersion": "1.2.1",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
@@ -16,9 +16,9 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "Project Reverie — Rebirth security update",
-    "summary": "Hardens Rebirth realm isolation, authenticated addon responses, and permanent Heritage confirmation while retaining the independent Rebirth Wardrobe.",
-    "updateKind": "hotfix",
+    "headline": "Project Reverie — Manifestation choices",
+    "summary": "Adds the Project Reverie one-to-three-card Manifestation choice experience with durable reminders, strict protocol 2, and server-authoritative selection.",
+    "updateKind": "content",
     "requiresClientUpdate": true
   },
   "files": [
@@ -43,8 +43,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
-      "size": 565,
-      "sha256": "AF082B788F81711E9562E9D32B7D59943C7132A38A5679FBD922DD8206CCC398"
+      "size": 566,
+      "sha256": "ECA13BE752C5CD526547F57AD533273B9699E8EC750DBD596B84CB320A37652B"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/RankData.lua",
@@ -55,8 +55,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
-      "size": 44962,
-      "sha256": "5A19AA646E8A081A34C5A5448BECD6D4148B42471CE6DCBD173B1F6F47881E73"
+      "size": 82683,
+      "sha256": "31695DAD9B5003320293F7E7222AE3FE51CA57E93EC200E0A1F9315D84160E21"
     },
     {
       "path": "Interface/AddOns/RebirthWardrobe/RebirthWardrobe.toc",

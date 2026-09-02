@@ -1,5 +1,5 @@
 local PREFIX = "ProjectRebirth"
-local PROTOCOL = "1"
+local PROTOCOL = "2"
 local REALM = "Rebirth"
 local BRAND_TEXTURE = "Interface\\AddOns\\ProjectRebirthTooltips\\Media\\ProjectReverie"
 
@@ -37,8 +37,17 @@ local offerRarity
 local offerSummary
 local acceptButton
 local declineButton
+local choiceFrame
+local choiceCards = {}
+local choiceSubtitle
+local claimButton
+local declineAllButton
+local laterButton
+local pendingGlow
+local pendingCount
 local footnote
 local searchBox
+local inspectButton
 local loadoutSlots = {}
 local rebirthLifeText
 local rebirthLevelText
@@ -49,10 +58,22 @@ local rebirthNextText
 local skillButtons = {}
 local heritageButtons = {}
 local selectedSkillId
-local selectedHeritageId = 1001
+local selectedHeritageId = 1101
+local selectedChoiceOrdinal
+local selectedChoiceOpportunityId
 local panelWanted = false
 local actionPending = false
+local offerAssembly
+local reopenChoiceAfterSnapshot = false
+local deferredOfferReveal = false
+local revealedOpportunityId
+local resolvedOpportunities = {}
+local offerVersions = {}
+local offerFingerprints = {}
+local lastOfferResyncAt = -10
 local Render
+local RenderChoiceFrame
+local ShowManifestationChoices
 
 local SKILL_ICON = "Interface\\Icons\\INV_Misc_QuestionMark"
 local HERITAGE_ICON = "Interface\\Icons\\INV_Misc_Rune_01"
@@ -67,16 +88,29 @@ local state = {
     complete = true,
     total = 0,
     skills = {},
+    inspectedName = nil,
     offer = nil,
+    heritages = {},
     heritage = {
         status = "waiting",
         selected = false,
-        id = 1001,
+        id = 1101,
         rank = 0,
         xp = 0,
         canSelect = false,
         effects = false,
-        name = "Prototype Heritage 001",
+        maxRank = 100,
+        nextThreshold = 0,
+        bonusMilli = 0,
+        eligible = true,
+        eligibilityReason = "",
+        progressionScope = "life",
+        reputationBonusMilli = 0,
+        cooldownSeconds = 0,
+        hasteBonusMilli = 0,
+        hasteSecondsRemaining = 0,
+        hasteActive = false,
+        name = "Paragon",
         summary = "Waiting for authoritative server state.",
     },
     notice = nil,
@@ -101,6 +135,9 @@ local notices = {
     denied_actor = "Only an authenticated human player can use this progression action.",
     disabled = "This Rebirth progression action is currently disabled.",
     no_open_offer = "There is no open Skill offer.",
+    invalid_choice = "That Manifestation choice is not available.",
+    stale_offer = "That Manifestation changed. Fresh choices are being requested.",
+    expired_offer = "That Manifestation expired. Fresh state is being requested.",
     capacity_blocked = "No Skill slot is currently available.",
     conflict = "The Skill state changed. The panel has been refreshed.",
     persistence_failed = "The server could not persist that action.",
@@ -108,6 +145,8 @@ local notices = {
     unsupported_version = "This addon protocol does not match the server.",
     malformed = "The server rejected a malformed addon request.",
     unknown_request = "The server rejected an unknown addon request.",
+    inspect_target_unavailable = "That player or PlayerBot is not currently available for build inspection.",
+    ineligible_race = "This Heritage is not available to your current race.",
 }
 
 local function Rarity(id)
@@ -137,6 +176,27 @@ local function DecodeField(value)
     end)
 end
 
+local function HumanizeCode(value)
+    local text = string.gsub(value or "", "_", " ")
+    return text ~= "" and text or "unclassified"
+end
+
+local function FormatMilliValue(valueMilli, unitCode)
+    local value = (tonumber(valueMilli) or 0) / 1000
+    local numberText
+    if value == math.floor(value) then
+        numberText = string.format("%d", value)
+    else
+        numberText = string.format("%.2f", value)
+        numberText = string.gsub(numberText, "0+$", "")
+        numberText = string.gsub(numberText, "%.$", "")
+    end
+    if unitCode == "percent" or unitCode == "percentage_points" then
+        return numberText .. "%"
+    end
+    return numberText .. " " .. HumanizeCode(unitCode)
+end
+
 local function IsLocalPlayerSender(sender)
     local playerName = UnitName and UnitName("player")
     if not playerName or playerName == "" or not sender or sender == "" then
@@ -158,6 +218,9 @@ local function UpdateActivation()
     if panel and not active then
         panel:Hide()
     end
+    if choiceFrame and not active then
+        choiceFrame:Hide()
+    end
 end
 
 local function SendRequest(request)
@@ -176,6 +239,83 @@ local function ApplyCardBackdrop(frame, red, green, blue)
     })
     frame:SetBackdropColor(red or 0.035, green or 0.045, blue or 0.07, 0.98)
     frame:SetBackdropBorderColor(0.28, 0.34, 0.45, 1)
+end
+
+local function ParseInteger(value, minimum, maximum)
+    if not value or not string.match(value, "^-?%d+$") then
+        return nil
+    end
+    local number = tonumber(value)
+    if not number or number ~= math.floor(number) or number < minimum or number > maximum then
+        return nil
+    end
+    return number
+end
+
+local function IsEncodedField(value)
+    if value == nil or string.len(value) > 220 then
+        return false
+    end
+    local offset = 1
+    while true do
+        local marker = string.find(value, "%", offset, true)
+        if not marker then
+            return true
+        end
+        if marker + 2 > string.len(value) or not string.match(string.sub(value, marker + 1, marker + 2), "^%x%x$") then
+            return false
+        end
+        offset = marker + 3
+    end
+end
+
+local function UpdatePendingIndicator()
+    local pending = state.offer ~= nil and not state.offer.expired
+    if pendingGlow then
+        if pending then
+            pendingGlow:Show()
+            toggleButton:SetScript("OnUpdate", function()
+                pendingGlow:SetAlpha(0.42 + (0.20 * math.sin((GetTime() or 0) * 4)))
+            end)
+        else
+            pendingGlow:Hide()
+            toggleButton:SetScript("OnUpdate", nil)
+        end
+    end
+    if pendingCount then
+        pendingCount:SetText(pending and tostring(state.offer.count or 0) or "")
+        if pending then pendingCount:Show() else pendingCount:Hide() end
+    end
+end
+
+local function ClearOfferState()
+    state.offer = nil
+    selectedChoiceOrdinal = nil
+    selectedChoiceOpportunityId = nil
+    offerAssembly = nil
+    deferredOfferReveal = false
+    reopenChoiceAfterSnapshot = false
+    if choiceFrame then
+        choiceFrame:Hide()
+    end
+    UpdatePendingIndicator()
+end
+
+local function RejectOfferSnapshot(reason)
+    offerAssembly = nil
+    state.offer = nil
+    selectedChoiceOrdinal = nil
+    selectedChoiceOpportunityId = nil
+    deferredOfferReveal = false
+    if choiceFrame then choiceFrame:Hide() end
+    state.notice = reason or "The server sent an incomplete Manifestation choice set; refreshing."
+    UpdatePendingIndicator()
+    local now = GetTime and GetTime() or 0
+    if now == 0 or now - lastOfferResyncAt >= 1 then
+        lastOfferResyncAt = now
+        SendRequest("STATE")
+    end
+    if Render then Render() end
 end
 
 local function ConfigureGridButton(button, size)
@@ -223,6 +363,15 @@ local function FindSkill(skillId)
     for _, skill in ipairs(state.skills) do
         if skill.id == skillId then
             return skill
+        end
+    end
+    return nil
+end
+
+local function FindHeritage(heritageId)
+    for _, heritage in ipairs(state.heritages or {}) do
+        if tonumber(heritage.id) == tonumber(heritageId) then
+            return heritage
         end
     end
     return nil
@@ -295,14 +444,22 @@ local function RenderLoadoutSlots()
 end
 
 local function RenderSkillTab()
+    if inspectButton then
+        inspectButton:SetText(state.inspectedName and "My Build" or "Inspect Target")
+    end
     capacityText:SetText(string.format("Current Life Slots: |cff73e6ff%d / %d|r", state.owned, state.capacity))
+    if state.inspectedName then
+        capacityText:SetText(string.format("Inspecting |cff73e6ff%s|r: %d / %d Skills",
+            state.inspectedName, state.owned, state.capacity))
+    end
     if state.owned > state.capacity then
         capacityText:SetText(string.format("Current Life Slots: |cffff6666%d / %d — protected overflow|r", state.owned, state.capacity))
     end
     RenderLoadoutSlots()
 
     local filteredSkills = GetFilteredSkills()
-    skillCountLabel:SetText(string.format("Owned Skill Library (%d)%s", state.total,
+    skillCountLabel:SetText(string.format("%sSkill Library (%d)%s",
+        state.inspectedName and (state.inspectedName .. " — ") or "Owned ", state.total,
         state.complete and "" or " — partial display"))
     if #state.skills == 0 then
         skillCountLabel:SetText(state.ownershipAvailable and "Owned Skill Library (0)" or "Owned Skill Library — unavailable")
@@ -333,7 +490,8 @@ local function RenderSkillTab()
         button:SetBackdropBorderColor(rarity.color[1], rarity.color[2], rarity.color[3], 1)
         button.rank:SetText(skill.rank > 0 and skill.rank or "")
         button.tooltipName = skill.name
-        button.tooltipMeta = string.format("%s • Rank %d • %d XP", rarity.name, skill.rank, skill.xp)
+        button.tooltipMeta = string.format("%s • Rank %d • Skill XP inactive • %s", rarity.name,
+            skill.rank, FormatMilliValue(skill.valueMilli, skill.unit))
         button.entryId = skill.id
         if selectedSkillId == skill.id then
             button.selection:Show()
@@ -360,24 +518,58 @@ local function RenderSkillTab()
     skillDetailIcon:SetTexture(skill.icon or SKILL_ICON)
     skillDetailName:SetText(skill.name)
     skillDetailName:SetTextColor(rarity.color[1], rarity.color[2], rarity.color[3])
-    skillDetailMeta:SetText(string.format("%s  •  Rank %d  •  %d XP  •  %s%s", rarity.name,
-        skill.rank, skill.xp, tierText, skill.effects and "" or "  •  WIP / no effect"))
-    skillDetailSummary:SetText(skill.summary)
+    skillDetailMeta:SetText(string.format("%s  •  Rank %d  •  Skill XP inactive  •  %s%s", rarity.name,
+        skill.rank, tierText, skill.effects and "  •  test effect active" or "  •  test effect inactive"))
+    local valueText = FormatMilliValue(skill.valueMilli, skill.unit)
+    local bucketTotalText = FormatMilliValue(skill.bucketTotalMilli, skill.unit)
+    skillDetailSummary:SetText((skill.summary or "") ..
+        "\n\n|cff20ff20Skill bonus: " .. valueText .. "|r" ..
+        "\n|cff73e6ffStacking bucket:|r " .. HumanizeCode(skill.bucket) ..
+        "  |cff9aa6bf(combined " .. bucketTotalText .. ")|r" ..
+        "\n|cff73e6ffRuntime adapter:|r " .. HumanizeCode(skill.adapter) ..
+        ((skill.runtimeDetail and skill.runtimeDetail ~= "") and
+            ("\n|cff20ff20Runtime state:|r " .. skill.runtimeDetail) or "") ..
+        (skill.bucket == "attack_power_pct" and
+            "\n|cff20ff20Character sheet:|r green AP is the current percentage-derived point equivalent." or ""))
     skillDetailFrame:SetBackdropBorderColor(rarity.color[1], rarity.color[2], rarity.color[3], 1)
 end
 
 local function RenderHeritageTab()
-    local heritage = state.heritage or {}
-    heritage.id = tonumber(heritage.id) or 1001
+    local heritages = state.heritages or {}
+    if #heritages == 0 and state.heritage then
+        heritages = { state.heritage }
+    end
+    local heritage = FindHeritage(selectedHeritageId)
+    if not heritage then
+        for _, entry in ipairs(heritages) do
+            if entry.selected then
+                heritage = entry
+                break
+            end
+        end
+    end
+    heritage = heritage or heritages[1] or state.heritage or {}
+    heritage.id = tonumber(heritage.id) or 1101
     heritage.rank = tonumber(heritage.rank) or 0
     heritage.xp = tonumber(heritage.xp) or 0
-    heritage.name = heritage.name ~= "" and heritage.name or "Prototype Heritage 001"
-    heritage.summary = heritage.summary ~= "" and heritage.summary or "Work in progress; no gameplay effect."
+    heritage.maxRank = tonumber(heritage.maxRank) or 100
+    heritage.nextThreshold = tonumber(heritage.nextThreshold) or 0
+    heritage.bonusMilli = tonumber(heritage.bonusMilli) or 0
+    heritage.eligible = heritage.eligible ~= false
+    heritage.eligibilityReason = heritage.eligibilityReason or ""
+    heritage.progressionScope = heritage.progressionScope or "life"
+    heritage.reputationBonusMilli = tonumber(heritage.reputationBonusMilli) or 0
+    heritage.cooldownSeconds = tonumber(heritage.cooldownSeconds) or 0
+    heritage.hasteBonusMilli = tonumber(heritage.hasteBonusMilli) or 0
+    heritage.hasteSecondsRemaining = tonumber(heritage.hasteSecondsRemaining) or 0
+    heritage.hasteActive = heritage.hasteActive == true
+    heritage.name = heritage.name ~= "" and heritage.name or "Paragon"
+    heritage.summary = heritage.summary ~= "" and heritage.summary or
+        "Gain 10% of source experience as Heritage XP. Each Rank grants +0.1% to all primary stats."
     selectedHeritageId = heritage.id
-    heritageCountLabel:SetText("Heritages (1 available)")
+    heritageCountLabel:SetText(string.format("Heritages (%d available)", #heritages))
 
     HideGridButtons(heritageButtons)
-    local heritages = { heritage }
     for index, entry in ipairs(heritages) do
         local button = AcquireHeritageButton(index)
         local column = (index - 1) % 4
@@ -385,39 +577,318 @@ local function RenderHeritageTab()
         button:ClearAllPoints()
         button:SetPoint("TOPLEFT", heritageGridChild, "TOPLEFT", column * 68, -(row * 62))
         button.icon:SetTexture(HERITAGE_ICON)
-        button.entryId = entry.id or 1001
+        button.entryId = entry.id or 1101
         button.rank:SetText((tonumber(entry.rank) or 0) > 0 and entry.rank or "")
-        button.tooltipName = entry.name or "Prototype Heritage 001"
-        button.tooltipMeta = entry.selected and
-            string.format("Rank %d • %d XP • Locked", tonumber(entry.rank) or 0, tonumber(entry.xp) or 0) or
-            "Not selected • Permanent for this Life"
+        button.tooltipName = entry.name or "Paragon"
+        local scopeLabel = entry.progressionScope == "character" and "Persists across Rebirth" or "Current Life"
+        if entry.eligible == false then
+            button.tooltipMeta = (entry.eligibilityReason ~= "" and entry.eligibilityReason or "Unavailable to your current race") ..
+                " • " .. scopeLabel
+        elseif entry.selected then
+            button.tooltipMeta = string.format("Rank %d / %d • %d XP • %s all stats • %s • Locked",
+                tonumber(entry.rank) or 0, tonumber(entry.maxRank) or 100,
+                tonumber(entry.xp) or 0, FormatMilliValue(entry.bonusMilli, "percent"), scopeLabel)
+        else
+            button.tooltipMeta = string.format("Not selected • Rank 1–%d • %s",
+                tonumber(entry.maxRank) or 0, scopeLabel)
+        end
+        button.icon:SetDesaturated(entry.eligible == false)
         if selectedHeritageId == button.entryId then
             button.selection:Show()
         else
             button.selection:Hide()
         end
-        button:SetBackdropBorderColor(0.45, 0.90, 1.00, 1)
+        if entry.eligible == false then
+            button:SetBackdropBorderColor(0.35, 0.35, 0.38, 1)
+        else
+            button:SetBackdropBorderColor(0.45, 0.90, 1.00, 1)
+        end
         button:Show()
     end
     heritageGridChild:SetHeight(math.max(3, math.ceil(#heritages / 4)) * 62)
 
     heritageDetailIcon:SetTexture(HERITAGE_ICON)
-    heritageDetailName:SetText(heritage.name or "Prototype Heritage 001")
+    heritageDetailName:SetText(heritage.name or "Paragon")
     heritageDetailName:SetTextColor(0.45, 0.90, 1.00)
-    heritageDetailSummary:SetText(heritage.summary or "Work in progress; no gameplay effect.")
+    local progressText
+    if heritage.selected and heritage.rank >= heritage.maxRank then
+        progressText = "Maximum Rank reached"
+    elseif heritage.selected and heritage.nextThreshold > 0 then
+        progressText = string.format("Next Rank at %d total Heritage XP (%d remaining)",
+            heritage.nextThreshold, math.max(0, heritage.nextThreshold - heritage.xp))
+    else
+        progressText = "Progress begins after selection"
+    end
+    local scopeText = heritage.progressionScope == "character" and
+        "Rank and XP persist across Rebirth and become dormant while race-ineligible." or
+        "Rank and XP belong to the current Life."
+    local eligibilityText = heritage.eligible and "Eligible for your current race" or
+        (heritage.eligibilityReason ~= "" and heritage.eligibilityReason or "Unavailable to your current race")
+    local effectColor = heritage.selected and heritage.eligible and "|cff20ff20" or "|cff9aa6bf"
+    local racialDetails = ""
+    if heritage.cooldownSeconds > 0 then
+        racialDetails = racialDetails .. "\n|cff73e6ffEvery Man for Himself cooldown:|r " ..
+            heritage.cooldownSeconds .. " seconds"
+    end
+    if heritage.hasteBonusMilli > 0 then
+        local hasteState = heritage.hasteActive and "active" or
+            (heritage.hasteSecondsRemaining > 0 and "suppressed by a stronger haste effect" or "ready on next successful racial use")
+        racialDetails = racialDetails .. "\n|cff73e6ffRacial haste:|r " ..
+            FormatMilliValue(heritage.hasteBonusMilli, "percent") .. " for 40 seconds — " .. hasteState
+    end
+    heritageDetailSummary:SetText((heritage.summary or "") ..
+        "\n\n|cff73e6ffEligibility:|r " .. eligibilityText ..
+        "\n|cff73e6ffProgression:|r " .. scopeText ..
+        "\n" .. effectColor .. "Current all-stat bonus: " .. FormatMilliValue(heritage.bonusMilli, "percent") .. "|r" ..
+        (heritage.reputationBonusMilli > 0 and
+            ("\n" .. effectColor .. "Positive reputation bonus: " ..
+                FormatMilliValue(heritage.reputationBonusMilli, "percent") .. "|r") or "") ..
+        racialDetails ..
+        "\n|cff73e6ffProgress:|r " .. progressText ..
+        "\n|cff9aa6bfHeritage receives exactly 10% of eligible source XP; fractional credit is retained.|r")
     if heritage.selected then
-        heritageDetailMeta:SetText(string.format("Rank %d  •  %d XP  •  Locked for this Life%s",
-            tonumber(heritage.rank) or 0, tonumber(heritage.xp) or 0,
-            heritage.effects and "" or "  •  WIP / no effect"))
-        heritageWarning:SetText("This Heritage is permanently selected for the current Life.")
+        heritageDetailMeta:SetText(string.format("Rank %d / %d  •  %d XP  •  %s all stats  •  Locked",
+            heritage.rank, heritage.maxRank, heritage.xp,
+            FormatMilliValue(heritage.bonusMilli, "percent")))
+        if heritage.eligible then
+            heritageWarning:SetText(heritage.progressionScope == "character" and
+                "Selected permanently; its progression persists across Rebirth." or
+                "This Heritage is permanently selected for the current Life.")
+        else
+            heritageWarning:SetText("Selected but dormant: " .. eligibilityText)
+        end
         heritageButton:SetText("Selected")
         SetButtonEnabled(heritageButton, false)
     else
-        heritageDetailMeta:SetText("Not selected  •  Rank 0  •  0 XP  •  WIP / no effect")
-        heritageWarning:SetText("Selection is permanent for this current Life.")
+        heritageDetailMeta:SetText(string.format("Not selected  •  Ranks 1–%d",
+            heritage.maxRank))
+        if not heritage.eligible then
+            heritageWarning:SetText(eligibilityText)
+        elseif heritage.progressionScope == "character" then
+            heritageWarning:SetText("Selection is permanent; Rank and XP persist across Rebirth.")
+        else
+            heritageWarning:SetText("Selection is permanent for this current Life.")
+        end
         heritageButton:SetText("Select Heritage")
         SetButtonEnabled(heritageButton, heritage.canSelect and not actionPending)
     end
+end
+
+local function ChoiceDetailText(choice)
+    local rankCurve = choice.rankCurve
+    if tonumber(rankCurve) then
+        rankCurve = "Curve " .. rankCurve .. " (server-authoritative Tier " .. tostring(choice.tier) .. " schedule)"
+    else
+        rankCurve = HumanizeCode(rankCurve)
+    end
+    return (choice.detail ~= "" and choice.detail or choice.shortEffect or "") ..
+        "\n\n|cff73e6ffRank I value:|r |cff20ff20" .. FormatMilliValue(choice.valueMilli, choice.unit) .. "|r" ..
+        "\n|cff73e6ffXP / Rank curve:|r " .. rankCurve ..
+        "\n|cff73e6ffStacking:|r " .. HumanizeCode(choice.stacking) ..
+        "\n|cff73e6ffStacking bucket:|r " .. HumanizeCode(choice.bucket) ..
+        "\n|cff73e6ffRuntime adapter:|r " .. HumanizeCode(choice.adapter) ..
+        "\n|cff73e6ffSource:|r " .. (choice.sourceContext ~= "" and choice.sourceContext or "Manifestation")
+end
+
+local function OfferFingerprint(offer)
+    local parts = { tostring(offer.count), offer.expired and "1" or "0" }
+    for ordinal = 1, offer.count do
+        local choice = offer.choices[ordinal]
+        table.insert(parts, table.concat({ tostring(choice.skillId), tostring(choice.rarityId),
+            tostring(choice.tier), choice.name, choice.shortEffect, choice.detail, choice.sourceContext,
+            tostring(choice.valueMilli), choice.unit, choice.bucket, choice.adapter, choice.rankCurve,
+            choice.stacking }, "|"))
+    end
+    return table.concat(parts, "#")
+end
+
+local function AcquireChoiceCard(index)
+    if choiceCards[index] then
+        return choiceCards[index]
+    end
+
+    local card = CreateFrame("Button", nil, choiceFrame)
+    card:SetWidth(596)
+    card:RegisterForClicks("LeftButtonUp")
+    ApplyCardBackdrop(card, 0.025, 0.035, 0.075)
+    card.highlight = card:CreateTexture(nil, "BACKGROUND")
+    card.highlight:SetPoint("TOPLEFT", card, "TOPLEFT", 5, -5)
+    card.highlight:SetPoint("BOTTOMRIGHT", card, "BOTTOMRIGHT", -5, 5)
+    card.highlight:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
+    card.highlight:SetBlendMode("ADD")
+    card.highlight:SetAlpha(0.22)
+    card.highlight:Hide()
+    card.icon = card:CreateTexture(nil, "ARTWORK")
+    card.icon:SetWidth(54)
+    card.icon:SetHeight(54)
+    card.icon:SetPoint("TOPLEFT", card, "TOPLEFT", 16, -16)
+    card.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
+    card.name = card:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    card.name:SetPoint("TOPLEFT", card, "TOPLEFT", 84, -15)
+    card.name:SetPoint("RIGHT", card, "RIGHT", -18, 0)
+    card.name:SetJustifyH("LEFT")
+    card.meta = card:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    card.meta:SetPoint("TOPLEFT", card.name, "BOTTOMLEFT", 0, -4)
+    card.meta:SetPoint("RIGHT", card, "RIGHT", -18, 0)
+    card.meta:SetJustifyH("LEFT")
+    card.short = card:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    card.short:SetPoint("TOPLEFT", card.meta, "BOTTOMLEFT", 0, -5)
+    card.short:SetPoint("RIGHT", card, "RIGHT", -18, 0)
+    card.short:SetJustifyH("LEFT")
+    card.details = card:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    card.details:SetPoint("TOPLEFT", card, "TOPLEFT", 18, -88)
+    card.details:SetPoint("RIGHT", card, "RIGHT", -18, 0)
+    card.details:SetJustifyH("LEFT")
+    card.details:SetJustifyV("TOP")
+    card.details:Hide()
+    card:SetScript("OnClick", function(self)
+        if actionPending or not self.choiceOrdinal then return end
+        selectedChoiceOrdinal = self.choiceOrdinal
+        selectedChoiceOpportunityId = state.offer and state.offer.opportunityId or nil
+        RenderChoiceFrame()
+    end)
+    card:SetScript("OnEnter", function(self)
+        if not self.choice then return end
+        local rarity = Rarity(self.choice.rarityId)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:AddLine(self.choice.name, rarity.color[1], rarity.color[2], rarity.color[3])
+        GameTooltip:AddLine(self.choice.shortEffect or "", 1, 1, 1, true)
+        GameTooltip:AddLine(ChoiceDetailText(self.choice), 0.72, 0.82, 1.00, true)
+        GameTooltip:Show()
+    end)
+    card:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    choiceCards[index] = card
+    return card
+end
+
+RenderChoiceFrame = function()
+    if not choiceFrame then return end
+    local offer = state.offer
+    if not offer then
+        choiceFrame:Hide()
+        return
+    end
+
+    choiceSubtitle:SetText(string.format("Choose one permanent Skill  •  Life %d  •  %d choice%s",
+        state.lifeId > 0 and state.lifeId or 1, offer.count, offer.count == 1 and "" or "s"))
+    local top = -88
+    local totalCardHeight = 0
+    for index = 1, 3 do
+        local card = AcquireChoiceCard(index)
+        local choice = offer.choices[index]
+        if choice then
+            local selected = selectedChoiceOrdinal == choice.ordinal
+            local height = selected and 190 or 90
+            local rarity = Rarity(choice.rarityId)
+            local tierText = choice.tier > 0 and ("Tier " .. choice.tier) or "Tier WIP"
+            card:ClearAllPoints()
+            card:SetPoint("TOP", choiceFrame, "TOP", 0, top)
+            card:SetHeight(height)
+            card.choiceOrdinal = choice.ordinal
+            card.choice = choice
+            card.icon:SetTexture(choice.icon ~= "" and choice.icon or OFFER_ICON)
+            card.name:SetText(choice.name)
+            card.name:SetTextColor(rarity.color[1], rarity.color[2], rarity.color[3])
+            card.meta:SetText(string.format("%s  •  %s  •  Choice %d", rarity.name, tierText, choice.ordinal))
+            card.short:SetText(choice.shortEffect)
+            card.details:SetText(ChoiceDetailText(choice))
+            card.highlight:SetVertexColor(rarity.color[1], rarity.color[2], rarity.color[3])
+            card:SetBackdropBorderColor(rarity.color[1], rarity.color[2], rarity.color[3], selected and 1 or 0.82)
+            if selected then
+                card.highlight:Show()
+                card.details:Show()
+            else
+                card.highlight:Hide()
+                card.details:Hide()
+            end
+            card:Show()
+            top = top - height - 10
+            totalCardHeight = totalCardHeight + height + 10
+        else
+            card.choiceOrdinal = nil
+            card.choice = nil
+            card:Hide()
+        end
+    end
+
+    choiceFrame:SetHeight(146 + totalCardHeight)
+    SetButtonEnabled(claimButton, selectedChoiceOrdinal ~= nil and not offer.expired and not actionPending)
+    SetButtonEnabled(declineAllButton, not actionPending)
+    SetButtonEnabled(laterButton, not actionPending)
+end
+
+ShowManifestationChoices = function(firstReveal)
+    if not state.offer or state.offer.expired then return end
+    if (UnitAffectingCombat and UnitAffectingCombat("player")) or
+        (InCombatLockdown and InCombatLockdown()) then
+        deferredOfferReveal = true
+        UpdatePendingIndicator()
+        return
+    end
+
+    deferredOfferReveal = false
+    if selectedChoiceOpportunityId ~= state.offer.opportunityId or not selectedChoiceOrdinal or
+        not state.offer.choices[selectedChoiceOrdinal] then
+        selectedChoiceOrdinal = nil
+        selectedChoiceOpportunityId = nil
+    end
+    RenderChoiceFrame()
+    choiceFrame:Show()
+    if firstReveal and revealedOpportunityId ~= state.offer.opportunityId then
+        revealedOpportunityId = state.offer.opportunityId
+        if UIFrameFadeIn then UIFrameFadeIn(choiceFrame, 0.22, 0, 1) end
+        if PlaySound then PlaySound("igQuestListOpen") end
+        choiceFrame.revealGlow:SetAlpha(0.58)
+        choiceFrame.revealGlow:Show()
+        choiceFrame.revealElapsed = 0
+        choiceFrame:SetScript("OnUpdate", function(self, elapsed)
+            self.revealElapsed = self.revealElapsed + elapsed
+            self.revealGlow:SetAlpha(math.max(0, 0.58 * (1 - self.revealElapsed)))
+            if self.revealElapsed >= 1 then
+                self.revealGlow:Hide()
+                self:SetScript("OnUpdate", nil)
+            end
+        end)
+    end
+end
+
+local function CommitOfferSnapshot(offer)
+    if resolvedOpportunities[offer.opportunityId] then
+        RejectOfferSnapshot("A resolved Manifestation snapshot was discarded; refreshing.")
+        return
+    end
+    if offerVersions[offer.opportunityId] and offer.rowVersion < offerVersions[offer.opportunityId] then
+        RejectOfferSnapshot("A stale Manifestation snapshot was discarded; refreshing.")
+        return
+    end
+    if offer.expired then
+        RejectOfferSnapshot("That Manifestation has expired; refreshing authoritative state.")
+        return
+    end
+    local fingerprint = OfferFingerprint(offer)
+    if offerFingerprints[offer.opportunityId] and offerFingerprints[offer.opportunityId] ~= fingerprint then
+        RejectOfferSnapshot("A conflicting Manifestation snapshot was discarded; refreshing.")
+        return
+    end
+    local wasOpen = reopenChoiceAfterSnapshot
+    if selectedChoiceOpportunityId ~= offer.opportunityId then
+        selectedChoiceOrdinal = nil
+        selectedChoiceOpportunityId = nil
+    end
+    state.offer = offer
+    offerVersions[offer.opportunityId] = offer.rowVersion
+    offerFingerprints[offer.opportunityId] = fingerprint
+    offerAssembly = nil
+    reopenChoiceAfterSnapshot = false
+    UpdatePendingIndicator()
+    if wasOpen then
+        ShowManifestationChoices(false)
+    elseif revealedOpportunityId ~= offer.opportunityId then
+        ShowManifestationChoices(true)
+    elseif choiceFrame and choiceFrame:IsShown() then
+        RenderChoiceFrame()
+    end
+    if Render then Render() end
 end
 
 local function RenderManifestationTab()
@@ -426,26 +897,27 @@ local function RenderManifestationTab()
         offerIcon:SetTexture(OFFER_ICON)
         offerName:SetText("No active Manifestation")
         offerName:SetTextColor(0.62, 0.62, 0.62)
-        offerRarity:SetText("The server has no open Skill offer for this Life.")
-        offerSummary:SetText("When a Manifestation offer is available, its Skill details and server-authoritative Accept or Decline actions will appear here.")
+        offerRarity:SetText("The server has no open Skill choice for this Life.")
+        offerSummary:SetText("New Manifestations appear here after the server freezes every eligible choice. " ..
+            "Closing a choice window safely postpones it without changing server state.")
         acceptButton:Hide()
         declineButton:Hide()
         return
     end
 
-    local rarity = Rarity(state.offer.rarityId)
-    local tierText = state.offer.tier and state.offer.tier > 0 and ("Tier " .. state.offer.tier) or "Tier WIP"
-    offerFrame:SetBackdropBorderColor(rarity.color[1], rarity.color[2], rarity.color[3], 1)
-    offerIcon:SetTexture(state.offer.icon or OFFER_ICON)
-    offerName:SetText(state.offer.name)
-    offerName:SetTextColor(rarity.color[1], rarity.color[2], rarity.color[3])
-    offerRarity:SetText(string.format("%s Manifestation Offer  •  %s%s", rarity.name, tierText,
-        state.offer.expired and "  •  expired" or ""))
-    offerSummary:SetText(state.offer.summary)
+    offerFrame:SetBackdropBorderColor(0.42, 0.34, 0.78, 1)
+    offerIcon:SetTexture(BRAND_TEXTURE)
+    offerName:SetText("Manifestation awaiting your choice")
+    offerName:SetTextColor(0.55, 0.82, 1.00)
+    offerRarity:SetText(string.format("%d frozen Skill choice%s  •  Opportunity %d",
+        state.offer.count, state.offer.count == 1 and "" or "s", state.offer.opportunityId))
+    offerSummary:SetText("Select one permanent, capacity-consuming Rebirth Skill from the server-authored choices. " ..
+        "Later, Close, and Escape postpone without mutation. Decline All permanently resolves the entire offer.")
+    acceptButton:SetText("View Choices")
+    acceptButton:SetWidth(112)
     acceptButton:Show()
-    declineButton:Show()
-    SetButtonEnabled(acceptButton, not state.offer.expired and not actionPending)
-    SetButtonEnabled(declineButton, not actionPending)
+    declineButton:Hide()
+    SetButtonEnabled(acceptButton, not actionPending)
 end
 
 local function RenderRebirthTab()
@@ -485,9 +957,9 @@ local function RenderTabs()
         end
     end
     if activeTab == "skills" then
-        footnote:SetText("Select a Skill icon to inspect its server-authoritative rarity, Rank, XP, tier, and WIP state.")
+        footnote:SetText("Tier-1 values and stacking totals are server authoritative test data; Skill XP awards are not active yet.")
     elseif activeTab == "heritages" then
-        footnote:SetText("Heritage selection is permanent for the current Life; prototype effects remain disabled.")
+        footnote:SetText("Heritage selection is permanent for the current Life; Paragon XP and stat effects are server authoritative.")
     elseif activeTab == "manifestations" then
         footnote:SetText("Manifestation decisions are persisted by the server; PlayerBots remain excluded.")
     elseif activeTab == "rebirth" then
@@ -527,7 +999,8 @@ local function SelectTab(name)
 end
 
 local function ConfirmHeritageSelection()
-    local heritage = state.heritage or {}
+    local heritage = FindHeritage(selectedHeritageId)
+    heritage = heritage or state.heritage or {}
     if actionPending or heritage.selected or not heritage.canSelect then
         return
     end
@@ -535,11 +1008,11 @@ local function ConfirmHeritageSelection()
     actionPending = true
     state.notice = "Waiting for server Heritage selection…"
     Render()
-    SendRequest("HERITAGE_SELECT")
+    SendRequest("HERITAGE_SELECT\t" .. tostring(heritage.id or 0))
 end
 
 StaticPopupDialogs.PROJECT_REBIRTH_CONFIRM_HERITAGE = {
-    text = "Select %s as your Heritage?\n\nThis choice is permanent for the current Life.",
+    text = "Select %s as your Heritage?\n\n%s",
     button1 = "Select Heritage",
     button2 = CANCEL,
     OnAccept = ConfirmHeritageSelection,
@@ -548,6 +1021,122 @@ StaticPopupDialogs.PROJECT_REBIRTH_CONFIRM_HERITAGE = {
     hideOnEscape = true,
     preferredIndex = 3,
 }
+
+local function ConfirmManifestationDecline()
+    if actionPending or not state.offer then return end
+    local opportunityId = state.offer.opportunityId
+    actionPending = true
+    state.notice = "Waiting for the server to decline every choice…"
+    SendRequest("DECLINE\t" .. tostring(opportunityId))
+    RenderChoiceFrame()
+    if Render then Render() end
+end
+
+StaticPopupDialogs.PROJECT_REBIRTH_CONFIRM_MANIFESTATION_DECLINE = {
+    text = "Decline all %d Manifestation choices?\n\nThis permanently resolves the offer without granting a Skill.",
+    button1 = "Decline All",
+    button2 = CANCEL,
+    OnAccept = ConfirmManifestationDecline,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    preferredIndex = 3,
+}
+
+local function CreateManifestationChoiceInterface()
+    choiceFrame = CreateFrame("Frame", "ProjectRebirthManifestationChoiceFrame", UIParent)
+    choiceFrame:SetWidth(640)
+    choiceFrame:SetHeight(446)
+    choiceFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 28)
+    choiceFrame:SetFrameStrata("FULLSCREEN_DIALOG")
+    choiceFrame:SetFrameLevel(120)
+    choiceFrame:SetClampedToScreen(true)
+    choiceFrame:EnableMouse(true)
+    choiceFrame:SetMovable(true)
+    choiceFrame:RegisterForDrag("LeftButton")
+    choiceFrame:SetScript("OnDragStart", function(self) self:StartMoving() end)
+    choiceFrame:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
+    choiceFrame:SetBackdrop({
+        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
+        edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+        tile = true, tileSize = 32, edgeSize = 28,
+        insets = { left = 9, right = 9, top = 9, bottom = 9 },
+    })
+    choiceFrame:SetBackdropColor(0.018, 0.025, 0.07, 0.98)
+    choiceFrame:SetBackdropBorderColor(0.40, 0.32, 0.74, 1)
+    choiceFrame:Hide()
+
+    choiceFrame.revealGlow = choiceFrame:CreateTexture(nil, "OVERLAY")
+    choiceFrame.revealGlow:SetPoint("TOPLEFT", choiceFrame, "TOPLEFT", 4, -4)
+    choiceFrame.revealGlow:SetPoint("BOTTOMRIGHT", choiceFrame, "BOTTOMRIGHT", -4, 4)
+    choiceFrame.revealGlow:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
+    choiceFrame.revealGlow:SetBlendMode("ADD")
+    choiceFrame.revealGlow:Hide()
+
+    local crest = choiceFrame:CreateTexture(nil, "ARTWORK")
+    crest:SetWidth(58)
+    crest:SetHeight(58)
+    crest:SetPoint("TOPLEFT", choiceFrame, "TOPLEFT", 18, -14)
+    crest:SetTexture(BRAND_TEXTURE)
+    crest:SetTexCoord(0.04, 0.96, 0.04, 0.96)
+
+    local title = choiceFrame:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+    title:SetPoint("TOP", choiceFrame, "TOP", 0, -20)
+    title:SetText("A Manifestation Takes Shape")
+    title:SetTextColor(0.55, 0.82, 1.00)
+    choiceSubtitle = choiceFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    choiceSubtitle:SetPoint("TOP", title, "BOTTOM", 0, -7)
+    choiceSubtitle:SetText("Choose one permanent Rebirth Skill")
+
+    local close = CreateFrame("Button", nil, choiceFrame, "UIPanelCloseButton")
+    close:SetPoint("TOPRIGHT", choiceFrame, "TOPRIGHT", -7, -7)
+    close:SetScript("OnClick", function()
+        deferredOfferReveal = false
+        choiceFrame:Hide()
+        UpdatePendingIndicator()
+    end)
+
+    claimButton = CreateFrame("Button", nil, choiceFrame, "UIPanelButtonTemplate")
+    claimButton:SetWidth(120)
+    claimButton:SetHeight(24)
+    claimButton:SetPoint("BOTTOM", choiceFrame, "BOTTOM", 0, 20)
+    claimButton:SetText("Claim Skill")
+    claimButton:SetScript("OnClick", function()
+        local offer = state.offer
+        local choice = offer and selectedChoiceOrdinal and offer.choices[selectedChoiceOrdinal]
+        if actionPending or not offer or not choice then return end
+        actionPending = true
+        state.notice = "Waiting for server acceptance…"
+        SendRequest("ACCEPT\t" .. tostring(offer.opportunityId) .. "\t" .. tostring(choice.ordinal))
+        RenderChoiceFrame()
+        if Render then Render() end
+    end)
+
+    declineAllButton = CreateFrame("Button", nil, choiceFrame, "UIPanelButtonTemplate")
+    declineAllButton:SetWidth(104)
+    declineAllButton:SetHeight(24)
+    declineAllButton:SetPoint("RIGHT", claimButton, "LEFT", -16, 0)
+    declineAllButton:SetText("Decline All")
+    declineAllButton:SetScript("OnClick", function()
+        if not state.offer or actionPending then return end
+        StaticPopup_Show("PROJECT_REBIRTH_CONFIRM_MANIFESTATION_DECLINE", state.offer.count)
+    end)
+
+    laterButton = CreateFrame("Button", nil, choiceFrame, "UIPanelButtonTemplate")
+    laterButton:SetWidth(84)
+    laterButton:SetHeight(24)
+    laterButton:SetPoint("LEFT", claimButton, "RIGHT", 16, 0)
+    laterButton:SetText("Later")
+    laterButton:SetScript("OnClick", function()
+        deferredOfferReveal = false
+        choiceFrame:Hide()
+        UpdatePendingIndicator()
+    end)
+
+    if UISpecialFrames then
+        table.insert(UISpecialFrames, "ProjectRebirthManifestationChoiceFrame")
+    end
+end
 
 local function CreateInterface()
     if panel then
@@ -636,6 +1225,31 @@ local function CreateInterface()
 
     capacityText = tabFrames.skills:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     capacityText:SetPoint("TOPLEFT", tabFrames.skills, "TOPLEFT", 10, -4)
+
+    inspectButton = CreateFrame("Button", nil, tabFrames.skills, "UIPanelButtonTemplate")
+    inspectButton:SetWidth(112)
+    inspectButton:SetHeight(22)
+    inspectButton:SetPoint("TOPLEFT", tabFrames.skills, "TOPLEFT", 192, 3)
+    inspectButton:SetText("Inspect Target")
+    inspectButton:SetScript("OnClick", function()
+        if state.inspectedName then
+            state.notice = "Returning to your Rebirth build…"
+            SendRequest("STATE")
+            return
+        end
+        if not UnitExists("target") or not UnitIsPlayer("target") then
+            state.notice = "Select a player or PlayerBot first."
+            Render()
+            return
+        end
+        local name = UnitName("target")
+        if not name or name == "" then
+            return
+        end
+        state.notice = "Requesting " .. name .. "'s public Rebirth build…"
+        SendRequest("INSPECT\t" .. name)
+        Render()
+    end)
 
     for index = 1, 6 do
         local slot = CreateFrame("Button", nil, tabFrames.skills)
@@ -752,11 +1366,14 @@ local function CreateInterface()
     heritageButton:SetPoint("BOTTOM", heritageDetailFrame, "BOTTOM", 0, 12)
     heritageButton:SetText("Select Heritage")
     heritageButton:SetScript("OnClick", function()
-        local heritage = state.heritage or {}
-        if actionPending or heritage.selected or not heritage.canSelect then
+        local heritage = FindHeritage(selectedHeritageId) or state.heritage or {}
+        if actionPending or heritage.selected or not heritage.canSelect or heritage.eligible == false then
             return
         end
-        StaticPopup_Show("PROJECT_REBIRTH_CONFIRM_HERITAGE", heritage.name or "this Heritage")
+        local scopeWarning = heritage.progressionScope == "character" and
+            "This choice is permanent. Rank and XP persist across Rebirth." or
+            "This choice is permanent for the current Life."
+        StaticPopup_Show("PROJECT_REBIRTH_CONFIRM_HERITAGE", heritage.name or "this Heritage", scopeWarning)
     end)
 
     tabFrames.manifestations = CreateFrame("Frame", nil, panel)
@@ -786,25 +1403,19 @@ local function CreateInterface()
     acceptButton = CreateFrame("Button", nil, offerFrame, "UIPanelButtonTemplate")
     acceptButton:SetWidth(84)
     acceptButton:SetHeight(22)
-    acceptButton:SetPoint("BOTTOMRIGHT", offerFrame, "BOTTOMRIGHT", -104, 14)
-    acceptButton:SetText("Accept")
+    acceptButton:SetPoint("BOTTOM", offerFrame, "BOTTOM", 0, 14)
+    acceptButton:SetText("View Choices")
     acceptButton:SetScript("OnClick", function()
-        actionPending = true
-        state.notice = "Waiting for server acceptance…"
-        Render()
-        SendRequest("ACCEPT")
+        ShowManifestationChoices(false)
     end)
     declineButton = CreateFrame("Button", nil, offerFrame, "UIPanelButtonTemplate")
     declineButton:SetWidth(84)
     declineButton:SetHeight(22)
     declineButton:SetPoint("BOTTOMRIGHT", offerFrame, "BOTTOMRIGHT", -14, 14)
-    declineButton:SetText("Decline")
-    declineButton:SetScript("OnClick", function()
-        actionPending = true
-        state.notice = "Waiting for server decision…"
-        Render()
-        SendRequest("DECLINE")
-    end)
+    declineButton:SetText("Decline All")
+    declineButton:Hide()
+
+    CreateManifestationChoiceInterface()
 
     tabFrames.rebirth = CreateFrame("Frame", nil, panel)
     tabFrames.rebirth:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, -88)
@@ -869,6 +1480,15 @@ local function CreateInterface()
     footnote:SetText("Select a progression tab to inspect server-authoritative details.")
 
     local function ToggleRebirthPanel()
+        if state.offer then
+            if choiceFrame and choiceFrame:IsShown() then
+                choiceFrame:Hide()
+            else
+                ShowManifestationChoices(false)
+            end
+            UpdatePendingIndicator()
+            return
+        end
         panelWanted = not panel:IsShown()
         if panelWanted then
             panel:Show()
@@ -895,6 +1515,17 @@ local function CreateInterface()
         local border = toggleButton:CreateTexture(nil, "OVERLAY")
         border:SetAllPoints(toggleButton)
         border:SetTexture("Interface\\Buttons\\UI-Quickslot2")
+        pendingGlow = toggleButton:CreateTexture(nil, "OVERLAY")
+        pendingGlow:SetPoint("TOPLEFT", toggleButton, "TOPLEFT", -7, 3)
+        pendingGlow:SetPoint("BOTTOMRIGHT", toggleButton, "BOTTOMRIGHT", 7, -3)
+        pendingGlow:SetTexture("Interface\\Buttons\\UI-ActionButton-Border")
+        pendingGlow:SetBlendMode("ADD")
+        pendingGlow:SetVertexColor(0.45, 0.62, 1.00)
+        pendingGlow:Hide()
+        pendingCount = toggleButton:CreateFontString(nil, "OVERLAY", "NumberFontNormalSmall")
+        pendingCount:SetPoint("TOPRIGHT", toggleButton, "TOPRIGHT", 2, -2)
+        pendingCount:SetTextColor(0.65, 0.88, 1.00)
+        pendingCount:Hide()
         toggleButton:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
         toggleButton:SetPushedTexture("Interface\\Buttons\\UI-Quickslot-Depress")
         toggleButton:SetScript("OnClick", ToggleRebirthPanel)
@@ -902,6 +1533,10 @@ local function CreateInterface()
             GameTooltip:SetOwner(self, "ANCHOR_TOP")
             GameTooltip:AddLine("Project Reverie — Rebirth", 0.45, 0.90, 1.00)
             GameTooltip:AddLine("Open Skills, Heritages, Manifestations, and Life progression.", 1, 1, 1, true)
+            if state.offer then
+                GameTooltip:AddLine(string.format("%d Manifestation choice%s waiting", state.offer.count,
+                    state.offer.count == 1 and " is" or "s are"), 0.55, 0.82, 1.00, true)
+            end
             GameTooltip:Show()
         end)
         toggleButton:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -949,6 +1584,7 @@ local function CreateInterface()
         if hooksecurefunc and UpdateMicroButtons then
             hooksecurefunc("UpdateMicroButtons", LayoutRebirthMicroButton)
         end
+        UpdatePendingIndicator()
     end
 
     UpdateActivation()
@@ -968,14 +1604,28 @@ local function HandleAddonMessage(prefix, message, channel, sender)
     if not active or prefix ~= PREFIX or channel ~= "WHISPER" or not IsLocalPlayerSender(sender) then
         return
     end
+    if not message or string.len(message) > 255 then
+        RejectOfferSnapshot("The server sent an oversized Rebirth addon packet; refreshing.")
+        return
+    end
 
     local fields = SplitTabs(message)
     if fields[1] ~= PROTOCOL then
+        state.notice = "This server response uses an unsupported Rebirth addon protocol."
+        local now = GetTime and GetTime() or 0
+        if now - lastOfferResyncAt >= 1 then
+            lastOfferResyncAt = now
+            SendRequest("STATE")
+        end
+        if Render then Render() end
         return
     end
 
     local messageType = fields[2]
     if messageType == "STATE" then
+        reopenChoiceAfterSnapshot = choiceFrame and choiceFrame:IsShown() or false
+        if choiceFrame then choiceFrame:Hide() end
+        state.inspectedName = nil
         state.status = fields[3] or "unknown"
         state.owned = tonumber(fields[4]) or 0
         state.capacity = tonumber(fields[5]) or 0
@@ -983,9 +1633,21 @@ local function HandleAddonMessage(prefix, message, channel, sender)
         state.ownershipAvailable = fields[8] == "1"
         state.skills = {}
         state.offer = nil
+        offerAssembly = nil
+        state.heritages = {}
         state.heritage.status = "waiting"
         state.heritage.canSelect = false
-    elseif messageType == "SKILL" then
+        UpdatePendingIndicator()
+    elseif messageType == "INSPECT_BEGIN" then
+        state.inspectedName = DecodeField(fields[3])
+        state.owned = tonumber(fields[4]) or 0
+        state.capacity = tonumber(fields[5]) or 0
+        state.ownershipAvailable = fields[6] == "1"
+        state.skills = {}
+        state.total = state.owned
+        state.complete = false
+        activeTab = "skills"
+    elseif messageType == "SKILL" or messageType == "INSPECT_SKILL" then
         table.insert(state.skills, {
             id = tonumber(fields[3]) or 0,
             rarityId = tonumber(fields[4]) or 0,
@@ -995,39 +1657,210 @@ local function HandleAddonMessage(prefix, message, channel, sender)
             name = DecodeField(fields[8]),
             summary = DecodeField(fields[9]),
             tier = tonumber(fields[10]) or 0,
+            valueMilli = 0,
+            unit = "points",
+            bucket = "unclassified",
+            bucketTotalMilli = 0,
+            adapter = "unclassified",
+            runtimeDetail = "",
+            operational = fields[7] == "1",
         })
-    elseif messageType == "OFFER" then
-        state.offer = {
-            opportunityId = tonumber(fields[3]) or 0,
-            skillId = tonumber(fields[4]) or 0,
-            rarityId = tonumber(fields[5]) or 0,
-            expired = fields[6] == "1",
-            name = DecodeField(fields[7]),
-            summary = DecodeField(fields[8]),
-            tier = tonumber(fields[9]) or 0,
+    elseif messageType == "VALUE" or messageType == "INSPECT_VALUE" then
+        local skill = FindSkill(tonumber(fields[3]) or 0)
+        if skill then
+            skill.valueMilli = tonumber(fields[4]) or 0
+            skill.unit = DecodeField(fields[5])
+            skill.bucket = DecodeField(fields[6])
+            skill.bucketTotalMilli = tonumber(fields[7]) or skill.valueMilli
+            skill.adapter = DecodeField(fields[8])
+            skill.runtimeDetail = DecodeField(fields[9])
+            skill.operational = fields[10] ~= "0"
+            skill.effects = skill.effects and skill.operational
+        end
+    elseif messageType == "OFFER_BEGIN" then
+        local opportunityId = ParseInteger(fields[3], 1, 9007199254740991)
+        local rowVersion = ParseInteger(fields[4], 0, 4294967295)
+        local count = ParseInteger(fields[5], 1, 3)
+        local expired = fields[6] == "1"
+        if #fields ~= 6 or offerAssembly or not opportunityId or not rowVersion or not count or
+            (fields[6] ~= "0" and fields[6] ~= "1") then
+            RejectOfferSnapshot("The server sent a malformed Manifestation header; refreshing.")
+            return
+        end
+        offerAssembly = {
+            opportunityId = opportunityId,
+            rowVersion = rowVersion,
+            count = count,
+            expired = expired,
+            choices = {},
         }
+    elseif messageType == "OFFER_CHOICE" then
+        local opportunityId = ParseInteger(fields[3], 1, 9007199254740991)
+        local ordinal = ParseInteger(fields[4], 1, 3)
+        local skillId = ParseInteger(fields[5], 1, 4294967295)
+        local rarityId = ParseInteger(fields[6], 0, 6)
+        local tier = ParseInteger(fields[7], 0, 5)
+        if #fields ~= 8 or not offerAssembly or opportunityId ~= offerAssembly.opportunityId or
+            not ordinal or ordinal > offerAssembly.count or not skillId or not rarityId or not tier or
+            not IsEncodedField(fields[8]) or offerAssembly.choices[ordinal] then
+            RejectOfferSnapshot("The server sent a mismatched Manifestation choice; refreshing.")
+            return
+        end
+        for _, existing in pairs(offerAssembly.choices) do
+            if existing.skillId == skillId then
+                RejectOfferSnapshot("The server sent duplicate Manifestation Skills; refreshing.")
+                return
+            end
+        end
+        offerAssembly.choices[ordinal] = {
+            ordinal = ordinal,
+            skillId = skillId,
+            rarityId = rarityId,
+            tier = tier,
+            icon = DecodeField(fields[8]),
+            name = "",
+            shortEffect = "",
+            detail = "",
+            sourceContext = "",
+            valueMilli = 0,
+            unit = "points",
+            bucket = "unclassified",
+            adapter = "unclassified",
+            rankCurve = "server_authoritative",
+            stacking = "server_authoritative",
+            hasText = false,
+            hasValue = false,
+        }
+    elseif messageType == "OFFER_TEXT" then
+        local opportunityId = ParseInteger(fields[3], 1, 9007199254740991)
+        local ordinal = ParseInteger(fields[4], 1, 3)
+        local choice = offerAssembly and ordinal and offerAssembly.choices[ordinal]
+        if #fields ~= 8 or not offerAssembly or opportunityId ~= offerAssembly.opportunityId or not choice or
+            choice.hasText or not IsEncodedField(fields[5]) or not IsEncodedField(fields[6]) or
+            not IsEncodedField(fields[7]) or not IsEncodedField(fields[8]) then
+            RejectOfferSnapshot("The server sent malformed Manifestation text; refreshing.")
+            return
+        end
+        choice.name = DecodeField(fields[5])
+        choice.shortEffect = DecodeField(fields[6])
+        choice.detail = DecodeField(fields[7])
+        choice.sourceContext = DecodeField(fields[8])
+        if choice.name == "" then
+            RejectOfferSnapshot("The server sent an unnamed Manifestation Skill; refreshing.")
+            return
+        end
+        choice.hasText = true
+    elseif messageType == "OFFER_VALUE" then
+        local opportunityId = ParseInteger(fields[3], 1, 9007199254740991)
+        local ordinal = ParseInteger(fields[4], 1, 3)
+        local valueMilli = ParseInteger(fields[5], -2147483648, 2147483647)
+        local choice = offerAssembly and ordinal and offerAssembly.choices[ordinal]
+        if #fields ~= 10 or not offerAssembly or opportunityId ~= offerAssembly.opportunityId or not choice or
+            choice.hasValue or not valueMilli or not IsEncodedField(fields[6]) or not IsEncodedField(fields[7]) or
+            not IsEncodedField(fields[8]) or not IsEncodedField(fields[9]) or not IsEncodedField(fields[10]) then
+            RejectOfferSnapshot("The server sent malformed Manifestation values; refreshing.")
+            return
+        end
+        choice.valueMilli = valueMilli
+        choice.unit = DecodeField(fields[6])
+        choice.bucket = DecodeField(fields[7])
+        choice.adapter = DecodeField(fields[8])
+        choice.rankCurve = DecodeField(fields[9])
+        choice.stacking = DecodeField(fields[10])
+        choice.hasValue = true
+    elseif messageType == "OFFER_END" then
+        local opportunityId = ParseInteger(fields[3], 1, 9007199254740991)
+        if #fields ~= 3 or not offerAssembly or opportunityId ~= offerAssembly.opportunityId then
+            RejectOfferSnapshot("The server ended a mismatched Manifestation snapshot; refreshing.")
+            return
+        end
+        for ordinal = 1, offerAssembly.count do
+            local choice = offerAssembly.choices[ordinal]
+            if not choice or not choice.hasText or not choice.hasValue then
+                RejectOfferSnapshot("The server ended an incomplete Manifestation snapshot; refreshing.")
+                return
+            end
+        end
+        CommitOfferSnapshot(offerAssembly)
+    elseif messageType == "HERITAGE_BEGIN" then
+        state.heritages = {}
+        state.heritage.status = fields[3] or "unknown"
+        state.heritage.canSelect = false
+    elseif messageType == "HERITAGE_OPTION" then
+        local option = {
+            id = tonumber(fields[3]) or 0,
+            selected = fields[4] == "1",
+            rank = tonumber(fields[5]) or 0,
+            xp = tonumber(fields[6]) or 0,
+            canSelect = fields[7] == "1",
+            effects = fields[8] == "1",
+            name = DecodeField(fields[9]),
+            summary = DecodeField(fields[10]),
+            maxRank = tonumber(fields[11]) or 0,
+            nextThreshold = tonumber(fields[12]) or 0,
+            bonusMilli = tonumber(fields[13]) or 0,
+            eligible = fields[14] ~= "0",
+            eligibilityReason = DecodeField(fields[15]),
+            progressionScope = fields[16] ~= "" and fields[16] or "life",
+            reputationBonusMilli = tonumber(fields[17]) or 0,
+            cooldownSeconds = tonumber(fields[18]) or 0,
+            hasteBonusMilli = tonumber(fields[19]) or 0,
+            hasteSecondsRemaining = tonumber(fields[20]) or 0,
+            hasteActive = fields[21] == "1",
+        }
+        table.insert(state.heritages, option)
+        if option.selected then
+            state.heritage = option
+        end
     elseif messageType == "HERITAGE" then
-        state.heritage = {
+        local legacyHeritage = {
             status = fields[3] or "unknown",
             selected = fields[4] == "1",
-            id = tonumber(fields[5]) or 1001,
+            id = tonumber(fields[5]) or 1101,
             rank = tonumber(fields[6]) or 0,
             xp = tonumber(fields[7]) or 0,
             canSelect = fields[8] == "1",
             effects = fields[9] == "1",
             name = DecodeField(fields[10]),
             summary = DecodeField(fields[11]),
+            maxRank = tonumber(fields[12]) or 100,
+            nextThreshold = tonumber(fields[13]) or 0,
+            bonusMilli = tonumber(fields[14]) or 0,
         }
+        state.heritage = legacyHeritage
+        if #(state.heritages or {}) == 0 then
+            state.heritages = { legacyHeritage }
+        end
         actionPending = false
         Render()
     elseif messageType == "NOTICE" then
         local code = fields[3] or "unknown"
+        if (code == "accepted" or code == "declined") and state.offer then
+            resolvedOpportunities[state.offer.opportunityId] = true
+            ClearOfferState()
+        end
         state.notice = notices[code] or ("Server response: " .. string.gsub(code, "_", " "))
+        actionPending = false
+        Render()
+    elseif messageType == "INSPECT_END" then
+        state.total = tonumber(fields[4]) or state.owned
+        state.complete = fields[5] == "1"
         actionPending = false
         Render()
     elseif messageType == "END" then
         state.total = tonumber(fields[4]) or state.owned
         state.complete = fields[5] == "1"
+        if offerAssembly then
+            RejectOfferSnapshot("The server state ended before its Manifestation choices were complete; refreshing.")
+            return
+        end
+        if not state.offer then
+            selectedChoiceOrdinal = nil
+            selectedChoiceOpportunityId = nil
+            reopenChoiceAfterSnapshot = false
+            if choiceFrame then choiceFrame:Hide() end
+            UpdatePendingIndicator()
+        end
         actionPending = false
         Render()
     end
@@ -1036,6 +1869,7 @@ end
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
+eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 eventFrame:RegisterEvent("CHAT_MSG_ADDON")
 eventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "PLAYER_LOGIN" then
@@ -1052,6 +1886,10 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             state.notice = nil
             actionPending = false
             SendRequest("STATE")
+        end
+    elseif event == "PLAYER_REGEN_ENABLED" then
+        if active and state.offer and deferredOfferReveal then
+            ShowManifestationChoices(revealedOpportunityId ~= state.offer.opportunityId)
         end
     elseif event == "CHAT_MSG_ADDON" then
         HandleAddonMessage(...)
@@ -1079,4 +1917,23 @@ SlashCmdList.PROJECTREBIRTHSKILLS = function()
     else
         panel:Hide()
     end
+end
+
+SLASH_PROJECTREBIRTHINSPECT1 = "/rinspect"
+SlashCmdList.PROJECTREBIRTHINSPECT = function()
+    UpdateActivation()
+    if not active or not EnsureInterface() then
+        return
+    end
+    if not UnitExists("target") or not UnitIsPlayer("target") then
+        DEFAULT_CHAT_FRAME:AddMessage("|cffff6666Rebirth Build:|r select a player or PlayerBot first.")
+        return
+    end
+    local name = UnitName("target")
+    panelWanted = true
+    panel:Show()
+    activeTab = "skills"
+    state.notice = "Requesting " .. name .. "'s public Rebirth build…"
+    SendRequest("INSPECT\t" .. name)
+    Render()
 end
