@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "product": "Project Reverie",
   "channel": "stable",
-  "contentVersion": "1.6.0",
-  "publishedAtUtc": "2026-09-02T20:45:39.4017445Z",
-  "expiresAtUtc": "2026-10-02T20:45:39.4017445Z",
-  "minimumLauncherVersion": "1.2.1",
+  "contentVersion": "1.23.0",
+  "publishedAtUtc": "2026-09-11T16:05:57.8133887Z",
+  "expiresAtUtc": "2026-09-25T16:05:57.8133887Z",
+  "minimumLauncherVersion": "1.3.0",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
   "signatureAlgorithm": "ECDSA_P256_SHA256_P1363",
@@ -16,17 +16,23 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "Project Reverie — Manifestation choices",
-    "summary": "Adds the Project Reverie one-to-three-card Manifestation choice experience with durable reminders, strict protocol 2, and server-authoritative selection.",
+    "headline": "Rebirth outside-tester preparation",
+    "summary": "Installed Rebirth UI 1.23.0 and supplied fourth-spec artwork. Native client data and account approval are separate prerequisites.",
     "updateKind": "content",
     "requiresClientUpdate": true
   },
   "files": [
     {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Completion.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Completion.lua",
+      "size": 5904,
+      "sha256": "36079F9144C4BF346353ED58871FF00772C43C2A73FA3F9E4097A7271E965931"
+    },
+    {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Core.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Core.lua",
-      "size": 15358,
-      "sha256": "40FDC9DB4A9E2EE1FE17A2022504D6520AD39C57F475BCC3D564C5189903277C"
+      "size": 18953,
+      "sha256": "6CAE1374CFD82A39042B45AC7D18E1448ADE5576BC224EFA813BFCAC7CAF2810"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Data.lua",
@@ -35,40 +41,154 @@
       "sha256": "F4958AFC7AAFC37D99F3EE5B0140147FD4C417FDEDE8403BF26888055A6A3A6F"
     },
     {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/FourthSpec.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/FourthSpec.lua",
+      "size": 37302,
+      "sha256": "B486BC4FEDA62A72E14B5F275E3011255DD1C4FA26C43C07AADC5822C0138BB5"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/FourthSpecData.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/FourthSpecData.lua",
+      "size": 315586,
+      "sha256": "6F566E90E74520CA30C46FD2CAB2AE6ABD0A16E81CEA1786DB08B7CB236EC471"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/FourthSpecPolicy.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/FourthSpecPolicy.lua",
+      "size": 3261,
+      "sha256": "2C04C99127870C1D1ADADB1F8EB40E747654288E810D8A2668F1C7F38E9F3F29"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/GearUpgrade.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/GearUpgrade.lua",
+      "size": 16695,
+      "sha256": "9C787FB4E438D0A73E4561292BBDFEAEF5887A7217603FA45B2EAA293AA1FDF3"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Glossary.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Glossary.lua",
+      "size": 18513,
+      "sha256": "53AB822B850F3D6201807D36C580A45AE21A7A5F7E30EBEC8015A70067B2EFD4"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/GlossaryData.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/GlossaryData.lua",
+      "size": 618901,
+      "sha256": "312865ABE9CC9F96B3EF1497503DEFAD1ACDC169A8191B7EE8CECCF2546F18FA"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Battlemage.tga",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/Battlemage.tga",
+      "size": 1572882,
+      "sha256": "AB1A942011D1AE8A125749AB78AE103398E338BE167DDE54C9C9AF541E6F13D1"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Gladiator.tga",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/Gladiator.tga",
+      "size": 1572882,
+      "sha256": "D29D5AE5640FDFBEBDC82AC2A8385DCAC55D7E22F20D1A0BFAA3BA7E00FF84C8"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Guardian.tga",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/Guardian.tga",
+      "size": 1572882,
+      "sha256": "3789E42168E25AA65B881D7528C627796B8E2CC6C7343D4932447D26C407C75D"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Media/HolyArcher.tga",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/HolyArcher.tga",
+      "size": 1572882,
+      "sha256": "72A9875B5A2D79F0A317762419AA8C646254E83435519E983492F94A7411A9CA"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Incarnation.tga",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/Incarnation.tga",
+      "size": 1572882,
+      "sha256": "BCDBC289C907B42A7A1B130C761B89FE5461549B08B364716579B978AFCA7635"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Inquisitor.tga",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/Inquisitor.tga",
+      "size": 1572882,
+      "sha256": "9FBD852EAFEFD4FDE6CCF81CF39D5C100AD40A7EF4A0C34269BE6B1A17487AD9"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Primalist.tga",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/Primalist.tga",
+      "size": 1572882,
+      "sha256": "4CFEFB2D0FCDB1DB68D150BAFFE4C97FB08E009AA0B0DE78BFB83B55558BFF09"
+    },
+    {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Media/ProjectReverie.tga",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/ProjectReverie.tga",
       "size": 196652,
       "sha256": "DDE4FA1AFCA48686FB5D16A4FD416CE2989B646EFD9EE5F5B2F19B3E2FD542E3"
     },
     {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Skirmisher.tga",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/Skirmisher.tga",
+      "size": 1572882,
+      "sha256": "9570FF749BF1070AF8B82B424E56C2CD321E77C1B10BB6BF98B255EA8CF534DF"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Media/SkyDarkener.tga",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/SkyDarkener.tga",
+      "size": 1572882,
+      "sha256": "DDE8AC22E4A3FFBD71FA6EDF71BF173904D97DC113BE0A5F1B517FE470B55ADA"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Swashbuckler.tga",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/Swashbuckler.tga",
+      "size": 1572882,
+      "sha256": "833BA43802B01F9AE6378CC5F6E7D32A47E923429E57BC733E87BBCAD5AAB43B"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/MicroMenu.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/MicroMenu.lua",
+      "size": 4576,
+      "sha256": "C2C1C3D969623D0433B4DE780FCBB583407C44385DE9730A3203CE4AC42D1EE5"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Progress.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Progress.lua",
+      "size": 13517,
+      "sha256": "73E41FB730ED12CFAA56E044E76F27975D403D84BC1ECFE15441CE97EF05CE00"
+    },
+    {
       "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
-      "size": 566,
-      "sha256": "ECA13BE752C5CD526547F57AD533273B9699E8EC750DBD596B84CB320A37652B"
+      "size": 785,
+      "sha256": "11BE3E39578AC69174192A487343910AFC80EE4077D47B2509767D996B4AAA54"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/RankData.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/RankData.lua",
-      "size": 70990,
-      "sha256": "17121F5A92744A3B2DE02664FCA47D301DFED7BD1885781BA2E0A5DF6DBCF547"
+      "size": 70991,
+      "sha256": "60CE03D8F4435DCBA3E2E3919510EDBC71D91692EE67803CFD5127EACBF47FCA"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/SkillData.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/SkillData.lua",
+      "size": 460028,
+      "sha256": "009987DB049F927E37ECD0DF88F1121F9FC8D1FCCC064273D0F78CF42460685C"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
-      "size": 82683,
-      "sha256": "31695DAD9B5003320293F7E7222AE3FE51CA57E93EC200E0A1F9315D84160E21"
+      "size": 91435,
+      "sha256": "4D97B17D853EF0C8FBB4D6A1B7A61FC075AD48223BD833493D68B0320E829AF2"
     },
     {
       "path": "Interface/AddOns/RebirthWardrobe/RebirthWardrobe.toc",
       "url": "payload/Interface/AddOns/RebirthWardrobe/RebirthWardrobe.toc",
-      "size": 301,
-      "sha256": "39EB02B3BFFE1A3430E7014D9928114F303545669BDD086CA74C0D8A12AACE05"
+      "size": 341,
+      "sha256": "FAFE6667D71A67F2E0A45B92E4FAD40026AE2B599056034753BE4E00BAA2FB67"
     },
     {
       "path": "Interface/AddOns/RebirthWardrobe/Wardrobe.lua",
       "url": "payload/Interface/AddOns/RebirthWardrobe/Wardrobe.lua",
-      "size": 22116,
-      "sha256": "0B7DF15B780577E8880E9C29B306AC78BB73BE8040BC5A64FF2E500458BAAF86"
+      "size": 21834,
+      "sha256": "B7B6ACE48F73A668E42044C52EE8969F94CB032D85A9C892D5FA37DDA859B397"
     }
   ]
 }

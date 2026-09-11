@@ -398,3 +398,82 @@ SlashCmdList.PROJECTREBIRTHTOOLTIPS = function(message)
         state, GetRealmName() or "unknown", AddonVersion(), registeredNumericRows,
         rankData.registeredTrackedSpellCount, rankData.registeredVirtualRankCount, debugState))
 end
+
+-- REBIRTH_RANGED_PANEL_BEGIN
+-- Wrath assumes DK/Paladin slot 18 always holds a relic. Read actual equipped
+-- weapon and native ranged fields instead; never override UnitHasRelicSlot globally.
+do
+    local function RebirthRangedClass()
+        local _, class = UnitClass("player")
+        return GetRealmName() == "Rebirth" and (class == "DEATHKNIGHT" or class == "PALADIN")
+    end
+
+    local function HasRebirthRangedWeapon(unit)
+        if unit and unit ~= "player" then return false end
+        if not RebirthRangedClass() then return false end
+        local link = GetInventoryItemLink("player", 18)
+        if not link then return false end
+        local equipLocation = select(9, GetItemInfo(link))
+        return equipLocation == "INVTYPE_RANGED" or equipLocation == "INVTYPE_RANGEDRIGHT"
+    end
+
+    local function Finite(value)
+        return type(value) == "number" and value == value and value > -math.huge and value < math.huge
+    end
+
+    local function UpdateRebirthRangedDamage(frame, unit)
+        if not HasRebirthRangedWeapon(unit) then return end
+        local speed, low, high, positive, negative, multiplier = UnitRangedDamage("player")
+        if not Finite(speed) or speed <= 0 or not Finite(low) or not Finite(high) or
+            low < 0 or high < low or not Finite(positive) or not Finite(negative) or
+            not Finite(multiplier) or multiplier <= 0 then
+            return -- retain native N/A rather than inventing missing server values
+        end
+        local text = _G[frame:GetName() .. "StatText"]
+        if not text then return end
+        local range = string.format("%d - %d", math.floor(low), math.ceil(high))
+        local average = (low + high) / 2
+        local base = average / multiplier - positive - negative
+        local bonus = average - base
+        local color = ""
+        if bonus > 0.000001 then color = "|cff20ff20"
+        elseif bonus < -0.000001 then color = "|cffff2020" end
+        text:SetText(color .. range .. (color ~= "" and "|r" or ""))
+        frame.attackSpeed = speed
+        frame.damage = range
+        frame.dps = average / speed
+        frame.tooltip = range .. "  " .. string.format(DPS_TEMPLATE, frame.dps)
+        PaperDollFrame.noRanged = nil -- the native Speed row can now read UnitRangedDamage
+        frame:Show()
+    end
+
+    local function UpdateRebirthAmmoSlot()
+        if not RebirthRangedClass() or not CharacterAmmoSlot or InCombatLockdown() then return end
+        if HasRebirthRangedWeapon("player") then
+            CharacterAmmoSlot:Show()
+            PaperDollItemSlotButton_Update(CharacterAmmoSlot)
+        else
+            CharacterAmmoSlot:Hide() -- restore stock relic/empty-slot presentation
+        end
+    end
+
+    if PaperDollFrame_SetRangedDamage then
+        hooksecurefunc("PaperDollFrame_SetRangedDamage", UpdateRebirthRangedDamage)
+    end
+    if PaperDollFrame_OnShow then
+        hooksecurefunc("PaperDollFrame_OnShow", UpdateRebirthAmmoSlot)
+    end
+    local rangedEvents = CreateFrame("Frame")
+    for _, event in ipairs({"PLAYER_ENTERING_WORLD", "PLAYER_EQUIPMENT_CHANGED",
+        "UNIT_INVENTORY_CHANGED", "GET_ITEM_INFO_RECEIVED", "PLAYER_REGEN_ENABLED"}) do
+        rangedEvents:RegisterEvent(event)
+    end
+    rangedEvents:SetScript("OnEvent", function(self, event, unit)
+        if event == "UNIT_INVENTORY_CHANGED" and unit ~= "player" then return end
+        UpdateRebirthAmmoSlot()
+        if RebirthRangedClass() and PaperDollFrame and PaperDollFrame:IsShown() then
+            PaperDollFrame_UpdateStats()
+        end
+    end)
+end
+-- REBIRTH_RANGED_PANEL_END

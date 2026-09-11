@@ -378,18 +378,19 @@ local function CreateInterface()
     SelectTab("WARDROBE")
 
     if MainMenuBar then
-        local micro = CreateFrame("Button", "RebirthWardrobeMicroButton", MainMenuBar)
-        micro:SetWidth(28); micro:SetHeight(36); micro:SetFrameStrata("MEDIUM")
-        local icon = micro:CreateTexture(nil, "ARTWORK")
-        icon:SetPoint("TOPLEFT", 2, -5); icon:SetPoint("BOTTOMRIGHT", -2, 5)
-        icon:SetTexture("Interface\\Icons\\INV_Misc_EngGizmos_19"); icon:SetTexCoord(.08,.92,.08,.92)
-        local border = micro:CreateTexture(nil, "OVERLAY"); border:SetAllPoints(micro); border:SetTexture("Interface\\Buttons\\UI-Quickslot2")
-        micro:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
-        micro:SetPushedTexture("Interface\\Buttons\\UI-Quickslot-Depress")
+        local micro = CreateFrame("Button", "RebirthWardrobeMicroButton", MainMenuBarArtFrame or MainMenuBar)
+        micro:SetFrameStrata("MEDIUM")
+        if ProjectRebirthMicroMenu then
+            ProjectRebirthMicroMenu.Skin(micro, "Interface\\Icons\\INV_Misc_EngGizmos_19")
+        else
+            -- Standalone Wardrobe retains access without taking over the stock row.
+            micro:SetWidth(28); micro:SetHeight(36)
+            micro:SetNormalTexture("Interface\\Icons\\INV_Misc_EngGizmos_19")
+            micro:SetPoint("BOTTOM", MainMenuBar, "TOP", 0, 4)
+        end
         micro:SetScript("OnClick", function() if frame:IsShown() then frame:Hide() else frame:Show(); Command("sync") end end)
         micro:SetScript("OnEnter", function(self) GameTooltip:SetOwner(self,"ANCHOR_TOP"); GameTooltip:AddLine("Rebirth Wardrobe",.45,.9,1); GameTooltip:AddLine("Account appearances and outfits.",1,1,1); GameTooltip:Show() end)
         micro:SetScript("OnLeave", function() GameTooltip:Hide() end)
-        micro:ClearAllPoints(); micro:SetPoint("BOTTOMLEFT", AchievementMicroButton or ProjectRebirthMicroButton or QuestLogMicroButton, "BOTTOMRIGHT", -2, 0)
         if ProjectRebirth_LayoutMicroButtons then ProjectRebirth_LayoutMicroButtons() end
     end
     Render()

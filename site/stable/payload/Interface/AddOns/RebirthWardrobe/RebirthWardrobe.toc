@@ -2,7 +2,8 @@
 ## Title: Rebirth Wardrobe
 ## Notes: Server-authoritative account Wardrobe, outfits, and specialization bindings.
 ## Author: Project Rebirth
-## Version: 1.0.1
+## Version: 1.0.2
+## OptionalDeps: ProjectRebirthTooltips
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## X-Rebirth-Realm: Rebirth
