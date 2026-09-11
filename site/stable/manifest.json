@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "product": "Project Reverie",
   "channel": "stable",
-  "contentVersion": "1.23.1",
-  "publishedAtUtc": "2026-09-11T20:08:57.8915282Z",
-  "expiresAtUtc": "2026-09-25T20:08:57.8915282Z",
+  "contentVersion": "1.24.0",
+  "publishedAtUtc": "2026-09-11T23:26:02.9563329Z",
+  "expiresAtUtc": "2026-09-25T23:26:02.9563329Z",
   "minimumLauncherVersion": "1.3.0",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
@@ -16,12 +16,18 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "Project Reverie — Native talent clipping fix",
-    "summary": "Fixes original talent-tree icons and prerequisite arrows spilling below the talent window. Preserves native scrolling, expanded tabs, and fourth-tree presentation.",
-    "updateKind": "hotfix",
+    "headline": "Project Reverie - Private bug reports",
+    "summary": "Adds bundled item and NPC IDs, nearby interactable identification, and private /br reports with an Admin-only inbox.",
+    "updateKind": "content",
     "requiresClientUpdate": true
   },
   "files": [
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/BugReports.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/BugReports.lua",
+      "size": 9943,
+      "sha256": "67476955431ADDF1150392DC2802AAA2382D4F560D4146B50080519543CC16FA"
+    },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Completion.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Completion.lua",
@@ -157,8 +163,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
-      "size": 785,
-      "sha256": "F617AA3FAB7916A7ED7B8CC915B62E70684DE28527FE1EB752E60805FD242AC6"
+      "size": 800,
+      "sha256": "D12F991C3C9C8AB4CD728130FB2A194039C3C4ABB700C4F24546550D433FD07A"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/RankData.lua",
