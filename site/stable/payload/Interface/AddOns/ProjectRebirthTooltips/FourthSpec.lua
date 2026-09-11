@@ -386,15 +386,9 @@ local nativePieces = {
 local function RestoreNativeSurfaceLayout()
     local saved = nativeLayout and nativeLayout.surface
     if not saved then return end
-    local scroll, child = PlayerTalentFrameScrollFrame, PlayerTalentFrameScrollChildFrame
+    local scroll = PlayerTalentFrameScrollFrame
     scroll:SetWidth(saved.width)
-    if saved.attached then
-        saved.attached = false
-        child:SetParent(saved.parent)
-        scroll:SetScrollChild(child)
-        RestoreAnchors(child, saved.anchors)
-        saved.wrapper:Hide()
-    end
+    scroll:SetHorizontalScroll(saved.horizontal)
     for _, art in ipairs(saved.art) do
         art.texture:SetSize(art.width, art.height)
         RestoreAnchors(art.texture, art.anchors)
@@ -405,9 +399,9 @@ end
 
 local function LayoutNativeSurface(extra)
     local scroll, child = PlayerTalentFrameScrollFrame, PlayerTalentFrameScrollChildFrame
-    if not scroll or not child then return end
+    if not scroll or not child or scroll:GetScrollChild() ~= child or child:GetParent() ~= scroll then return end
     if not nativeLayout.surface then
-        local saved = {width=scroll:GetWidth(), parent=child:GetParent(), anchors=SaveAnchors(child), art={}}
+        local saved = {width=scroll:GetWidth(), horizontal=scroll:GetHorizontalScroll(), art={}}
         for _, piece in ipairs(nativePieces) do
             local texture = _G["PlayerTalentFrameBackground" .. piece[1]]
             if not texture then return end -- Unknown client layout: leave native content alone.
@@ -415,14 +409,8 @@ local function LayoutNativeSurface(extra)
                 anchors=SaveAnchors(texture), uv={texture:GetTexCoord()}, shown=texture:IsShown()}
         end
         nativeLayout.surface = saved
-        saved.wrapper = CreateFrame("Frame", "ProjectRebirthNativeTalentCanvas", scroll)
-        -- Blizzard controls this child's height, talent buttons, branches and
-        -- arrow frame. Only its horizontal origin changes; never scale it.
-        child:HookScript("OnSizeChanged", function()
-            if saved.attached then saved.wrapper:SetHeight(child:GetHeight()) end
-        end)
         scroll:HookScript("OnSizeChanged", function()
-            if saved.attached and not layoutBusy then ScheduleTalentLayout(true) end
+            if not layoutBusy then ScheduleTalentLayout(true) end
         end)
     end
     local saved = nativeLayout.surface
@@ -435,15 +423,13 @@ local function LayoutNativeSurface(extra)
     scroll:ClearAllPoints()
     scroll:SetPoint("TOPLEFT", PlayerTalentFrame, "TOPLEFT", 23, -77)
     scroll:SetPoint("BOTTOMRIGHT", PlayerTalentFramePointsBar, "TOPRIGHT", -29, 0)
-    saved.wrapper:SetSize(width, child:GetHeight())
-    if not saved.attached then
-        saved.attached = true
-        child:SetParent(saved.wrapper)
-        scroll:SetScrollChild(saved.wrapper)
-        saved.wrapper:Show()
-    end
-    child:ClearAllPoints()
-    child:SetPoint("TOPLEFT", saved.wrapper, "TOPLEFT", extra / 2, 0)
+    -- Wrath's original scroll child owns clipping for the native buttons,
+    -- branches and arrow frame. Replacing it with a wrapper breaks that
+    -- relationship and lets lower rows draw over tabs/chat. Keep its parent,
+    -- registration, anchors and native scroll bounds completely untouched.
+    -- A negative horizontal view offset adds the desired left padding without
+    -- moving any widget out of Blizzard's native scrolling hierarchy.
+    scroll:SetHorizontalScroll(saved.horizontal - extra / 2)
     if height <= 0 then return end
     local scale = math.max(width / 300, height / 331)
     local cropX, cropY = (300 - width / scale) / 2, (331 - height / scale) / 2

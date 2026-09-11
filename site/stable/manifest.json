@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "product": "Project Reverie",
   "channel": "stable",
-  "contentVersion": "1.23.0",
-  "publishedAtUtc": "2026-09-11T16:05:57.8133887Z",
-  "expiresAtUtc": "2026-09-25T16:05:57.8133887Z",
+  "contentVersion": "1.23.1",
+  "publishedAtUtc": "2026-09-11T20:08:57.8915282Z",
+  "expiresAtUtc": "2026-09-25T20:08:57.8915282Z",
   "minimumLauncherVersion": "1.3.0",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
@@ -16,9 +16,9 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "Rebirth outside-tester preparation",
-    "summary": "Installed Rebirth UI 1.23.0 and supplied fourth-spec artwork. Native client data and account approval are separate prerequisites.",
-    "updateKind": "content",
+    "headline": "Project Reverie — Native talent clipping fix",
+    "summary": "Fixes original talent-tree icons and prerequisite arrows spilling below the talent window. Preserves native scrolling, expanded tabs, and fourth-tree presentation.",
+    "updateKind": "hotfix",
     "requiresClientUpdate": true
   },
   "files": [
@@ -43,8 +43,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/FourthSpec.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/FourthSpec.lua",
-      "size": 37302,
-      "sha256": "B486BC4FEDA62A72E14B5F275E3011255DD1C4FA26C43C07AADC5822C0138BB5"
+      "size": 36919,
+      "sha256": "97D94C09238631CC19A3F187B48F7ECECFCF283B539B6FB84009790E27265E24"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/FourthSpecData.lua",
@@ -158,7 +158,7 @@
       "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "size": 785,
-      "sha256": "11BE3E39578AC69174192A487343910AFC80EE4077D47B2509767D996B4AAA54"
+      "sha256": "F617AA3FAB7916A7ED7B8CC915B62E70684DE28527FE1EB752E60805FD242AC6"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/RankData.lua",
