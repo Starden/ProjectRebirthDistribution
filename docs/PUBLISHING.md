@@ -107,8 +107,9 @@ The script uses the authenticated GitHub CLI; it never uploads credentials or a
 signing key. If `gh` is not installed/authenticated, install it and run `gh auth
 login` before this step.
 
-Do not use the legacy workflow's temporary asset-commit path. Generated ZIPs
-must remain outside Git history; upload them directly to Releases.
+The obsolete tag-triggered publisher has been removed. Generated ZIPs must stay
+outside Git history; upload them directly to Releases. The release-published
+audit workflow still validates the uploaded public package independently.
 
 ## Rollback and key incidents
 

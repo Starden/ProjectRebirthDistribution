@@ -364,6 +364,9 @@ if ((Test-Path -LiteralPath $launcherFeedPath) -or (Test-Path -LiteralPath $laun
         Add-Pass "Independent launcher $($launcherRelease.latestVersion) feed signature, identity, expiry and archive fingerprint"
     } catch { Add-Failure "Launcher release verification failed: $($_.Exception.Message)" }
 }
+elseif ([version]$settings.launcherVersion -ge [version]'1.4.0') {
+    Add-Failure 'Launcher 1.4.0+ requires the independent signed launcher-release feed.'
+}
 
 if (-not $SkipReleaseAsset -and $null -ne $bootstrap) {
     Test-LauncherArchive -Root $DistributionRoot -Settings $settings -RepositoryBootstrap $bootstrap
