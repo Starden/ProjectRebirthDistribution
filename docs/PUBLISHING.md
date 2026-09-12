@@ -1,5 +1,33 @@
 # Publishing the one-tester release
 
+## Launcher self-update feed (1.4.0 and later)
+
+Game content and launcher binaries have independent versions. A launcher-only
+release must not regenerate or roll back the live content manifest/payload.
+Build a new launcher version, validate its public ZIP, update launcherVersion in
+distribution.settings.json, and publish the ZIP plus checksum to GitHub Releases.
+Never commit generated launcher archives to Git.
+
+Use the protected workstation's `Publish-ProjectReverieLauncherFeed.ps1` with
+the ZIP, Version, MinimumSupportedVersion and a staging OutputDirectory. It signs
+`launcher.json` and `launcher.json.sig` using the existing non-exportable key.
+The archive must be publicly downloadable and its SHA-256 verified **before**
+copying this pair into `site/stable/` and committing them together. Re-run
+`Test-PublicDistribution.ps1`, publish Pages, and verify the remote signed pair.
+
+The feed has a 30-day default lifetime. Renew its signature/timestamps before
+expiry, even when no binary changes. Preserve both files during content-only
+publications; the current workstation content publisher does this automatically.
+An incomplete pair must block publication. Choose the minimum version deliberately:
+it blocks obsolete launchers from installing content or playing, whereas a newer
+optional release only prompts. Pre-1.4.0 launchers require a one-time manual update.
+
+The workstation's `Publish-ProjectReverieGitHubRelease.ps1` can publish using the
+repository's existing Git Credential Manager login without installing GitHub CLI.
+It creates an unpublished draft, validates uploaded archive/checksum hashes, and
+then marks the release latest. A failed upload remains a draft for review; do not
+overwrite published assets or reuse a version for different bytes.
+
 ## Trust boundaries
 
 GitHub Pages serves the signed update feed over HTTPS. GitHub Releases serves the
@@ -79,20 +107,8 @@ The script uses the authenticated GitHub CLI; it never uploads credentials or a
 signing key. If `gh` is not installed/authenticated, install it and run `gh auth
 login` before this step.
 
-For the first test release, the `publish-launcher-release` workflow also supports
-a deliberately short-lived asset commit. Force-add only the ZIP and sidecar,
-push them with a `launcher-v1.2.1` tag, wait for the workflow to publish the
-release, then delete `release-assets/` in the next commit. This removes the files
-from the branch tip but **not** from Git history; direct `gh release create` is
-preferred for later releases.
-
-```powershell
-git add -f release-assets/Project-Reverie-Launcher-1.2.1-win-x64.zip
-git add -f release-assets/Project-Reverie-Launcher-1.2.1-win-x64.zip.sha256
-git commit -m "Stage Project Reverie launcher 1.2.1 release assets"
-git tag launcher-v1.2.1
-git push origin main launcher-v1.2.1
-```
+Do not use the legacy workflow's temporary asset-commit path. Generated ZIPs
+must remain outside Git history; upload them directly to Releases.
 
 ## Rollback and key incidents
 

@@ -337,6 +337,34 @@ if ((Test-Path -LiteralPath $manifestPath -PathType Leaf) -and
     }
 }
 
+$launcherFeedPath = Join-Path $channelRoot 'launcher.json'
+$launcherSignaturePath = "$launcherFeedPath.sig"
+if ((Test-Path -LiteralPath $launcherFeedPath) -or (Test-Path -LiteralPath $launcherSignaturePath)) {
+    try {
+        $bytes = [IO.File]::ReadAllBytes($launcherFeedPath)
+        $signatureText = [IO.File]::ReadAllText($launcherSignaturePath).Trim()
+        if ($bytes.Length -gt 16384 -or $signatureText.Length -gt 1024) { throw 'Launcher feed exceeds size limit.' }
+        $key = [Security.Cryptography.ECDsa]::Create()
+        try {
+            $key.ImportFromPem([IO.File]::ReadAllText($publicKeyPath))
+            if (-not $key.VerifyData($bytes, [Convert]::FromBase64String($signatureText), [Security.Cryptography.HashAlgorithmName]::SHA256, [Security.Cryptography.DSASignatureFormat]::IeeeP1363FixedFieldConcatenation)) { throw 'Launcher-release signature mismatch.' }
+        } finally { $key.Dispose() }
+        $launcherRelease = [Text.Encoding]::UTF8.GetString($bytes) | ConvertFrom-Json
+        $versionPattern = '\A(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\z'
+        if ($launcherRelease.schemaVersion -ne 1 -or $launcherRelease.product -cne 'Project Reverie' -or $launcherRelease.channel -cne 'stable' -or $launcherRelease.latestVersion -cne $settings.launcherVersion) { throw 'Launcher feed identity/version mismatch.' }
+        if ($launcherRelease.latestVersion -notmatch $versionPattern -or $launcherRelease.minimumSupportedVersion -notmatch $versionPattern -or [version]$launcherRelease.minimumSupportedVersion -gt [version]$launcherRelease.latestVersion) { throw 'Invalid launcher version range.' }
+        $published = [DateTimeOffset]$launcherRelease.publishedAtUtc
+        $expires = [DateTimeOffset]$launcherRelease.expiresAtUtc
+        if ($published -gt [DateTimeOffset]::UtcNow.AddMinutes(10) -or $expires -le [DateTimeOffset]::UtcNow -or $expires -le $published) { throw 'Launcher feed is expired or has invalid timestamps.' }
+        if ($launcherRelease.archiveSha256 -notmatch '\A[a-fA-F0-9]{64}\z' -or $launcherRelease.archiveSize -le 0 -or $launcherRelease.archiveSize -gt 512MB) { throw 'Invalid launcher archive fingerprint.' }
+        if (-not $SkipReleaseAsset) {
+            $archive = Join-Path $DistributionRoot "release-assets\Project-Reverie-Launcher-$($launcherRelease.latestVersion)-win-x64.zip"
+            if ((Get-Item -LiteralPath $archive).Length -ne $launcherRelease.archiveSize -or (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ine $launcherRelease.archiveSha256) { throw 'Signed launcher fingerprint does not match the release ZIP.' }
+        }
+        Add-Pass "Independent launcher $($launcherRelease.latestVersion) feed signature, identity, expiry and archive fingerprint"
+    } catch { Add-Failure "Launcher release verification failed: $($_.Exception.Message)" }
+}
+
 if (-not $SkipReleaseAsset -and $null -ne $bootstrap) {
     Test-LauncherArchive -Root $DistributionRoot -Settings $settings -RepositoryBootstrap $bootstrap
 }
