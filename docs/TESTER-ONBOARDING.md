@@ -26,11 +26,11 @@ The Project Reverie launcher does not include or download World of Warcraft.
 
 ## First connection
 
-**Launcher 1.4.0 is an onboarding/connection preview, not a complete clean-client
-gameplay installer.** Use Start Here to request an account and test the gateway.
-Matching native Rebirth data are required before Play; the tester-side generator
-is still pending. Contact the owner if Native Data Required appears. Do not
-bypass verification. A character-creation-only account cannot enter the world
+**Launcher 1.5.0 includes local native-data preparation.** Use Start Here to
+request an account and test the gateway. After updating the addons, select
+**Prepare Client** to build Rebirth's item data from your own clean client.
+No game archives are downloaded; original client files stay unchanged.
+Do not bypass verification. A character-creation-only account cannot enter the world
 until the owner grants full access. Password replacement is not automatically
 enforced on first login; follow the owner's private instructions.
 
@@ -41,8 +41,10 @@ enforced on first login; follow the owner's private instructions.
    warning because the pilot launcher is not Authenticode-signed yet.
 4. Start `ProjectReverie.Launcher.exe`, select **Locate Client**, and choose the
    folder containing the clean `Wow.exe`.
-5. Select **Update** for the signed addons. Once native data and gateway checks
-   pass, select **Play** and log in with the dedicated Rebirth test account.
+5. Select **Update** for the signed addons.
+6. Select **Prepare Client**, close this WoW client, and confirm.
+7. Once native data and gateway checks pass, select **Play Rebirth** and log in
+   with the dedicated Rebirth test account.
 
 The launcher writes the signed VPS gateway address automatically. Do not edit
 `realmlist.wtf` manually.
@@ -59,5 +61,10 @@ The launcher writes the signed VPS gateway address automatically. Do not edit
   details.
 - If the update feed is online but the game services are unavailable, contact the
   owner; do not change the realm address manually.
-- The launcher manages only Project Reverie-owned Rebirth add-on files. It does not repair
-  base client files or make another WoW version compatible.
+- If 1.4.0 says **Native Data Required**, upgrade to 1.5.0 and use **Prepare Client**.
+- The native generator is tested on English enUS ChromieCraft build 12340. A
+  mismatched source table or unknown existing archive is refused. Keep existing
+  files and contact the owner; do not delete arbitrary archives.
+- The launcher downloads only Project Reverie-owned addon files and generates
+  native Rebirth item data locally. It does not repair original game archives
+  or make another WoW version compatible.

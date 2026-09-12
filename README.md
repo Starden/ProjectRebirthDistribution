@@ -15,12 +15,12 @@ You will also need:
 - your own lawful, clean ChromieCraft WoW 3.3.5a client, build 12340; and
 - an approved Rebirth account supplied privately by the server owner.
 
-**Current release: 1.4.0 — onboarding/connection preview.** You can request an
-account and test the gateway immediately. A clean client alone is not yet enough
-for gameplay: **Play requires matching native Rebirth data**, and the tester-side
-native-data installer is still being prepared. Contact the owner if the launcher
-says **Native Data Required**; do not bypass the check. Server access is granted
-separately: a character-creation-only account cannot enter the world.
+**Current release: 1.5.0 — integrated client preparation.** You can request an
+account and test the gateway immediately. After locating your own clean client,
+**Prepare Client** generates and verifies Rebirth's native item data locally.
+No game archives are downloaded and no separate patcher is needed. Original
+client archives are left unchanged. Server access is granted separately:
+a character-creation-only account cannot enter the world.
 
 To get started:
 
@@ -29,9 +29,15 @@ To get started:
 3. Run `ProjectReverie.Launcher.exe`.
 4. Use **Start Here** to request an account and **Test Connection**.
 5. Under **Home**, choose **Locate Client** and select your clean `Wow.exe` folder.
-6. Choose **Update** for the signed Rebirth addons. **Play** becomes available
-   only when the native-data and connection checks pass. Log in with your
-   approved account; world entry also requires the owner's full-access approval.
+6. Choose **Update** for the signed Rebirth addons.
+7. Choose **Prepare Client**, close this WoW client, and confirm local preparation.
+8. Select **Play Rebirth** after checks pass and log in with your approved account.
+   World entry also requires the owner's full-access approval.
+
+If launcher 1.4.0 says **Native Data Required**, download 1.5.0 or newer, extract
+it into a new folder and run it. Your client selection is retained. No password
+reset or VPN is needed. This release is tested with the English enUS clean client;
+incompatible source data or unknown existing patches are refused, not overwritten.
 
 ## Launcher updates
 
