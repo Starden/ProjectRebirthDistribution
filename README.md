@@ -15,14 +15,37 @@ You will also need:
 - your own lawful, clean ChromieCraft WoW 3.3.5a client, build 12340; and
 - an approved Rebirth account supplied privately by the server owner.
 
-To play:
+**Current release: 1.4.0 — onboarding/connection preview.** You can request an
+account and test the gateway immediately. A clean client alone is not yet enough
+for gameplay: **Play requires matching native Rebirth data**, and the tester-side
+native-data installer is still being prepared. Contact the owner if the launcher
+says **Native Data Required**; do not bypass the check. Server access is granted
+separately: a character-creation-only account cannot enter the world.
+
+To get started:
 
 1. Download the launcher ZIP from the Releases page.
 2. Extract the entire ZIP into its own folder.
 3. Run `ProjectReverie.Launcher.exe`.
-4. Choose **Locate Client** and select the folder containing your clean `Wow.exe`.
-5. Choose **Update**, wait for verification to finish, and then choose **Play**.
-6. Log in with your approved Rebirth account.
+4. Use **Start Here** to request an account and **Test Connection**.
+5. Under **Home**, choose **Locate Client** and select your clean `Wow.exe` folder.
+6. Choose **Update** for the signed Rebirth addons. **Play** becomes available
+   only when the native-data and connection checks pass. Log in with your
+   approved account; world entry also requires the owner's full-access approval.
+
+## Launcher updates
+
+Starting with **1.4.0**, the launcher checks its own version on startup and when
+you click **Check Updates**. When a newer version is available, it prompts you
+to open the official release page; a download button remains in the header.
+Download the new launcher ZIP, close the old launcher, extract the new ZIP into
+a fresh folder, and run it. Your selected client and preferences are retained.
+The launcher does not silently overwrite itself or execute downloads.
+
+The launcher-release feed is signed independently of game-content updates.
+An upgrade below the minimum supported version is required before installing
+content or playing. Failed or expired checks are labelled unavailable, not
+current. Older launchers need a **one-time manual upgrade to 1.4.0**.
 
 Do not edit `realmlist.wtf` manually. The launcher does not include or download
 the base World of Warcraft client. Windows may show an **Unknown publisher**
@@ -50,13 +73,15 @@ private keys, or publisher private-key material.
 
 - Update manifest: `https://starden.github.io/ProjectRebirthDistribution/stable/manifest.json`
 - Detached signature: `https://starden.github.io/ProjectRebirthDistribution/stable/manifest.json.sig`
+- Launcher version: `https://starden.github.io/ProjectRebirthDistribution/stable/launcher.json`
+- Launcher version signature: `https://starden.github.io/ProjectRebirthDistribution/stable/launcher.json.sig`
 - Launcher releases: `https://github.com/Starden/ProjectRebirthDistribution/releases`
 
 The signed realm endpoint is the public VPS gateway at `134.122.124.150:3724`;
 world service status uses `134.122.124.150:8087`. The gateway carries traffic to
 the Rebirth host over a private WireGuard link and preserves public client
-addresses with PROXY protocol v2. Testers need only the launcher, their lawful
-clean client, and an approved game account.
+addresses with PROXY protocol v2. Testers do not install a VPN. The client-data
+and account-access prerequisites above still apply.
 
 ## Validate locally
 

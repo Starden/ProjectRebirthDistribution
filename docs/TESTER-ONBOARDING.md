@@ -26,6 +26,14 @@ The Project Reverie launcher does not include or download World of Warcraft.
 
 ## First connection
 
+**Launcher 1.4.0 is an onboarding/connection preview, not a complete clean-client
+gameplay installer.** Use Start Here to request an account and test the gateway.
+Matching native Rebirth data are required before Play; the tester-side generator
+is still pending. Contact the owner if Native Data Required appears. Do not
+bypass verification. A character-creation-only account cannot enter the world
+until the owner grants full access. Password replacement is not automatically
+enforced on first login; follow the owner's private instructions.
+
 1. Download the launcher ZIP from the announced GitHub Release.
 2. Compare its SHA-256 with the value the owner sent through a separate trusted
    channel.
@@ -33,13 +41,18 @@ The Project Reverie launcher does not include or download World of Warcraft.
    warning because the pilot launcher is not Authenticode-signed yet.
 4. Start `ProjectReverie.Launcher.exe`, select **Locate Client**, and choose the
    folder containing the clean `Wow.exe`.
-5. Select **Update**, then **Play**, and log in with the dedicated Rebirth test
-   account.
+5. Select **Update** for the signed addons. Once native data and gateway checks
+   pass, select **Play** and log in with the dedicated Rebirth test account.
 
 The launcher writes the signed VPS gateway address automatically. Do not edit
 `realmlist.wtf` manually.
 
 ## Safety and troubleshooting
+
+- Version 1.4.0 checks the launcher's own signed release feed and prompts when a
+  newer launcher is available. Use its header download button or **Check Updates**
+  to retry. Close the old launcher, extract the new ZIP to a fresh folder, and
+  run it; your client selection is retained. Pre-1.4.0 users upgrade manually once.
 
 - Do not bypass a manifest signature, expiry, rollback, or file-hash warning.
 - Do not send screenshots containing an account password or personal network
