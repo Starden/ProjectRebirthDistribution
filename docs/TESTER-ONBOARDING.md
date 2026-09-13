@@ -26,7 +26,7 @@ The Project Reverie launcher does not include or download World of Warcraft.
 
 ## First connection
 
-**Launcher 1.6.0 includes fourth-specialization and Feral Cat native-data preparation.** Use Start Here to
+**Launcher 1.6.1 adds built-in updates and retains fourth-spec/Feral Cat native preparation.** Use Start Here to
 request an account and test the gateway. After updating the addons, select
 **Prepare Client** to build Rebirth's item, Heirloom, fourth-spec and Feral Cat data from your own clean client.
 No game archives are downloaded; original client files stay unchanged.
@@ -51,20 +51,24 @@ The launcher writes the signed VPS gateway address automatically. Do not edit
 
 ## Safety and troubleshooting
 
-- Version 1.4.0 checks the launcher's own signed release feed and prompts when a
-  newer launcher is available. Use its header download button or **Check Updates**
-  to retry. Close the old launcher, extract the new ZIP to a fresh folder, and
-  run it; your client selection is retained. Pre-1.4.0 users upgrade manually once.
+- Version 1.6.1 prompts **Update and restart?** when a newer launcher is available.
+  Yes downloads, verifies, installs and reopens it without a browser. No postpones
+  the update; use the header's **Update to...** button later. Settings are retained.
+  1.6.0 and older need one final manual ZIP update to obtain this feature.
+- Keep the launcher separate from WoW in a regular writable folder, outside linked
+  or cloud-managed folders. Keep `ProjectReverie.Launcher.exe` named as supplied.
+  Failed replacements restore backups where safe; power loss may need manual
+  recovery from `.reverie-update-*` in the launcher folder or a fresh ZIP.
 
 - Do not bypass a manifest signature, expiry, rollback, or file-hash warning.
 - Do not send screenshots containing an account password or personal network
   details.
 - If the update feed is online but the game services are unavailable, contact the
   owner; do not change the realm address manually.
-- If an older launcher says **Native Data Required**, upgrade to 1.6.0 and use **Prepare Client**.
+- If an older launcher says **Native Data Required**, upgrade to 1.6.1 and use **Prepare Client**.
 - The native generator is tested on English enUS ChromieCraft build 12340. A
   mismatched source table or unknown existing archive is refused. Keep existing
   files and contact the owner; do not delete arbitrary archives.
-- The launcher downloads only Project Reverie-owned addon files and generates
+- The launcher downloads its own verified updates and Project Reverie-owned addon files, and generates
   native Rebirth item and ability data locally. It does not repair original game archives
   or make another WoW version compatible.

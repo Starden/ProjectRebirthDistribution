@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "product": "Project Reverie",
   "channel": "stable",
-  "latestVersion": "1.6.0",
-  "minimumSupportedVersion": "1.6.0",
-  "publishedAtUtc": "2026-09-13T20:30:05.2828463+00:00",
-  "expiresAtUtc": "2026-10-13T20:30:05.2828463+00:00",
-  "archiveSha256": "4f05c8f27420c8b397eca38d06f6418f0029d387edde8658f25d94ba4dfe106f",
-  "archiveSize": 61635830
+  "latestVersion": "1.6.1",
+  "minimumSupportedVersion": "1.6.1",
+  "publishedAtUtc": "2026-09-13T22:20:00.8289316+00:00",
+  "expiresAtUtc": "2026-10-13T22:20:00.8289316+00:00",
+  "archiveSha256": "81787f23e2012b794660b8ba46579ef0f42dd69597d99700a70fabf1ce227cfe",
+  "archiveSize": 61629494
 }
