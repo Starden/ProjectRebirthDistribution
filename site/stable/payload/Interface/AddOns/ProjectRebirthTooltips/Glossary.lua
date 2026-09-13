@@ -89,27 +89,14 @@ end
 local function detail(entry, snapshot)
     if not entry then return "Select a Skill", "Choose a skill on the left to view its effects and current-Life status." end
     local owned, skill = G.Ownership(entry, snapshot)
-    local parts = {"Tier " .. entry.tier .. "  |  " .. entry.rarity .. "  |  " .. entry.category,
-        "Skill ID: " .. entry.id, "Ownership: " .. owned}
+    local parts = {ProjectRebirthSkillPresentation.Meta(entry.rarity, entry.tier),
+        owned == "Unknown" and "Ownership unknown" or owned}
     if skill then
         parts[#parts+1] = "Current rank: " .. skill.rank .. "/5"
-        parts[#parts+1] = skill.effects and skill.operational and "Effects: active (server reported)" or "Effects: inactive (server reported)"
-    else
-        parts[#parts+1] = "Live effect status: unknown; this catalog does not prove implementation."
+        if not skill.effects or not skill.operational then parts[#parts+1] = "Currently inactive." end
     end
-    parts[#parts+1] = "Unlock eligibility: not supplied by the server."
-    parts[#parts+1] = "\n" .. entry.description
-    local card = ProjectRebirthSkillData and ProjectRebirthSkillData[entry.id]
-    if card and card.ranks then
-        parts[#parts+1] = "\nRank reference"
-        for _, rank in ipairs(card.ranks) do
-            parts[#parts+1] = "Rank " .. rank.rank .. ": " .. (rank.text or "Values not yet supplied.")
-        end
-    elseif entry.category == "Proficiency" then
-        parts[#parts+1] = "\nRank-scaling bonuses: not yet supplied in this catalog."
-    end
-    if entry.requirement ~= "" then parts[#parts+1] = "\nCatalog prerequisite (not a live eligibility check):\n" .. entry.requirement end
-    parts[#parts+1] = "\nMastered this Life means a server-reported rank of 5. Permanent mastery achievement status is not available here."
+    parts[#parts+1] = ProjectRebirthSkillPresentation.Effect(entry.id)
+    if entry.requirement and entry.requirement ~= "" then parts[#parts+1] = "Requires: " .. entry.requirement end
     return entry.name, table.concat(parts, "\n\n")
 end
 G.Detail = detail
@@ -149,7 +136,7 @@ function G.Refresh()
     frame.pageText:SetText("Page " .. page .. " / " .. pages)
     if page > 1 then frame.previous:Enable() else frame.previous:Disable() end
     if page < pages then frame.next:Enable() else frame.next:Disable() end
-    frame.state:SetText(snapshot.available and "Current-Life ownership is synchronized." or "Ownership unknown - waiting for a complete local-player snapshot.")
+    frame.state:SetText(snapshot.available and "Showing Skills owned this Life." or "Ownership unknown — refreshing your Skills.")
     local title, body = detail(current, snapshot)
     frame.detailTitle:SetText(title)
     frame.detailText:SetText(body)

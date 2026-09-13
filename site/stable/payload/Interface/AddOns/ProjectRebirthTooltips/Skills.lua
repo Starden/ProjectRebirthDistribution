@@ -16,12 +16,7 @@ local function SkillIcon(skillId, fallback)
 end
 
 local function SkillCardText(skillId, rank)
-    local skill, card = SkillCard(skillId, rank)
-    if not card then return "" end
-    local text = card.text
-    local nextRank = skill.ranks[rank + 1]
-    if nextRank then text = text .. "\n\nNext rank:\n" .. nextRank.text end
-    return text
+    return ProjectRebirthSkillPresentation.Effect(skillId)
 end
 
 local active = false
@@ -42,6 +37,7 @@ local skillDetailIcon
 local skillDetailName
 local skillDetailMeta
 local skillDetailSummary
+local skillDetailScroll, skillDetailChild
 local heritageCountLabel
 local heritageGridFrame
 local heritageGridChild
@@ -566,9 +562,8 @@ local function RenderSkillTab()
         button:SetBackdropBorderColor(rarity.color[1], rarity.color[2], rarity.color[3], 1)
         button.rank:SetText(skill.rank > 0 and skill.rank or "")
         ProjectRebirthCompletion.Skill(button, skill.rank)
-        button.tooltipName = skill.name
-        button.tooltipMeta = string.format("%s • Rank %d • %d XP • %s", rarity.name,
-            skill.rank, skill.xp, skill.effects and "Test effect enabled" or "Effect inactive")
+        button.tooltipName = ProjectRebirthSkillPresentation.Name(skill.id, skill.name)
+        button.tooltipMeta = ProjectRebirthSkillPresentation.Meta(rarity.name, skill.tier)
         button.tooltipDescription = SkillCardText(skill.id, skill.rank)
         button.entryId = skill.id
         if selectedSkillId == skill.id then
@@ -587,30 +582,27 @@ local function RenderSkillTab()
         skillDetailName:SetTextColor(0.62, 0.62, 0.62)
         skillDetailMeta:SetText("Acquire a Skill to populate this detail pane.")
         skillDetailSummary:SetText("Skill rarity, experience, Rank, tier, and effect text will appear here.")
+        skillDetailChild:SetHeight(math.max(1, skillDetailSummary:GetStringHeight() + 12))
+        skillDetailScroll:SetVerticalScroll(0)
+        skillDetailScroll:UpdateScrollChildRect()
         skillDetailFrame:SetBackdropBorderColor(0.28, 0.34, 0.45, 1)
         return
     end
 
     local rarity = Rarity(skill.rarityId)
-    local tierText = skill.tier and skill.tier > 0 and ("Tier " .. skill.tier) or "Tier WIP"
     skillDetailIcon:SetTexture(skill.icon or SKILL_ICON)
-    skillDetailName:SetText(skill.name)
+    skillDetailName:SetText(ProjectRebirthSkillPresentation.Name(skill.id, skill.name))
     skillDetailName:SetTextColor(rarity.color[1], rarity.color[2], rarity.color[3])
-    skillDetailMeta:SetText(string.format("%s  •  Rank %d  •  %d XP  •  %s%s", rarity.name,
-        skill.rank, skill.xp, tierText, skill.effects and "  •  test effect enabled" or "  •  effect inactive"))
-    local valueText = FormatMilliValue(skill.valueMilli, skill.unit)
-    local bucketTotalText = FormatMilliValue(skill.bucketTotalMilli, skill.unit)
+    skillDetailMeta:SetText(ProjectRebirthSkillPresentation.Meta(rarity.name, skill.tier) ..
+        string.format("\nRank %d  •  %d XP", skill.rank, skill.xp))
     local cardText = SkillCardText(skill.id, skill.rank)
-    skillDetailSummary:SetText((cardText ~= "" and cardText or (skill.summary or "")) ..
-        (skill.adapter ~= "unclassified" and ("\n\n|cff20ff20Server rank value: " .. valueText .. "|r") or
-            "\n\n|cffffcc66Effect implementation pending. The values above are design previews.|r") ..
-        "\n|cff73e6ffStacking bucket:|r " .. HumanizeCode(skill.bucket) ..
-        "  |cff9aa6bf(combined " .. bucketTotalText .. ")|r" ..
-        "\n|cff73e6ffRuntime adapter:|r " .. HumanizeCode(skill.adapter) ..
-        ((skill.runtimeDetail and skill.runtimeDetail ~= "") and
-            ("\n|cff20ff20Runtime state:|r " .. skill.runtimeDetail) or "") ..
-        (skill.bucket == "attack_power_pct" and
-            "\n|cff20ff20Character sheet:|r green AP is the current percentage-derived point equivalent." or ""))
+    skillDetailSummary:SetText(cardText .. (not skill.effects and "\n\nCurrently inactive." or ""))
+    skillDetailChild:SetHeight(math.max(1, skillDetailSummary:GetStringHeight() + 12))
+    if skillDetailScroll.skillId ~= skill.id then
+        skillDetailScroll:SetVerticalScroll(0)
+        skillDetailScroll.skillId = skill.id
+    end
+    skillDetailScroll:UpdateScrollChildRect()
     skillDetailFrame:SetBackdropBorderColor(rarity.color[1], rarity.color[2], rarity.color[3], 1)
 end
 
@@ -755,19 +747,7 @@ local function RenderHeritageTab()
 end
 
 local function ChoiceDetailText(choice)
-    local rankCurve = choice.rankCurve
-    if tonumber(rankCurve) then
-        rankCurve = "Curve " .. rankCurve .. " (server-authoritative Tier " .. tostring(choice.tier) .. " schedule)"
-    else
-        rankCurve = HumanizeCode(rankCurve)
-    end
-    return (choice.detail ~= "" and choice.detail or choice.shortEffect or "") ..
-        "\n\n|cff73e6ffRank I value:|r |cff20ff20" .. FormatMilliValue(choice.valueMilli, choice.unit) .. "|r" ..
-        "\n|cff73e6ffXP / Rank curve:|r " .. rankCurve ..
-        "\n|cff73e6ffStacking:|r " .. HumanizeCode(choice.stacking) ..
-        "\n|cff73e6ffStacking bucket:|r " .. HumanizeCode(choice.bucket) ..
-        "\n|cff73e6ffRuntime adapter:|r " .. HumanizeCode(choice.adapter) ..
-        "\n|cff73e6ffSource:|r " .. (choice.sourceContext ~= "" and choice.sourceContext or "Manifestation")
+    return ProjectRebirthSkillPresentation.Effect(choice.skillId)
 end
 
 local function OfferFingerprint(offer)
@@ -787,8 +767,8 @@ local function AcquireChoiceCard(index)
         return choiceCards[index]
     end
 
-    local card = CreateFrame("Button", nil, choiceFrame)
-    card:SetWidth(596)
+    local card = CreateFrame("Button", nil, choiceFrame.cardChild)
+    card:SetWidth(584)
     card:RegisterForClicks("LeftButtonUp")
     ApplyCardBackdrop(card, 0.025, 0.035, 0.075)
     card.highlight = card:CreateTexture(nil, "BACKGROUND")
@@ -811,16 +791,11 @@ local function AcquireChoiceCard(index)
     card.meta:SetPoint("TOPLEFT", card.name, "BOTTOMLEFT", 0, -4)
     card.meta:SetPoint("RIGHT", card, "RIGHT", -18, 0)
     card.meta:SetJustifyH("LEFT")
-    card.short = card:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    card.short:SetPoint("TOPLEFT", card.meta, "BOTTOMLEFT", 0, -5)
-    card.short:SetPoint("RIGHT", card, "RIGHT", -18, 0)
-    card.short:SetJustifyH("LEFT")
     card.details = card:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    card.details:SetPoint("TOPLEFT", card, "TOPLEFT", 18, -88)
-    card.details:SetPoint("RIGHT", card, "RIGHT", -18, 0)
+    card.details:SetPoint("TOPLEFT", card, "TOPLEFT", 18, -82)
+    card.details:SetWidth(548)
     card.details:SetJustifyH("LEFT")
     card.details:SetJustifyV("TOP")
-    card.details:Hide()
     card:SetScript("OnClick", function(self)
         if actionPending or not self.choiceOrdinal then return end
         selectedChoiceOrdinal = self.choiceOrdinal
@@ -831,9 +806,9 @@ local function AcquireChoiceCard(index)
         if not self.choice then return end
         local rarity = Rarity(self.choice.rarityId)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:AddLine(self.choice.name, rarity.color[1], rarity.color[2], rarity.color[3])
-        GameTooltip:AddLine(self.choice.shortEffect or "", 1, 1, 1, true)
-        GameTooltip:AddLine(ChoiceDetailText(self.choice), 0.72, 0.82, 1.00, true)
+        GameTooltip:AddLine(ProjectRebirthSkillPresentation.Name(self.choice.skillId, self.choice.name), rarity.color[1], rarity.color[2], rarity.color[3])
+        GameTooltip:AddLine(ProjectRebirthSkillPresentation.Meta(rarity.name, self.choice.tier), 1, 1, 1, true)
+        GameTooltip:AddLine(ChoiceDetailText(self.choice), 1, 0.82, 0, true)
         GameTooltip:Show()
     end)
     card:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -849,37 +824,36 @@ RenderChoiceFrame = function()
         return
     end
 
-    choiceSubtitle:SetText(string.format("Choose one permanent Skill  •  Life %d  •  %d choice%s",
-        state.lifeId > 0 and state.lifeId or 1, offer.count, offer.count == 1 and "" or "s"))
-    local top = -88
+    choiceSubtitle:SetText("Choose one permanent Skill")
+    local top = 0
     local totalCardHeight = 0
     for index = 1, 3 do
         local card = AcquireChoiceCard(index)
         local choice = offer.choices[index]
         if choice then
             local selected = selectedChoiceOrdinal == choice.ordinal
-            local height = selected and 190 or 90
             local rarity = Rarity(choice.rarityId)
-            local tierText = choice.tier > 0 and ("Tier " .. choice.tier) or "Tier WIP"
             card:ClearAllPoints()
-            card:SetPoint("TOP", choiceFrame, "TOP", 0, top)
-            card:SetHeight(height)
+            card:SetPoint("TOPLEFT", choiceFrame.cardChild, "TOPLEFT", 0, top)
             card.choiceOrdinal = choice.ordinal
             card.choice = choice
             card.icon:SetTexture(SkillIcon(choice.skillId, choice.icon ~= "" and choice.icon or OFFER_ICON))
-            card.name:SetText(choice.name)
+            card.name:SetText(ProjectRebirthSkillPresentation.Name(choice.skillId, choice.name))
             card.name:SetTextColor(rarity.color[1], rarity.color[2], rarity.color[3])
-            card.meta:SetText(string.format("%s  •  %s  •  Choice %d", rarity.name, tierText, choice.ordinal))
-            card.short:SetText(choice.shortEffect)
+            card.meta:SetText(ProjectRebirthSkillPresentation.Meta(rarity.name, choice.tier))
             card.details:SetText(ChoiceDetailText(choice))
+            local bodyTop = math.max(82, 28 + card.name:GetStringHeight() + card.meta:GetStringHeight())
+            card.details:ClearAllPoints()
+            card.details:SetPoint("TOPLEFT", card, "TOPLEFT", 18, -bodyTop)
+            local height = bodyTop + card.details:GetStringHeight() + 18
+            card:SetHeight(height)
+            card.details:Show()
             card.highlight:SetVertexColor(rarity.color[1], rarity.color[2], rarity.color[3])
             card:SetBackdropBorderColor(rarity.color[1], rarity.color[2], rarity.color[3], selected and 1 or 0.82)
             if selected then
                 card.highlight:Show()
-                card.details:Show()
             else
                 card.highlight:Hide()
-                card.details:Hide()
             end
             card:Show()
             top = top - height - 10
@@ -891,7 +865,15 @@ RenderChoiceFrame = function()
         end
     end
 
-    choiceFrame:SetHeight(146 + totalCardHeight)
+    local scale = math.min(1, (UIParent:GetWidth() - 24) / 640)
+    choiceFrame:SetScale(scale)
+    choiceFrame:SetHeight(math.min(146 + totalCardHeight, math.max(300, (UIParent:GetHeight() - 48) / scale)))
+    choiceFrame.cardChild:SetHeight(math.max(1, totalCardHeight))
+    if choiceFrame.displayedOffer ~= offer.opportunityId then
+        choiceFrame.cardScroll:SetVerticalScroll(0)
+        choiceFrame.displayedOffer = offer.opportunityId
+    end
+    choiceFrame.cardScroll:UpdateScrollChildRect()
     SetButtonEnabled(claimButton, selectedChoiceOrdinal ~= nil and not offer.expired and not actionPending)
     SetButtonEnabled(declineAllButton, not actionPending)
     SetButtonEnabled(laterButton, not actionPending)
@@ -1177,6 +1159,14 @@ local function CreateManifestationChoiceInterface()
     choiceFrame:SetBackdropColor(0.018, 0.025, 0.07, 0.98)
     choiceFrame:SetBackdropBorderColor(0.40, 0.32, 0.74, 1)
     choiceFrame:Hide()
+
+    choiceFrame.cardScroll = CreateFrame("ScrollFrame", "ProjectRebirthChoiceScrollFrame", choiceFrame, "UIPanelScrollFrameTemplate")
+    choiceFrame.cardScroll:SetPoint("TOPLEFT", choiceFrame, "TOPLEFT", 22, -88)
+    choiceFrame.cardScroll:SetPoint("BOTTOMRIGHT", choiceFrame, "BOTTOMRIGHT", -34, 58)
+    choiceFrame.cardChild = CreateFrame("Frame", nil, choiceFrame.cardScroll)
+    choiceFrame.cardChild:SetWidth(584)
+    choiceFrame.cardChild:SetHeight(1)
+    choiceFrame.cardScroll:SetScrollChild(choiceFrame.cardChild)
 
     choiceFrame.revealGlow = choiceFrame:CreateTexture(nil, "OVERLAY")
     choiceFrame.revealGlow:SetPoint("TOPLEFT", choiceFrame, "TOPLEFT", 4, -4)
@@ -1507,9 +1497,16 @@ local function CreateInterface()
     skillDetailMeta:SetPoint("TOPLEFT", skillDetailName, "BOTTOMLEFT", 0, -5)
     skillDetailMeta:SetPoint("RIGHT", skillDetailFrame, "RIGHT", -14, 0)
     skillDetailMeta:SetJustifyH("LEFT")
-    skillDetailSummary = skillDetailFrame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    skillDetailSummary:SetPoint("TOPLEFT", skillDetailFrame, "TOPLEFT", 14, -88)
-    skillDetailSummary:SetPoint("BOTTOMRIGHT", skillDetailFrame, "BOTTOMRIGHT", -14, 14)
+    skillDetailScroll = CreateFrame("ScrollFrame", "ProjectRebirthSkillDetailScrollFrame", skillDetailFrame, "UIPanelScrollFrameTemplate")
+    skillDetailScroll:SetPoint("TOPLEFT", skillDetailFrame, "TOPLEFT", 14, -88)
+    skillDetailScroll:SetPoint("BOTTOMRIGHT", skillDetailFrame, "BOTTOMRIGHT", -30, 14)
+    skillDetailChild = CreateFrame("Frame", nil, skillDetailScroll)
+    skillDetailChild:SetWidth(258)
+    skillDetailChild:SetHeight(1)
+    skillDetailScroll:SetScrollChild(skillDetailChild)
+    skillDetailSummary = skillDetailChild:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    skillDetailSummary:SetPoint("TOPLEFT", skillDetailChild, "TOPLEFT", 0, 0)
+    skillDetailSummary:SetWidth(258)
     skillDetailSummary:SetJustifyH("LEFT")
     skillDetailSummary:SetJustifyV("TOP")
 
