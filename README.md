@@ -15,14 +15,16 @@ You will also need:
 - your own lawful, clean ChromieCraft WoW 3.3.5a client, build 12340; and
 - an approved Rebirth account supplied privately by the server owner.
 
-**Current release: 1.5.3 — complete client preparation and current Rebirth UI.** You can request an
-account and test the gateway immediately. After locating your own clean client,
-**Prepare Client** generates and verifies Rebirth's item, Heirloom and tooltip data locally.
-Enhancement Stones now appear in the native Currency tab with payout notifications.
-Content **1.27.2** shows complete Skill descriptions in choice cards, tooltips
-and the Glossary, with natural wording and gold description text. Condition tags,
-raw units and redundant rank rows are removed. Existing 1.5.3 users only
-need **Check Updates → Update** with WoW closed; no new launcher download is needed.
+**Current release: launcher 1.6.0 / content 1.28.0 — fourth-specialization alpha client preparation.**
+You can request an account and test the gateway immediately. After locating your
+own clean client, **Prepare Client** generates and verifies Rebirth's item,
+Heirloom, fourth-specialization, Feral Cat and tooltip data locally.
+The update preserves the existing Skill descriptions, Currency tab, gear-upgrade
+and Heirloom interface. Existing 1.5.3 users must download the new launcher ZIP,
+then use **Check Updates → Update → Prepare Client** with WoW closed.
+Your selected client and launcher preferences are retained. Server activation is
+separately controlled; installing client definitions is not proof every alpha
+ability has passed in-game testing. Existing account permissions are unchanged.
 No game archives are downloaded and no separate patcher is needed. Original
 client archives are left unchanged. Server access is granted separately:
 a character-creation-only account cannot enter the world.
@@ -39,7 +41,7 @@ To get started:
 8. Select **Play Rebirth** after checks pass and log in with your approved account.
    World entry also requires the owner's full-access approval.
 
-If an older launcher says **Native Data Required** or **Release Pending**, download 1.5.3 or newer, extract
+If an older launcher says **Native Data Required** or **Release Pending**, download 1.6.0 or newer, extract
 it into a new folder and run it. Your client selection is retained. No password
 reset or VPN is needed. This release is tested with the English enUS clean client;
 incompatible source data or unknown existing patches are refused, not overwritten.

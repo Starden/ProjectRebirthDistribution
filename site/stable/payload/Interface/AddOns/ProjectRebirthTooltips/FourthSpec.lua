@@ -179,14 +179,16 @@ local function Tooltip(node, button)
             1, 0.125, 0.125, true)
     end
     local card = node.ranks[math.max(1, rank)]
-    if card then GameTooltip:AddLine(card.preview, 1, 0.82, 0, true) end
+    local alpha = ProjectRebirthFourthSpecAlpha and ProjectRebirthFourthSpecAlpha[node.talentId]
+    if card then GameTooltip:AddLine(alpha and alpha[math.max(1, rank)] or card.preview, 1, 0.82, 0, true) end
     if rank > 0 and rank < node.maxRank then
         GameTooltip:AddLine(" ")
         GameTooltip:AddLine("Next rank:", 1, 1, 1)
-        GameTooltip:AddLine(node.ranks[rank + 1].preview, 1, 0.82, 0, true)
+        GameTooltip:AddLine(alpha and alpha[rank + 1] or node.ranks[rank + 1].preview, 1, 0.82, 0, true)
     end
     GameTooltip:AddLine(" ")
-    GameTooltip:AddLine("Work in progress. Effect not yet active.", 0.65, 0.65, 0.65, true)
+    GameTooltip:AddLine(alpha and "Alpha defaults. Effects require the alpha server; configured values may differ."
+        or "Work in progress. Effect not yet active.", 0.65, 0.65, 0.65, true)
     if rank < node.maxRank and snapshot and snapshot.status == "ready" and snapshot.writable and
         snapshot.budget > snapshot.nativeSpent + snapshot.fourthSpent and
         snapshot.fourthSpent >= node.requiredPoints and Rank(node.prerequisite) >= node.prerequisiteRank then

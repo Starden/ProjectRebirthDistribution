@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "product": "Project Reverie",
   "channel": "stable",
-  "contentVersion": "1.27.2",
-  "publishedAtUtc": "2026-09-13T19:23:35.7603265Z",
-  "expiresAtUtc": "2026-09-27T19:23:35.7603265Z",
-  "minimumLauncherVersion": "1.5.3",
+  "contentVersion": "1.28.0",
+  "publishedAtUtc": "2026-09-13T20:28:36.1051461Z",
+  "expiresAtUtc": "2026-10-13T20:28:36.1051461Z",
+  "minimumLauncherVersion": "1.6.0",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
   "signatureAlgorithm": "ECDSA_P256_SHA256_P1363",
@@ -16,9 +16,9 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "Project Reverie - Natural Skill descriptions",
-    "summary": "Skill descriptions use natural tooltip wording and normal gold text. Condition tags, raw unit labels and redundant rank rows are removed. Triggers, restrictions and authored values remain. No gameplay or Heirloom upgrade changes.",
-    "updateKind": "hotfix",
+    "headline": "Project Reverie - Fourth-specialization alpha client preparation",
+    "summary": "Updated fourth-specialization and Feral Cat interface with configurable alpha values. Native preparation builds the required data from your own approved client. Existing Skill descriptions and Heirloom UI remain unchanged. Server activation is separate.",
+    "updateKind": "content",
     "requiresClientUpdate": true
   },
   "files": [
@@ -53,10 +53,22 @@
       "sha256": "F4958AFC7AAFC37D99F3EE5B0140147FD4C417FDEDE8403BF26888055A6A3A6F"
     },
     {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/FeralCat.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/FeralCat.lua",
+      "size": 6297,
+      "sha256": "012A55F2F4837FED37CB82A0D7B6C6DD73D13789B56ADA29C5A361029E00259A"
+    },
+    {
       "path": "Interface/AddOns/ProjectRebirthTooltips/FourthSpec.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/FourthSpec.lua",
-      "size": 36919,
-      "sha256": "97D94C09238631CC19A3F187B48F7ECECFCF283B539B6FB84009790E27265E24"
+      "size": 37186,
+      "sha256": "8225859AB5C1BE9167BA14A0C8FC608AF578E97CD782616979944F287396B277"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/FourthSpecAlphaValues.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/FourthSpecAlphaValues.lua",
+      "size": 113348,
+      "sha256": "80BCD29048857C75CF7D1C68D3A304AFC6CD3EE1873A8B50C75F196B004F7AD2"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/FourthSpecData.lua",
@@ -175,8 +187,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
-      "size": 882,
-      "sha256": "9C9E11A5CCC3AD70E0173473A59913636D84D146A81013B43F073351E9DEFB2F"
+      "size": 921,
+      "sha256": "B4E926AB87A4A422E389F3403BCE095E3F126D9C3A44FB0BA41E9DB24CB8EC42"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/RankData.lua",

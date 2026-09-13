@@ -2,7 +2,7 @@
 ## Title: Project Reverie — Rebirth
 ## Notes: Realm-gated Rebirth progression interface and all-class rank tooltips.
 ## Author: Project Reverie
-## Version: 1.27.2
+## Version: 1.28.0
 ## SavedVariablesPerCharacter: ProjectRebirthProgressSettings
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
@@ -26,8 +26,10 @@ MicroMenu.lua
 Skills.lua
 Core.lua
 FourthSpecData.lua
+FourthSpecAlphaValues.lua
 FourthSpecPolicy.lua
 FourthSpec.lua
+FeralCat.lua
 GearUpgrade.lua
 BugReports.lua
 Currency.lua
