@@ -15,9 +15,10 @@ You will also need:
 - your own lawful, clean ChromieCraft WoW 3.3.5a client, build 12340; and
 - an approved Rebirth account supplied privately by the server owner.
 
-**Current release: 1.5.0 — integrated client preparation.** You can request an
+**Current release: 1.5.3 — complete client preparation and current Rebirth UI.** You can request an
 account and test the gateway immediately. After locating your own clean client,
-**Prepare Client** generates and verifies Rebirth's native item data locally.
+**Prepare Client** generates and verifies Rebirth's item, Heirloom and tooltip data locally.
+Enhancement Stones now appear in the native Currency tab with payout notifications.
 No game archives are downloaded and no separate patcher is needed. Original
 client archives are left unchanged. Server access is granted separately:
 a character-creation-only account cannot enter the world.
@@ -34,7 +35,7 @@ To get started:
 8. Select **Play Rebirth** after checks pass and log in with your approved account.
    World entry also requires the owner's full-access approval.
 
-If launcher 1.4.0 says **Native Data Required**, download 1.5.0 or newer, extract
+If an older launcher says **Native Data Required** or **Release Pending**, download 1.5.3 or newer, extract
 it into a new folder and run it. Your client selection is retained. No password
 reset or VPN is needed. This release is tested with the English enUS clean client;
 incompatible source data or unknown existing patches are refused, not overwritten.

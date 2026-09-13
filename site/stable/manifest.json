@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "product": "Project Reverie",
   "channel": "stable",
-  "contentVersion": "1.24.0",
-  "publishedAtUtc": "2026-09-11T23:26:02.9563329Z",
-  "expiresAtUtc": "2026-09-25T23:26:02.9563329Z",
-  "minimumLauncherVersion": "1.3.0",
+  "contentVersion": "1.27.0",
+  "publishedAtUtc": "2026-09-13T17:58:35.4600194Z",
+  "expiresAtUtc": "2026-09-27T17:58:35.4600194Z",
+  "minimumLauncherVersion": "1.5.3",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
   "signatureAlgorithm": "ECDSA_P256_SHA256_P1363",
@@ -16,8 +16,8 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "Project Reverie - Private bug reports",
-    "summary": "Adds bundled item and NPC IDs, nearby interactable identification, and private /br reports with an Admin-only inbox.",
+    "headline": "Project Reverie - Currency and complete client preparation",
+    "summary": "Enhancement Stones in the Currency tab with payout notifications. Current talent trees, glossary, upgrades, reporting, and Heirloom UI. Prepare Client now builds matching Heirloom data and tooltips from your own files.",
     "updateKind": "content",
     "requiresClientUpdate": true
   },
@@ -39,6 +39,12 @@
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Core.lua",
       "size": 18953,
       "sha256": "6CAE1374CFD82A39042B45AC7D18E1448ADE5576BC224EFA813BFCAC7CAF2810"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Currency.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Currency.lua",
+      "size": 10853,
+      "sha256": "0A9F49ADA97FD04B59E4C29EEF21526336517682FB13A0358A6E031BF9696B98"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Data.lua",
@@ -67,8 +73,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/GearUpgrade.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/GearUpgrade.lua",
-      "size": 16695,
-      "sha256": "9C787FB4E438D0A73E4561292BBDFEAEF5887A7217603FA45B2EAA293AA1FDF3"
+      "size": 17916,
+      "sha256": "EE11320C8A10A152C108381C46818FD1AA8F24DB4CD3F90E181FAEE95E743DC3"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Glossary.lua",
@@ -81,6 +87,12 @@
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/GlossaryData.lua",
       "size": 618901,
       "sha256": "312865ABE9CC9F96B3EF1497503DEFAD1ACDC169A8191B7EE8CECCF2546F18FA"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/HeirloomTooltips.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/HeirloomTooltips.lua",
+      "size": 15775,
+      "sha256": "9D1BBFB4EC402105B6B4D16A47C73BE8D527317F180696E3DA686CF4572533A1"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Battlemage.tga",
@@ -163,8 +175,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
-      "size": 800,
-      "sha256": "D12F991C3C9C8AB4CD728130FB2A194039C3C4ABB700C4F24546550D433FD07A"
+      "size": 859,
+      "sha256": "73C86CCB40C3629D8FA4D86BEDD54B80C1261EA054453B733B42DDEC3C7D7A0F"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/RankData.lua",

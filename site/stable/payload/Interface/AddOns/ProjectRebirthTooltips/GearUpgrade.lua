@@ -9,6 +9,8 @@ local refreshing = false
 local cacheWaiting, nextCachePoll = false, 0
 local cacheRequests = {}
 local ICON = "Interface\\Icons\\INV_Hammer_20"
+local LEGENDARY_OPTION = "Legendary restoration projects."
+local HEIRLOOM_OPTION = "Empower my Heirlooms."
 
 local function RealmEnabled()
     return GetRealmName and GetRealmName() == "Rebirth"
@@ -75,7 +77,11 @@ local function SetBusy(value)
     for _, row in ipairs(rows) do
         if value then row:Disable() else row:Enable() end
     end
-    if value then window.choose:Disable() else window.choose:Enable() end
+    if value then
+        window.choose:Disable(); window.legendary:Disable(); window.heirloom:Disable()
+    else
+        window.choose:Enable(); window.legendary:Enable(); window.heirloom:Enable()
+    end
 end
 
 function ui.Select(index)
@@ -150,6 +156,16 @@ local function Build()
     window.status:SetHeight(26); window.status:SetJustifyV("TOP")
     window.choose=Button(window,"Choose Item",140,function() ui.Select(window.chooseIndex) end)
     window.choose:SetPoint("BOTTOMLEFT",19,14)
+    window.legendary=Button(window,"Legendary Projects",190,function()
+        if window.legendary:IsShown() then ui.Select(4) end
+    end)
+    window.legendary:SetPoint("BOTTOM",0,14)
+    window.legendary:Hide()
+    window.heirloom=Button(window,"Empower Heirlooms",140,function()
+        if window.heirloom:IsShown() then ui.Select(window.heirloomIndex) end
+    end)
+    window.heirloom:SetPoint("BOTTOMRIGHT",-19,14)
+    window.heirloom:Hide()
     window.upgrade=Button(window,"Upgrade",140,function()
         if quote and quote.canBuy and deadline and GetTime()<deadline then ui.Select(window.upgradeIndex) end
     end)
@@ -296,10 +312,10 @@ function ui.OnGossip()
     Build()
     selection=options; quote=nil; deadline=nil; pending=false
     cacheWaiting=false; nextCachePoll=GetTime()+0.5; cacheRequests={}
-    window.page=1; window.upgradeIndex=nil; window.chooseIndex=nil
+    window.page=1; window.upgradeIndex=nil; window.chooseIndex=nil; window.heirloomIndex=nil
     for _,row in ipairs(rows) do row:Hide() end
     SetBusy(false)
-    window.upgrade:Hide(); window.previous:Hide(); window.next:Hide()
+    window.upgrade:Hide(); window.legendary:Hide(); window.heirloom:Hide(); window.previous:Hide(); window.next:Hide()
     window.list:Hide(); window.left:Show(); window.right:Show()
     window.oldIcon.entry=nil; window.newIcon.entry=nil
     window.oldIcon.art:SetTexture(ICON); window.newIcon.art:SetTexture(ICON)
@@ -324,6 +340,17 @@ function ui.OnGossip()
         window.left.body:SetText(options[3] or "")
         window.right.body:SetText("Place the item in your backpack, then choose it to see the next rank and its cost.\n\nUp to five ranks. Each rank adds 3 item levels and 3% of the original eligible stats.")
         window.chooseIndex=3
+        -- These optional native submenus use stock gossip, not the upgrade marker.
+        -- Older servers retain their unchanged three-option landing menu.
+        local nextOptional=4
+        if options[7]==LEGENDARY_OPTION then
+            window.legendary:Show()
+            nextOptional=5
+        end
+        if options[nextOptional*2-1]==HEIRLOOM_OPTION then
+            window.heirloomIndex=nextOptional
+            window.heirloom:Show()
+        end
     end
     local scale=math.min(1,(UIParent:GetWidth()-24)/580,(UIParent:GetHeight()-24)/570)
     window:SetScale(math.max(0.5,scale)); window:Show(); RetireStockGossip()
