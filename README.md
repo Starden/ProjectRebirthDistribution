@@ -19,8 +19,9 @@ You will also need:
 account and test the gateway immediately. After locating your own clean client,
 **Prepare Client** generates and verifies Rebirth's item, Heirloom and tooltip data locally.
 Enhancement Stones now appear in the native Currency tab with payout notifications.
-Content **1.27.1** also shows complete Skill descriptions in choice cards, tooltips
-and the Glossary, without internal tuning/debug fields. Existing 1.5.3 users only
+Content **1.27.2** shows complete Skill descriptions in choice cards, tooltips
+and the Glossary, with natural wording and gold description text. Condition tags,
+raw units and redundant rank rows are removed. Existing 1.5.3 users only
 need **Check Updates → Update** with WoW closed; no new launcher download is needed.
 No game archives are downloaded and no separate patcher is needed. Original
 client archives are left unchanged. Server access is granted separately:

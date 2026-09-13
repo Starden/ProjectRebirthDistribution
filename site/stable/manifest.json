@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "product": "Project Reverie",
   "channel": "stable",
-  "contentVersion": "1.27.1",
-  "publishedAtUtc": "2026-09-13T18:36:29.8753961Z",
-  "expiresAtUtc": "2026-09-27T18:36:29.8753961Z",
+  "contentVersion": "1.27.2",
+  "publishedAtUtc": "2026-09-13T19:23:35.7603265Z",
+  "expiresAtUtc": "2026-09-27T19:23:35.7603265Z",
   "minimumLauncherVersion": "1.5.3",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
@@ -16,8 +16,8 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "Project Reverie - Clear Skill descriptions",
-    "summary": "Skill choices show their complete effects, name, icon, rarity and tier. Longer descriptions scroll naturally. Internal tuning and debug fields are hidden in choices, tooltips and the Skill Glossary. Existing currency, talents, upgrades and Heirloom support are unchanged.",
+    "headline": "Project Reverie - Natural Skill descriptions",
+    "summary": "Skill descriptions use natural tooltip wording and normal gold text. Condition tags, raw unit labels and redundant rank rows are removed. Triggers, restrictions and authored values remain. No gameplay or Heirloom upgrade changes.",
     "updateKind": "hotfix",
     "requiresClientUpdate": true
   },
@@ -176,7 +176,7 @@
       "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "size": 882,
-      "sha256": "B95F40A6D3912F47B2BE89A75517128EB475306DCA88A7DBE2CC718A4D15E158"
+      "sha256": "9C9E11A5CCC3AD70E0173473A59913636D84D146A81013B43F073351E9DEFB2F"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/RankData.lua",
@@ -193,14 +193,14 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/SkillPresentation.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/SkillPresentation.lua",
-      "size": 3897,
-      "sha256": "60AEAA004F7C1F793B9659EE266F9F763639E24B4AF9FAABC257D950903BB1F5"
+      "size": 15718,
+      "sha256": "0201C7A9E36BAFF10C0207237BA6C610C4F3ED9D78FF8CEDE441F4B4FD32C4B3"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
-      "size": 91190,
-      "sha256": "65CA8EDC86547A90BA1E26EEB1163FDD2AE10808979ED3C0AE8A79134F0F0F35"
+      "size": 91182,
+      "sha256": "59594233B20A066157A53CBA9D237D83DC8117028601D2F1AB0EFA8493E948B0"
     },
     {
       "path": "Interface/AddOns/RebirthWardrobe/RebirthWardrobe.toc",
