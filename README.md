@@ -15,7 +15,13 @@ You will also need:
 - your own lawful, clean ChromieCraft WoW 3.3.5a client, build 12340; and
 - an approved Rebirth account supplied privately by the server owner.
 
-**Current release: launcher 1.6.1 / content 1.28.0 — built-in launcher updates.**
+**Current release: launcher 1.6.1 / content 1.28.1 — built-in updates and corrected Heirloom on-use tooltips.**
+
+The 1.28.1 addon hotfix replaces inverted on-use ranges with the existing
+level-scaled base bonuses for all four active Heirloom trinket families.
+Use **Check Updates → Update** with WoW closed, then reopen the game.
+No launcher replacement, Prepare Client step, or server restart is required.
+Gameplay values and cooldowns are unchanged.
 You can request an account and test the gateway immediately. After locating your
 own clean client, **Prepare Client** generates and verifies Rebirth's item,
 Heirloom, fourth-specialization, Feral Cat and tooltip data locally.

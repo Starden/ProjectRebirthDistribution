@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "product": "Project Reverie",
   "channel": "stable",
-  "contentVersion": "1.28.0",
-  "publishedAtUtc": "2026-09-13T20:28:36.1051461Z",
-  "expiresAtUtc": "2026-10-13T20:28:36.1051461Z",
+  "contentVersion": "1.28.1",
+  "publishedAtUtc": "2026-09-13T23:29:25.2287517Z",
+  "expiresAtUtc": "2026-10-13T23:29:25.2287517Z",
   "minimumLauncherVersion": "1.6.0",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
@@ -16,9 +16,9 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "Project Reverie - Fourth-specialization alpha client preparation",
-    "summary": "Updated fourth-specialization and Feral Cat interface with configurable alpha values. Native preparation builds the required data from your own approved client. Existing Skill descriptions and Heirloom UI remain unchanged. Server activation is separate.",
-    "updateKind": "content",
+    "headline": "Rebirth - Heirloom on-use tooltip correction",
+    "summary": "Fixed inverted on-use ranges for all four active Heirloom trinket families. Displays existing level-scaled base bonuses; gameplay values, cooldowns and native data are unchanged. Launcher 1.6.1 remains current.",
+    "updateKind": "hotfix",
     "requiresClientUpdate": true
   },
   "files": [
@@ -103,8 +103,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/HeirloomTooltips.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/HeirloomTooltips.lua",
-      "size": 15775,
-      "sha256": "9D1BBFB4EC402105B6B4D16A47C73BE8D527317F180696E3DA686CF4572533A1"
+      "size": 18840,
+      "sha256": "7F75CF0B92D88018E8B0D15DCA1F32EE1849C0A5921941DFDB1483DB6C884B7E"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Battlemage.tga",
@@ -188,7 +188,7 @@
       "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "size": 921,
-      "sha256": "B4E926AB87A4A422E389F3403BCE095E3F126D9C3A44FB0BA41E9DB24CB8EC42"
+      "sha256": "7DC274EC53513FFFF60DB45E947C14F2ADA6156F04F8E6B4384CD05EC76FE4C2"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/RankData.lua",

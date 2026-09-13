@@ -60,6 +60,22 @@ local active, refreshPending = false, false
 local frames, states = {}, setmetatable({}, {__mode = "k"})
 local unpack = unpack
 
+-- Authored r9 on-use curves, not random ranges. EffectDieSides=0 is valid on
+-- the server, but the 3.3.5a item renderer prints BasePoints+1 to BasePoints.
+-- Keep this presentation adapter tied to the exact catalog revision and owned
+-- six-rank families. Native/server values, duration and cooldown are unchanged.
+local useProfiles = {
+    {first = 2000019, last = 2000024, spell = 960011, base = 8, perLevel = 8.375,
+        lead = "Increases attack power by ", tail = " for "},
+    {first = 2000835, last = 2000840, spell = 960012, base = 4, perLevel = 4.375,
+        lead = "Increases spell power by ", tail = " for "},
+    {first = 2000841, last = 2000846, spell = 960013, base = 4, perLevel = 4.5,
+        lead = "Absorbs ", tail = " damage. Lasts "},
+    {first = 2000847, last = 2000852, spell = 960014, base = 7, perLevel = 7.5,
+        lead = "Restores ", between = " mana and increases spell power by ",
+        secondBase = 2, secondPerLevel = 2.625, tail = " for "},
+}
+
 -- Native globals are printf templates. Support positional translations without
 -- passing unsupported %1$d formats to Lua 5.1's string.format.
 local function Format(template, ...)
@@ -123,7 +139,8 @@ local function Point(link, levelOverride)
     if not id or not data[id] then return end
     level = levelOverride or level or (UnitLevel and UnitLevel("player"))
     if not Number(level, 1, 255, true) then return end
-    return data[id][math.min(level, 80)]
+    level = math.min(level, 80)
+    return data[id][level], level, id
 end
 
 local function Font(tooltip, side, line)
@@ -166,16 +183,54 @@ local function FeralText(value)
     return Format(ITEM_MOD_FERAL_ATTACK_POWER, value)
 end
 
-local function EquipText(text)
-    if not text or type(ITEM_SPELL_TRIGGER_ONEQUIP) ~= "string" then return end
+local function TriggerText(template, text)
+    if not text or type(template) ~= "string" then return end
     -- This one native wrapper is a string placeholder, unlike numeric templates.
-    local template = ITEM_SPELL_TRIGGER_ONEQUIP
     if template:find("%%s") and not template:gsub("%%s", ""):find("%%") then
         return (template:gsub("%%s", function() return text end))
     elseif not template:find("%%") and not template:find("|", 1, true) then
         -- 3.3.5a GlobalStrings supplies the literal localized "Equip:" prefix.
         return template .. " " .. text
     end
+end
+
+local function EquipText(text) return TriggerText(ITEM_SPELL_TRIGGER_ONEQUIP, text) end
+
+local function RewriteUse(tooltip, state, id, level, endLine)
+    if api.revision ~= 9 or not id or not level then return false end
+    local profile
+    for _, candidate in ipairs(useProfiles) do
+        if id >= candidate.first and id <= candidate.last then profile = candidate; break end
+    end
+    if not profile then return false end
+    local function amount(base, slope) return base + math.floor((level - 1) * slope) end
+    local function range(value) return (value + 1) .. " to " .. value end
+    local value = amount(profile.base, profile.perLevel)
+    local expected = profile.lead .. range(profile.base)
+    local scaled = profile.lead .. range(value)
+    local replacement = profile.lead .. value
+    if profile.secondBase then
+        local second = amount(profile.secondBase, profile.secondPerLevel)
+        expected = expected .. profile.between .. range(profile.secondBase)
+        scaled = scaled .. profile.between .. range(second)
+        replacement = replacement .. profile.between .. second
+    end
+    expected = TriggerText(ITEM_SPELL_TRIGGER_ONUSE, expected .. profile.tail)
+    scaled = TriggerText(ITEM_SPELL_TRIGGER_ONUSE, scaled .. profile.tail)
+    replacement = TriggerText(ITEM_SPELL_TRIGGER_ONUSE, replacement .. profile.tail)
+    if not expected or not scaled or not replacement then return false end
+    local changed = false
+    for line = 2, endLine do
+        local font = Font(tooltip, "Left", line)
+        local plain, prefix, suffix = Plain(Original(state, font))
+        local matched = plain and (plain:sub(1, #expected) == expected and expected or
+            plain:sub(1, #scaled) == scaled and scaled)
+        if matched then
+            -- Preserve the native duration/cooldown suffix and green font/markup.
+            changed = Write(state, font, prefix .. replacement .. plain:sub(#matched + 1) .. suffix) or changed
+        end
+    end
+    return changed
 end
 
 local function RewriteBase(tooltip, state, row, endLine)
@@ -276,7 +331,7 @@ local function Refresh(tooltip)
     if not active or not state or state.busy or not tooltip.GetItem then return end
     state.busy = true
     local _, link = tooltip:GetItem()
-    local row = Point(link)
+    local row, level, id = Point(link)
     local context = state.context
     local candidate = context and context.compareLink and Point(context.compareLink)
     local summary, count = nil, tooltip:NumLines() or 0
@@ -285,6 +340,7 @@ local function Refresh(tooltip)
         if ITEM_DELTA_DESCRIPTION and text == ITEM_DELTA_DESCRIPTION then summary = line; break end
     end
     local changed = RewriteBase(tooltip, state, row, (summary or count + 1) - 1)
+    changed = RewriteUse(tooltip, state, id, level, (summary or count + 1) - 1) or changed
     changed = AddMissingFeral(tooltip, state, row, summary) or changed
     if summary then changed = SuppressUnknownDeltas(tooltip, state, summary, row, candidate) or changed end
     if changed and tooltip:IsShown() then tooltip:Show() end

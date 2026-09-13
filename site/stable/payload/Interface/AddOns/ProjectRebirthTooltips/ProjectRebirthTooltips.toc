@@ -2,7 +2,7 @@
 ## Title: Project Reverie — Rebirth
 ## Notes: Realm-gated Rebirth progression interface and all-class rank tooltips.
 ## Author: Project Reverie
-## Version: 1.28.0
+## Version: 1.28.1
 ## SavedVariablesPerCharacter: ProjectRebirthProgressSettings
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
