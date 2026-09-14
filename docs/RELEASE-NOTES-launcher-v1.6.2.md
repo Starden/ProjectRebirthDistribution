@@ -1,8 +1,8 @@
 # Project Reverie Launcher 1.6.2 — Heirloom r10 preparation
 
-This release prepares the client for Heirloom r10. The signed content 1.29.0
-rollout and server activation are separate steps. Server r10 rollout remains
-pending guarded deployment; a client package does not activate server gameplay.
+This release prepares the client for Heirloom r10. Signed content 1.29.0 and the
+matching Rebirth server catalog are now active for alpha testing. Players still
+need to Update with WoW closed and run Prepare Client before entering the realm.
 
 ## Updating
 

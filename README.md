@@ -15,12 +15,12 @@ You will also need:
 - your own lawful, clean ChromieCraft WoW 3.3.5a client, build 12340; and
 - an approved Rebirth account supplied privately by the server owner.
 
-**Current release: launcher 1.6.2 / content 1.29.0 — Heirloom r10 client preparation.**
+**Current release: launcher 1.6.2 / content 1.29.0 — Heirloom r10 live alpha.**
 
 Use **Update → close WoW → Prepare Client** before playing. Launcher **1.6.2**
 is now the minimum supported version; existing **1.6.1** users can accept
-**Update and restart?** to upgrade in place. Heirloom r10's server rollout is
-separately controlled and remains pending guarded deployment. See the
+**Update and restart?** to upgrade in place. Heirloom r10 is now active on the
+Rebirth realm for alpha testing. See the
 [1.6.2 release notes](docs/RELEASE-NOTES-launcher-v1.6.2.md).
 
 You can request an account and test the gateway immediately. After locating your
