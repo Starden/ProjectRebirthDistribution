@@ -10,10 +10,12 @@ param(
     [Parameter(Mandatory)]
     [ValidatePattern('^[A-Fa-f0-9 ]{40,}$')]
     [string]$CertificateThumbprint,
+    [Parameter(Mandatory)]
     [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$')]
-    [string]$ContentVersion = '1.5.1',
+    [string]$ContentVersion,
+    [Parameter(Mandatory)]
     [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+$')]
-    [string]$LauncherVersion = '1.2.1',
+    [string]$LauncherVersion,
     [ValidateRange(1, 90)]
     [int]$ManifestValidityDays = 30,
     [string]$DotNetPath = 'dotnet',

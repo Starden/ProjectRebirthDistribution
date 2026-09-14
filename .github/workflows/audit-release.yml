@@ -30,4 +30,9 @@ jobs:
           gh release download $tag --dir release-assets --pattern 'Project-Reverie-Launcher-*-win-x64.zip*'
       - name: Audit release contents
         shell: pwsh
-        run: ./tools/Test-PublicDistribution.ps1
+        env:
+          EVENT_TAG: ${{ github.event.release.tag_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+        run: |
+          $tag = if ($env:EVENT_TAG) { $env:EVENT_TAG } else { $env:INPUT_TAG }
+          ./tools/Test-PublicDistribution.ps1 -SkipReleaseAsset -ReleaseTag $tag

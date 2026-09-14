@@ -1,28 +1,32 @@
 # Publishing the one-tester release
 
-## Heirloom r10 two-phase rollout
+## Launcher 1.6.3 two-phase rollout
 
-Prepare and validate launcher 1.6.2 before changing the active feeds. Phase one
-commits only release documentation and pending release metadata; the ZIP and its
-SHA-256 sidecar remain ignored under `release-assets/`. Keep every byte under
-`site/stable/` unchanged while this commit is pushed and its archive is uploaded.
+Prepare and validate launcher 1.6.3 before changing the active launcher feed.
+This is a launcher-only release: keep content 1.29.0, its signed manifest pair,
+and all 34 owned payloads byte-for-byte unchanged.
 
-After the exact archive is anonymously downloadable and verified, phase two
-promotes the already-reviewed signed launcher/content pairs, the two changed
-owned payloads, and the matching active settings. Content becomes 1.29.0 and
-both launcher minimums become 1.6.2 together. Preserve all other public payloads.
-Never advertise a required launcher upgrade before its archive exists.
+Phase one commits the release notes, corrected publishing/audit automation, and a
+`pendingRelease` pin containing the exact launcher/content versions plus archive
+SHA-256 and size. The ZIP and sidecar remain ignored under `release-assets/`.
+Keep the active settings and both signed feeds unchanged while this commit is
+pushed and the exact archive is uploaded as a GitHub Release.
 
-Server r10 activation remains a separate guarded operation. Public client
-availability and local native preparation do not establish server readiness.
+After anonymously downloading and verifying that archive, phase two promotes the
+already-reviewed signed launcher pair, changes active `launcherVersion` to 1.6.3,
+and removes `pendingRelease`. Only then update current-version wording in public
+README/onboarding. Never advertise a required upgrade before its exact archive is
+publicly available. Do not alter content or server state during either phase.
 
-## Launcher self-update feed (1.4.0 and later)
+## Launcher release and self-update feed
 
 Game content and launcher binaries have independent versions. A launcher-only
 release must not regenerate or roll back the live content manifest/payload.
-Build a new launcher version, validate its public ZIP, update launcherVersion in
-distribution.settings.json, and publish the ZIP plus checksum to GitHub Releases.
-Never commit generated launcher archives to Git.
+Build a new launcher version, validate its public ZIP, and stage the exact hash
+and size under `pendingRelease`; do not change active `launcherVersion` yet.
+Publish and anonymously verify the ZIP plus checksum through GitHub Releases.
+Only then update active `launcherVersion` and remove the pending object in the
+feed-promotion commit. Never commit generated launcher archives to Git.
 
 Use the protected workstation's `Publish-ProjectReverieLauncherFeed.ps1` with
 the ZIP, Version, MinimumSupportedVersion and a staging OutputDirectory. It signs
@@ -36,7 +40,10 @@ expiry, even when no binary changes. Preserve both files during content-only
 publications; the current workstation content publisher does this automatically.
 An incomplete pair must block publication. Choose the minimum version deliberately:
 it blocks obsolete launchers from installing content or playing, whereas a newer
-optional release only prompts. Pre-1.4.0 launchers require a one-time manual update.
+optional release only prompts. Because the 1.6.1/1.6.2 WPF helper was found to
+fail before readiness, every 1.6.2-or-older user requires one final manual
+fresh-folder upgrade to 1.6.3. Starting with 1.6.3, the dedicated updater is
+embedded in the four-file package; players install no updater sidecar.
 
 The workstation's `Publish-ProjectReverieGitHubRelease.ps1` can publish using the
 repository's existing Git Credential Manager login without installing GitHub CLI.
@@ -73,11 +80,12 @@ channel.
 The Pages workflow requests first-run enablement through `configure-pages`; the
 repository owner may still need to approve the Pages environment in Settings.
 
-## Prepare a signed feed and remote launcher locally
+## Legacy combined content preparation
 
-Run this on the protected Windows publisher workstation. The command signs the
-exact manifest bytes with the local certificate, builds a launcher whose bootstrap
-uses absolute HTTPS URLs, and writes only below this distribution repository.
+`Prepare-PublicRelease.ps1` is retained for deliberate combined content/setup
+work, not launcher-only publication. It can regenerate signed content and must
+not be used for the 1.6.3 updater release. Pass explicit reviewed versions rather
+than relying on its historical defaults.
 
 ```powershell
 $distributionRoot = (Resolve-Path '.').Path
@@ -90,42 +98,43 @@ pwsh -NoProfile -File "$distributionRoot\tools\Prepare-PublicRelease.ps1" `
   -LauncherRoot $launcherRoot `
   -ProjectRoot $projectRoot `
   -CertificateThumbprint $certificateThumbprint `
-  -ContentVersion 1.5.1 `
-  -LauncherVersion 1.2.1
+  -ContentVersion '<REVIEWED-CONTENT-VERSION>' `
+  -LauncherVersion '<REVIEWED-LAUNCHER-VERSION>'
 ```
 
 The resulting signed endpoint is `134.122.124.150:3724` and the world status
 port is `134.122.124.150:8087`. Relative payload URLs in the signed manifest resolve against
 the absolute HTTPS manifest URL; they cannot escape the signed channel directory.
 
-## Publish atomically
+## Publish a launcher archive safely
 
-1. Run `tools/Test-PublicDistribution.ps1` locally. Any warning or failure is a
-   release blocker.
-2. Inspect `git status` and confirm that only `site/`, documentation, public
-   configuration, and automation are candidates for commit. Ensure the launcher
-   ZIP remains ignored.
-3. Commit and push the signed payload files first if they are new.
-4. Publish `site/stable/manifest.json.sig` and `site/stable/manifest.json` in the
-   same reviewed commit. GitHub Pages deploys the complete `site/` artifact as one
-   release; the deploy job validates before upload.
-5. Wait for `https://starden.github.io/ProjectRebirthDistribution/stable/manifest.json`
-   to return HTTP 200. Download the manifest and signature and validate the exact
-   remote bytes again.
-6. Upload the ignored 61 MB launcher archive and sidecar directly from the
-   publisher workstation:
+1. Run the public validator locally. Any failure is a release blocker.
+2. Commit and push phase one with the exact `pendingRelease` pin while the active
+   launcher feed and current-version README text remain unchanged.
+3. Place the ignored ZIP and sidecar under `release-assets/` on the protected
+   workstation and invoke the canonical publisher from the private launcher
+   tooling:
 
 ```powershell
-pwsh -NoProfile -File ./tools/Publish-LauncherRelease.ps1 -Version 1.2.1
+pwsh -NoProfile -File '<PROTECTED-LAUNCHER-ROOT>\tools\Publish-ProjectReverieGitHubRelease.ps1' `
+  -DistributionRoot (Resolve-Path '.').Path `
+  -Version '<REVIEWED-LAUNCHER-VERSION>'
 ```
 
-The script uses the authenticated GitHub CLI; it never uploads credentials or a
-signing key. If `gh` is not installed/authenticated, install it and run `gh auth
-login` before this step.
+That publisher requires the pending pin and a clean reviewed commit, creates an
+unpublished draft, validates the uploaded archive/checksum digests, then publishes
+latest without overwriting an existing version. The similarly named public
+`tools/Publish-LauncherRelease.ps1` is a fail-closed deprecated shim and must not
+be used. No GitHub CLI is required by the canonical path.
 
-The obsolete tag-triggered publisher has been removed. Generated ZIPs must stay
-outside Git history; upload them directly to Releases. The release-published
-audit workflow still validates the uploaded public package independently.
+4. Download the published asset anonymously and repeat the exact hash, size,
+   inventory, PE version, bootstrap and signed-downloader checks.
+5. Commit and push phase two: promote only the signed launcher feed pair, active
+   launcher version and public current-version wording; remove `pendingRelease`.
+   Wait for Pages and verify the live signed pair. Content remains byte-exact.
+
+Generated ZIPs must stay outside Git history. The release-published audit workflow
+validates the uploaded public package independently.
 
 ## Rollback and key incidents
 

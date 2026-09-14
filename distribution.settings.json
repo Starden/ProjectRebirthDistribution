@@ -6,6 +6,12 @@
   "channel": "stable",
   "launcherVersion": "1.6.2",
   "contentVersion": "1.29.0",
+  "pendingRelease": {
+    "launcherVersion": "1.6.3",
+    "contentVersion": "1.29.0",
+    "archiveSha256": "741f2cf673d1cb79ee2a93c9e33322af68b608eae38470b39d7e4a30ed44eae1",
+    "archiveSize": 94809867
+  },
   "authAddress": "134.122.124.150",
   "authPort": 3724,
   "worldPort": 8087

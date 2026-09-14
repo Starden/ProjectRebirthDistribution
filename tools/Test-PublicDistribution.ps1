@@ -3,13 +3,15 @@
 [CmdletBinding()]
 param(
     [string]$DistributionRoot = (Split-Path -Parent $PSScriptRoot),
-    [switch]$SkipReleaseAsset
+    [switch]$SkipReleaseAsset,
+    [string]$ReleaseTag
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $script:Failures = [System.Collections.Generic.List[string]]::new()
 $script:Passes = 0
+$script:PendingReleaseValid = $false
 
 function Add-Failure {
     param([Parameter(Mandatory)][string]$Message)
@@ -36,6 +38,56 @@ function Get-JsonFile {
         Add-Failure "Invalid JSON in '$Path': $($_.Exception.Message)"
         return $null
     }
+}
+
+function Test-DistributionSettingsSchema {
+    param([Parameter(Mandatory)]$Settings)
+
+    $required = @(
+        'schemaVersion', 'repositoryOwner', 'repositoryName', 'pagesBaseUri',
+        'channel', 'launcherVersion', 'contentVersion', 'authAddress',
+        'authPort', 'worldPort'
+    )
+    $allowed = @($required + 'pendingRelease')
+    $actual = @($Settings.PSObject.Properties.Name)
+    $unknown = @($actual | Where-Object { $_ -cnotin $allowed })
+    $missing = @($required | Where-Object { $_ -cnotin $actual })
+    $canonical = '\A(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\z'
+
+    if ($unknown.Count -ne 0 -or $missing.Count -ne 0 -or
+        $Settings.schemaVersion -ne 1 -or
+        [string]$Settings.channel -cne 'stable' -or
+        [string]$Settings.launcherVersion -cnotmatch $canonical -or
+        [string]$Settings.contentVersion -cnotmatch $canonical) {
+        Add-Failure 'Distribution settings have unknown/missing fields, wrong schema/channel, or non-canonical active versions'
+        return
+    }
+    Add-Pass 'Distribution settings schema and active versions are exact'
+
+    if (-not $Settings.PSObject.Properties['pendingRelease']) {
+        Add-Pass 'No pending launcher release is staged'
+        return
+    }
+
+    $pending = $Settings.pendingRelease
+    $fields = @('launcherVersion', 'contentVersion', 'archiveSha256', 'archiveSize')
+    if ($null -eq $pending -or
+        @($pending.PSObject.Properties).Count -ne $fields.Count -or
+        @($pending.PSObject.Properties.Name | Where-Object { $_ -cnotin $fields }).Count -ne 0 -or
+        @($fields | Where-Object { $_ -cnotin @($pending.PSObject.Properties.Name) }).Count -ne 0 -or
+        [string]$pending.launcherVersion -cnotmatch $canonical -or
+        [string]$pending.contentVersion -cnotmatch $canonical -or
+        [version]$pending.launcherVersion -le [version]$Settings.launcherVersion -or
+        [version]$pending.contentVersion -lt [version]$Settings.contentVersion -or
+        [string]$pending.archiveSha256 -cnotmatch '\A[a-fA-F0-9]{64}\z' -or
+        ($pending.archiveSize -isnot [long] -and $pending.archiveSize -isnot [int]) -or
+        [long]$pending.archiveSize -le 0 -or [long]$pending.archiveSize -gt 512MB) {
+        Add-Failure 'Pending launcher release has unknown/missing fields or an invalid version/hash/size pin'
+        return
+    }
+
+    $script:PendingReleaseValid = $true
+    Add-Pass "Pending launcher $($pending.launcherVersion) has an exact reviewed archive pin"
 }
 
 function Test-PublicTree {
@@ -126,11 +178,14 @@ function Test-LauncherArchive {
     param(
         [Parameter(Mandatory)][string]$Root,
         [Parameter(Mandatory)]$Settings,
-        [Parameter(Mandatory)]$RepositoryBootstrap
+        [Parameter(Mandatory)]$RepositoryBootstrap,
+        [Parameter(Mandatory)][string]$Version,
+        [string]$ExpectedHash,
+        [long]$ExpectedSize
     )
 
     $assetRoot = Join-Path $Root 'release-assets'
-    $expectedName = "Project-Reverie-Launcher-$($Settings.launcherVersion)-win-x64.zip"
+    $expectedName = "Project-Reverie-Launcher-$Version-win-x64.zip"
     $zipPath = Join-Path $assetRoot $expectedName
     $hashPath = "$zipPath.sha256"
     if (-not (Test-Path -LiteralPath $zipPath -PathType Leaf) -or
@@ -150,15 +205,26 @@ function Test-LauncherArchive {
     else {
         Add-Pass "Launcher archive SHA-256 matches: $actualHash"
     }
+    if ($ExpectedHash -and ($actualHash -ine $ExpectedHash -or (Get-Item -LiteralPath $zipPath).Length -ne $ExpectedSize)) {
+        Add-Failure 'Release-event launcher archive differs from its reviewed pending hash or size'
+    }
+    elseif ($ExpectedHash) {
+        Add-Pass 'Release-event launcher archive matches its reviewed pending hash and size'
+    }
 
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $archive = [System.IO.Compression.ZipFile]::OpenRead($zipPath)
+    $temp = $null
     try {
         $entryNames = @($archive.Entries | ForEach-Object { $_.FullName.Replace('\', '/') })
-        foreach ($required in @('ProjectReverie.Launcher.exe', 'launcher.bootstrap.json', 'PLAYER-GUIDE.md', 'README.md')) {
-            if ($entryNames -notcontains $required) {
-                Add-Failure "Launcher archive is missing required entry: $required"
-            }
+        $requiredEntries = @('ProjectReverie.Launcher.exe', 'launcher.bootstrap.json', 'PLAYER-GUIDE.md', 'README.md')
+        $actualInventory = (@($entryNames | Sort-Object) -join '|')
+        $requiredInventory = (@($requiredEntries | Sort-Object) -join '|')
+        if ($actualInventory -cne $requiredInventory) {
+            Add-Failure 'Launcher archive must contain exactly the four reviewed root files'
+        }
+        else {
+            Add-Pass 'Launcher archive contains exactly the four reviewed root files'
         }
 
         foreach ($entry in $archive.Entries) {
@@ -193,10 +259,29 @@ function Test-LauncherArchive {
                 $stream.Dispose()
             }
         }
+        $launcherEntry = $archive.GetEntry('ProjectReverie.Launcher.exe')
+        if ($null -ne $launcherEntry -and $launcherEntry.Length -gt 0 -and $launcherEntry.Length -le 250MB) {
+            $temp = [IO.Directory]::CreateTempSubdirectory('reverie-public-launcher-pe-').FullName
+            $temporaryExe = Join-Path $temp 'ProjectReverie.Launcher.exe'
+            [IO.Compression.ZipFileExtensions]::ExtractToFile($launcherEntry, $temporaryExe, $false)
+            if ((Get-Item -LiteralPath $temporaryExe).VersionInfo.FileVersion -cne ($Version + '.0')) {
+                Add-Failure 'Launcher archive PE version differs from the requested release'
+            }
+            else {
+                Add-Pass "Launcher archive PE version is $Version"
+            }
+        }
+        else {
+            Add-Failure 'Launcher executable is missing, empty, or oversized'
+        }
         Add-Pass 'Launcher archive contains no bundled feed, client, MPQ, Data tree, credential, or private key'
     }
     finally {
         $archive.Dispose()
+        if ($temp) {
+            [IO.File]::Delete((Join-Path $temp 'ProjectReverie.Launcher.exe'))
+            [IO.Directory]::Delete($temp, $false)
+        }
     }
 }
 
@@ -208,6 +293,8 @@ $settings = Get-JsonFile -Path $settingsPath
 if ($null -eq $settings) {
     exit 1
 }
+
+Test-DistributionSettingsSchema -Settings $settings
 
     $expectedBase = 'https://starden.github.io/ProjectRebirthDistribution/'
 if ([string]$settings.pagesBaseUri -cne $expectedBase -or
@@ -368,8 +455,27 @@ elseif ([version]$settings.launcherVersion -ge [version]'1.4.0') {
     Add-Failure 'Launcher 1.4.0+ requires the independent signed launcher-release feed.'
 }
 
-if (-not $SkipReleaseAsset -and $null -ne $bootstrap) {
-    Test-LauncherArchive -Root $DistributionRoot -Settings $settings -RepositoryBootstrap $bootstrap
+if ($ReleaseTag -and $null -ne $bootstrap) {
+    if ($ReleaseTag -cnotmatch '\Alauncher-v(?<version>(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*))\z') {
+        Add-Failure 'Release-event tag is not a canonical launcher tag'
+    }
+    else {
+        $releaseVersion = $Matches.version
+        $expectedHash = $null
+        [long]$expectedSize = 0
+        if ($script:PendingReleaseValid -and
+            $settings.pendingRelease.launcherVersion -ceq $releaseVersion) {
+            $expectedHash = [string]$settings.pendingRelease.archiveSha256
+            $expectedSize = [long]$settings.pendingRelease.archiveSize
+        }
+        elseif ($settings.launcherVersion -cne $releaseVersion) {
+            Add-Failure 'Release-event version is neither active nor the reviewed pending launcher'
+        }
+        Test-LauncherArchive -Root $DistributionRoot -Settings $settings -RepositoryBootstrap $bootstrap -Version $releaseVersion -ExpectedHash $expectedHash -ExpectedSize $expectedSize
+    }
+}
+elseif (-not $SkipReleaseAsset -and $null -ne $bootstrap) {
+    Test-LauncherArchive -Root $DistributionRoot -Settings $settings -RepositoryBootstrap $bootstrap -Version ([string]$settings.launcherVersion)
 }
 
 Write-Host ''
