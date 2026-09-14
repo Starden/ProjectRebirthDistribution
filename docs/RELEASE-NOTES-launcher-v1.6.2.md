@@ -1,14 +1,19 @@
 # Project Reverie Launcher 1.6.2 — Heirloom r10 preparation
 
+> **Correction published with 1.6.3:** the earlier WPF helper can fail before
+> readiness. Do not rely on 1.6.1 or 1.6.2 to install the repair. Close the old
+> launcher and extract the complete 1.6.3 ZIP into a fresh regular folder. Your
+> selected client and preferences remain in your Windows profile.
+
 This release prepares the client for Heirloom r10. Signed content 1.29.0 and the
 matching Rebirth server catalog are now active for alpha testing. Players still
 need to Update with WoW closed and run Prepare Client before entering the realm.
 
 ## Updating
 
-Launcher 1.6.1 can install the signed 1.6.2 update through its normal prompted
-self-updater. From 1.6.0 or older, close the launcher and extract the complete
-1.6.2 ZIP into a fresh folder. Your selected client and preferences are retained.
+The text below records what was believed at the time of release; the correction
+above supersedes its self-update claim. A manual fresh-folder 1.6.3 installation
+is required for every 1.6.2-or-older user.
 
 When signed content 1.29.0 is offered, choose **Update**, close WoW, then choose
 **Prepare Client** before Play. Keep your original game archives and do not
@@ -40,6 +45,10 @@ tests. A disposable 1.6.1 test host exercised the production update helper throu
 verified 1.6.2 executable restart, with exact backups and unchanged user settings.
 Interactive Yes/No prompt acceptance and authenticated gameplay are separate
 operator acceptance steps, not claims made by these automated tests.
+
+The earlier process fixture used a renamed console smoke executable and did not
+exercise packaged WPF helper startup; the correction above supersedes its update
+claim. Actual packaged testing later reproduced failure before readiness.
 
 `Project-Reverie-Launcher-1.6.2-win-x64.zip` is 61,654,575 bytes.
 

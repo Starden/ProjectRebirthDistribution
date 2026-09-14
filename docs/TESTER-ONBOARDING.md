@@ -26,7 +26,7 @@ The Project Reverie launcher does not include or download World of Warcraft.
 
 ## First connection
 
-**Launcher 1.6.1 adds built-in updates and retains fourth-spec/Feral Cat native preparation.** Use Start Here to
+**Launcher 1.6.3 adds a dedicated embedded updater and retains fourth-spec/Feral Cat native preparation.** Use Start Here to
 request an account and test the gateway. After updating the addons, select
 **Prepare Client** to build Rebirth's item, Heirloom, fourth-spec and Feral Cat data from your own clean client.
 No game archives are downloaded; original client files stay unchanged.
@@ -51,10 +51,12 @@ The launcher writes the signed VPS gateway address automatically. Do not edit
 
 ## Safety and troubleshooting
 
-- Version 1.6.1 prompts **Update and restart?** when a newer launcher is available.
+- Starting with version 1.6.3, **Update and restart?** downloads and verifies a newer launcher.
   Yes downloads, verifies, installs and reopens it without a browser. No postpones
   the update; use the header's **Update to...** button later. Settings are retained.
-  1.6.0 and older need one final manual ZIP update to obtain this feature.
+  Every 1.6.2-or-older build needs one final manual fresh-folder ZIP update to
+  1.6.3 because its earlier WPF helper cannot reliably install this repair.
+  The dedicated updater is embedded in 1.6.3; no separate install is needed.
 - Keep the launcher separate from WoW in a regular writable folder, outside linked
   or cloud-managed folders. Keep `ProjectReverie.Launcher.exe` named as supplied.
   Failed replacements restore backups where safe; power loss may need manual
@@ -65,7 +67,7 @@ The launcher writes the signed VPS gateway address automatically. Do not edit
   details.
 - If the update feed is online but the game services are unavailable, contact the
   owner; do not change the realm address manually.
-- If an older launcher says **Native Data Required**, upgrade to 1.6.1 and use **Prepare Client**.
+- If an older launcher says **Native Data Required**, upgrade manually to 1.6.3 and use **Prepare Client**.
 - The native generator is tested on English enUS ChromieCraft build 12340. A
   mismatched source table or unknown existing archive is refused. Keep existing
   files and contact the owner; do not delete arbitrary archives.
