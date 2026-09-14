@@ -1,5 +1,21 @@
 # Publishing the one-tester release
 
+## Heirloom r10 two-phase rollout
+
+Prepare and validate launcher 1.6.2 before changing the active feeds. Phase one
+commits only release documentation and pending release metadata; the ZIP and its
+SHA-256 sidecar remain ignored under `release-assets/`. Keep every byte under
+`site/stable/` unchanged while this commit is pushed and its archive is uploaded.
+
+After the exact archive is anonymously downloadable and verified, phase two
+promotes the already-reviewed signed launcher/content pairs, the two changed
+owned payloads, and the matching active settings. Content becomes 1.29.0 and
+both launcher minimums become 1.6.2 together. Preserve all other public payloads.
+Never advertise a required launcher upgrade before its archive exists.
+
+Server r10 activation remains a separate guarded operation. Public client
+availability and local native preparation do not establish server readiness.
+
 ## Launcher self-update feed (1.4.0 and later)
 
 Game content and launcher binaries have independent versions. A launcher-only

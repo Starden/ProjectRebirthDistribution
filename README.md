@@ -17,6 +17,13 @@ You will also need:
 
 **Current release: launcher 1.6.1 / content 1.28.1 — built-in updates and corrected Heirloom on-use tooltips.**
 
+**Next release prepared: launcher 1.6.2 / content 1.29.0.** The versioned launcher
+archive is published and verified before the signed feeds change. Until that
+second step, the active channels above remain unchanged. See the
+[1.6.2 preparation notes](docs/RELEASE-NOTES-launcher-v1.6.2.md).
+Heirloom r10 requires **Update → close WoW → Prepare Client**; its server rollout
+is separately controlled and remains pending guarded deployment.
+
 The 1.28.1 addon hotfix replaces inverted on-use ranges with the existing
 level-scaled base bonuses for all four active Heirloom trinket families.
 Use **Check Updates → Update** with WoW closed, then reopen the game.
