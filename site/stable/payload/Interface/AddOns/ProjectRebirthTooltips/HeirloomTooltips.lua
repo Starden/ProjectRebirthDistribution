@@ -60,7 +60,7 @@ local active, refreshPending = false, false
 local frames, states = {}, setmetatable({}, {__mode = "k"})
 local unpack = unpack
 
--- Authored r9 on-use curves, not random ranges. EffectDieSides=0 is valid on
+-- Authored r9/r10 on-use curves, not random ranges. EffectDieSides=0 is valid on
 -- the server, but the 3.3.5a item renderer prints BasePoints+1 to BasePoints.
 -- Keep this presentation adapter tied to the exact catalog revision and owned
 -- six-rank families. Native/server values, duration and cooldown are unchanged.
@@ -197,7 +197,7 @@ end
 local function EquipText(text) return TriggerText(ITEM_SPELL_TRIGGER_ONEQUIP, text) end
 
 local function RewriteUse(tooltip, state, id, level, endLine)
-    if api.revision ~= 9 or not id or not level then return false end
+    if (api.revision ~= 9 and api.revision ~= 10) or not id or not level then return false end
     local profile
     for _, candidate in ipairs(useProfiles) do
         if id >= candidate.first and id <= candidate.last then profile = candidate; break end
