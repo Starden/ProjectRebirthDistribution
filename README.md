@@ -15,15 +15,22 @@ You will also need:
 - your own lawful, clean ChromieCraft WoW 3.3.5a client, build 12340; and
 - an approved Rebirth account supplied privately by the server owner.
 
-**Release package: launcher 1.6.4 / content 1.30.0 — talent preview and quality-of-life alpha.**
+**Release package: launcher 2.0.0 / content 0.1.30 — Void and Moonstone redesign.**
 
 Use **Update launcher → Update addons → close WoW → Prepare Client** before playing.
-Content **1.30.0 requires launcher 1.6.4**. Users on **1.6.3** can accept the built-in
+Content **0.1.30 requires launcher 2.0.0**. Users on **1.6.3 or newer** can accept the built-in
 **Update and restart?** prompt. Every **1.6.2-or-older** user needs one final manual
 fresh-folder install of the latest ZIP because its earlier update helper is unreliable.
-See the [1.6.4 release notes](docs/RELEASE-NOTES-launcher-v1.6.4.md).
+See the [2.0.0 release notes](docs/RELEASE-NOTES-launcher-v2.0.0.md).
 
-The display-mode selector is now beside **Play Rebirth**, visible on every tab.
+Choose **Follow Windows**, **Void**, or **Moonstone** in **Settings → Appearance**.
+The design includes the Reverie emblem, embedded fonts, and clearer status panels.
+Content **0.1.30** follows legacy **1.30.0** using a signed generation field; it is
+not a downgrade. Rollback checks remain enabled. All 35 addon payloads and native
+client recipes are unchanged in this release. Already-completed preparation and
+item-cache refreshes remain valid; do not repeat them unless prompted.
+
+The display-mode selector stays beside **Play Rebirth**, visible on every tab.
 Choose Fullscreen, Windowed, or Windowed Maximized there. The QoL addon update
 includes four-tree talent preview, Shift+Click links for fourth-spec talents and
 Skills, and current-level/level-80 Heirloom comparisons. Gameplay remains alpha;
@@ -34,11 +41,11 @@ own clean client, **Prepare Client** generates and verifies Rebirth's item,
 Heirloom, fourth-specialization, Feral Cat and tooltip data locally.
 The update preserves the existing Skill descriptions, Currency tab, gear-upgrade
 and Heirloom interface. Existing 1.6.2 and older users need one final manual ZIP
-update to 1.6.4. Starting with 1.6.3, later launcher updates prompt and install
-inside the launcher without redirecting to GitHub. All upgrading users must also update the addons
-and complete **Prepare Client** with WoW closed. For this coordinated update,
-preparation backs up only the English item-information cache once so the client
-can fetch revised stack limits. Already-matching native archives are not rebuilt;
+update to 2.0.0. Starting with 1.6.3, later launcher updates prompt and install
+inside the launcher without redirecting to GitHub. After upgrading, select **Update** for the new signed content metadata with WoW
+closed. Use **Prepare Client** only if prompted. Its earlier QoL preparation
+backs up only the English item-information cache once so the client can fetch
+revised stack limits. Already-matching native archives are not rebuilt;
 other caches and character settings stay unchanged.
 Your selected client and launcher preferences are retained. Server activation is
 separately controlled; installing client definitions is not proof every alpha
@@ -60,7 +67,7 @@ To get started:
    World entry also requires the owner's full-access approval.
 
 If an older launcher says **Native Data Required** or **Release Pending**, update
-to 1.6.4. For 1.6.2 and older, close the launcher, download the complete 1.6.4 ZIP, extract every
+to 2.0.0. For 1.6.2 and older, close the launcher, download the complete 2.0.0 ZIP, extract every
 file into a new regular folder, and run it. Your client selection is retained. No password
 reset or VPN is needed. This release is tested with the English enUS clean client;
 incompatible source data or unknown existing patches are refused, not overwritten.
@@ -73,9 +80,9 @@ then use the header's **Update to...** button later. No browser or manual ZIP
 extraction is needed for future updates. Your client selection and preferences
 are retained. Updates install only after your confirmation.
 
-**1.6.2 and older:** download the 1.6.4 ZIP once, close the old launcher, extract
+**1.6.2 and older:** download the 2.0.0 ZIP once, close the old launcher, extract
 every file into a fresh folder and run it. Those builds cannot reliably install
-the repair themselves. The dedicated updater introduced in 1.6.3 is retained in 1.6.4;
+the repair themselves. The dedicated updater introduced in 1.6.3 is retained in 2.0.0;
 there is no separate updater installation.
 Keep the launcher separate from WoW in a regular writable, non-cloud/linked folder,
 and keep the executable named `ProjectReverie.Launcher.exe`. The updater replaces
@@ -88,8 +95,8 @@ The launcher-release feed is signed independently of game-content updates.
 An upgrade below the minimum supported version is required before installing
 content or playing. Failed or expired checks are labelled unavailable, not
 current. The launcher-release feed supports **1.6.3** so it can perform the update;
-the **1.30.0 game-content feed requires 1.6.4** before content installation or play.
-All 1.6.2-or-older users need a **one-time manual fresh-folder upgrade to 1.6.4**.
+the **0.1.30 game-content feed requires 2.0.0** before content installation or play.
+All 1.6.2-or-older users need a **one-time manual fresh-folder upgrade to 2.0.0**.
 
 Do not edit `realmlist.wtf` manually. The launcher does not include or download
 the base World of Warcraft client. Windows may show an **Unknown publisher**

@@ -1,5 +1,11 @@
 # Project Reverie — Rebirth external-test onboarding
 
+Launcher 2.0.0 adds Void / Moonstone / Follow Windows themes in Settings.
+Content 0.1.30 is the new numbering generation after legacy 1.30.0. It does not
+change gameplay or require rebuilding already-current native data. Completed
+item-cache preparation remains valid. Update the launcher first, then Update
+content with WoW closed; Prepare Client is needed only if prompted.
+
 ## What you receive
 
 From GitHub, download only the latest
@@ -26,11 +32,11 @@ The Project Reverie launcher does not include or download World of Warcraft.
 
 ## First connection
 
-**Launcher 1.6.4 / content 1.30.0 adds the visible display selector and coordinated QoL update, retaining the dedicated updater and fourth-spec/Feral Cat native preparation.** Use Start Here to
+**Launcher 2.0.0 / content 0.1.30 adds the visible display selector and coordinated QoL update, retaining the dedicated updater and fourth-spec/Feral Cat native preparation.** Use Start Here to
 request an account and test the gateway. After updating the addons, select
 **Prepare Client** to build Rebirth's item, Heirloom, fourth-spec and Feral Cat data from your own clean client.
 No game archives are downloaded; original client files stay unchanged.
-Already-matching native data are not rebuilt. After content 1.30.0 activates,
+Already-matching native data are not rebuilt. After content 0.1.30 activates,
 **Prepare Client** performs a one-time, recoverable backup of the enUS item cache
 so revised stack sizes can be fetched; it does not clear other caches or settings.
 Do not bypass verification. A character-creation-only account cannot enter the world
@@ -59,9 +65,9 @@ The launcher writes the signed VPS gateway address automatically. Do not edit
   Yes downloads, verifies, installs and reopens it without a browser. No postpones
   the update; use the header's **Update to...** button later. Settings are retained.
   Every 1.6.2-or-older build needs one final manual fresh-folder ZIP update to
-  the latest 1.6.4 because its earlier WPF helper cannot reliably install this repair.
-  Version 1.6.3 can install 1.6.4 through the built-in prompt. The dedicated updater
-  remains embedded; no separate install is needed. Content 1.30.0 requires 1.6.4.
+  the latest 2.0.0 because its earlier WPF helper cannot reliably install this repair.
+  Version 1.6.3 can install 2.0.0 through the built-in prompt. The dedicated updater
+  remains embedded; no separate install is needed. Content 0.1.30 requires 2.0.0.
 - Keep the launcher separate from WoW in a regular writable folder, outside linked
   or cloud-managed folders. Keep `ProjectReverie.Launcher.exe` named as supplied.
   Failed replacements restore backups where safe; power loss may need manual
@@ -72,7 +78,7 @@ The launcher writes the signed VPS gateway address automatically. Do not edit
   details.
 - If the update feed is online but the game services are unavailable, contact the
   owner; do not change the realm address manually.
-- If an older launcher says **Native Data Required**, update to 1.6.4 and use **Prepare Client**.
+- If an older launcher says **Native Data Required**, update to 2.0.0 and use **Prepare Client**.
   Use a fresh-folder ZIP install only if running 1.6.2 or older, or recovering a failed update.
 - If preparation reports a pending item-cache refresh, close WoW and retry
   **Prepare Client**. Keep its backups and markers; do not clear the whole Cache folder.

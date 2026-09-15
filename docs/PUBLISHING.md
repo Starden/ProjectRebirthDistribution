@@ -1,6 +1,25 @@
 # Publishing the one-tester release
 
-## Launcher 1.6.4 / content 1.30.0 coordinated rollout
+## Launcher 2.0.0 / content 0.1.30
+
+This presentation-only release follows the same two-phase protocol: pin the
+2.0.0 ZIP and content epoch 1 in pendingRelease while keeping active feeds
+unchanged; publish and anonymously verify the archive; then promote both exact
+signed feed pairs and active distribution settings together. Content 0.1.30
+requires launcher 2.0.0; the independent launcher feed retains minimum 1.6.3
+so existing working updaters can upgrade. Never disable rollback validation.
+
+Content ordering is (contentEpoch, contentVersion). Missing epoch means legacy 0.
+The first new generation is epoch 1 / 0.1.30; only epochs 0 and 1 are currently
+supported. Within an epoch, versions must increase. Reject unknown generations,
+legacy-generation rollback, and same-generation version rollback. New-generation
+content metadata requires minimumLauncherVersion at least 2.0.0.
+
+All 35 payloads remain identical to 1.30.0; native recipes, gameplay, account access,
+and server processes are unchanged. Retain the physical QoL cache revision marker
+1.30.0 so completed preparation is not invalidated by the display renumbering.
+
+## Historical: Launcher 1.6.4 / content 1.30.0 coordinated rollout
 
 This release changes both launcher and content and must be coordinated with the
 reviewed Rebirth QoL server/SQL deployment. Preparing or installing the launcher

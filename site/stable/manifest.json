@@ -2,10 +2,11 @@
   "schemaVersion": 1,
   "product": "Project Reverie",
   "channel": "stable",
-  "contentVersion": "1.30.0",
-  "publishedAtUtc": "2026-09-14T23:58:51.6928236Z",
-  "expiresAtUtc": "2026-10-14T23:58:51.6928236Z",
-  "minimumLauncherVersion": "1.6.4",
+  "contentVersion": "0.1.30",
+  "contentEpoch": 1,
+  "publishedAtUtc": "2026-09-15T12:30:40.2677771Z",
+  "expiresAtUtc": "2026-10-15T12:30:40.2677771Z",
+  "minimumLauncherVersion": "2.0.0",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
   "signatureAlgorithm": "ECDSA_P256_SHA256_P1363",
@@ -16,8 +17,8 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "Rebirth - Talent preview and quality-of-life update",
-    "summary": "Update launcher and client before testing. Four-tree talent previews, Shift+Click Skill/talent links, current-level and level-80 Heirloom comparisons. Coordinated server changes add two-hand upgrade costs, Gladiator stance persistence and eligible 200-item stacks.",
+    "headline": "A new horizon",
+    "summary": "Rebirth continues. Discover your build, forge your heritage, and begin again. Launcher 2.0.0 introduces Void and Moonstone; content 0.1.30 begins our new numbering. Existing gameplay and native data are unchanged.",
     "updateKind": "content",
     "requiresClientUpdate": true
   },

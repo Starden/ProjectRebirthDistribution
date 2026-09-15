@@ -14,6 +14,18 @@ $publicKeyPem = [System.IO.File]::ReadAllText((Join-Path $DistributionRoot 'site
 $client = [System.Net.Http.HttpClient]::new()
 $client.Timeout = [TimeSpan]::FromSeconds(30)
 try {
+    # Both feed pairs must be the exact reviewed bytes, not just any valid older
+    # signed release that happens to be internally consistent.
+    foreach ($name in @('manifest.json','manifest.json.sig','launcher.json','launcher.json.sig')) {
+        $uri=[Uri]::new([Uri]$settings.pagesBaseUri, "$($settings.channel)/$name")
+        $remote=$client.GetByteArrayAsync($uri).GetAwaiter().GetResult()
+        $local=[IO.File]::ReadAllBytes((Join-Path $DistributionRoot "site/$($settings.channel)/$name"))
+        if (-not [Security.Cryptography.CryptographicOperations]::FixedTimeEquals(
+            [Security.Cryptography.SHA256]::HashData($remote),[Security.Cryptography.SHA256]::HashData($local))) {
+            throw "Live feed differs from reviewed release: $name"
+        }
+        Write-Host "PASS: exact reviewed live bytes: $name" -ForegroundColor Green
+    }
     $manifestBytes = $client.GetByteArrayAsync($manifestUri).GetAwaiter().GetResult()
     $signatureText = $client.GetStringAsync($signatureUri).GetAwaiter().GetResult().Trim()
     $signatureBytes = [Convert]::FromBase64String($signatureText)
