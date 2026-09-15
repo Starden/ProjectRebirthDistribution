@@ -3,7 +3,21 @@
 The signed HTTPS distribution is only one layer. Do not send an account credential
 until every required boundary below is proven.
 
-## Public distribution
+## Launcher 2.0.0 / content 0.1.30 — September 15 update
+
+- [x] The four-file 2.0.0 ZIP was published and anonymously verified against its
+  signed SHA-256 and exact 96,634,200-byte size.
+- [x] Both live feed pairs match the reviewed activation commit
+  `2e585f1745781a4b338a4fec7c8e5401521ea0db`; all 35 payload hashes passed.
+- [x] Release audit, repository validation, and Pages deployment passed.
+- [x] Real packaged 1.6.4-to-2.0.0 replacement, backups, restart and fail-closed
+  rejection passed. Content generation rollback tests passed.
+- [x] The owner package matches the public ZIP and Desktop/Admin routing selects it.
+- [x] Native recipes, gameplay payloads, server processes and account access were
+  not changed. Existing completed preparation is retained.
+- [ ] External-player acceptance of the new design remains to be confirmed.
+
+## Historical: 1.6.4 / 1.30.0 public distribution
 
 - [x] Public `Starden/ProjectRebirthDistribution` repository exists.
 - [x] GitHub Pages serves the exact signed stable feed over HTTPS.
