@@ -40,6 +40,14 @@ function Get-JsonFile {
     }
 }
 
+function Get-ReverieContentEpoch($Value) {
+    if (-not $Value.PSObject.Properties['contentEpoch']) { return 0 }
+    $epoch=$Value.contentEpoch
+    if (($epoch -isnot [int] -and $epoch -isnot [long]) -or $epoch -notin @(0,1)) { throw 'Invalid content epoch.' }
+    if ($epoch -eq 1 -and [version]$Value.launcherVersion -lt [version]'2.0.0') { throw 'Content epoch one requires launcher 2.0.0 or newer.' }
+    return [int]$epoch
+}
+
 function Test-DistributionSettingsSchema {
     param([Parameter(Mandatory)]$Settings)
 
@@ -48,7 +56,7 @@ function Test-DistributionSettingsSchema {
         'channel', 'launcherVersion', 'contentVersion', 'authAddress',
         'authPort', 'worldPort'
     )
-    $allowed = @($required + 'pendingRelease')
+    $allowed = @($required + @('pendingRelease','contentEpoch'))
     $actual = @($Settings.PSObject.Properties.Name)
     $unknown = @($actual | Where-Object { $_ -cnotin $allowed })
     $missing = @($required | Where-Object { $_ -cnotin $actual })
@@ -62,6 +70,8 @@ function Test-DistributionSettingsSchema {
         Add-Failure 'Distribution settings have unknown/missing fields, wrong schema/channel, or non-canonical active versions'
         return
     }
+    try { $activeEpoch = Get-ReverieContentEpoch $Settings }
+    catch { Add-Failure $_.Exception.Message; return }
     Add-Pass 'Distribution settings schema and active versions are exact'
 
     if (-not $Settings.PSObject.Properties['pendingRelease']) {
@@ -72,13 +82,11 @@ function Test-DistributionSettingsSchema {
     $pending = $Settings.pendingRelease
     $fields = @('launcherVersion', 'contentVersion', 'archiveSha256', 'archiveSize')
     if ($null -eq $pending -or
-        @($pending.PSObject.Properties).Count -ne $fields.Count -or
-        @($pending.PSObject.Properties.Name | Where-Object { $_ -cnotin $fields }).Count -ne 0 -or
+        @($pending.PSObject.Properties.Name | Where-Object { $_ -cnotin @($fields+'contentEpoch') }).Count -ne 0 -or
         @($fields | Where-Object { $_ -cnotin @($pending.PSObject.Properties.Name) }).Count -ne 0 -or
         [string]$pending.launcherVersion -cnotmatch $canonical -or
         [string]$pending.contentVersion -cnotmatch $canonical -or
         [version]$pending.launcherVersion -le [version]$Settings.launcherVersion -or
-        [version]$pending.contentVersion -lt [version]$Settings.contentVersion -or
         [string]$pending.archiveSha256 -cnotmatch '\A[a-fA-F0-9]{64}\z' -or
         ($pending.archiveSize -isnot [long] -and $pending.archiveSize -isnot [int]) -or
         [long]$pending.archiveSize -le 0 -or [long]$pending.archiveSize -gt 512MB) {
@@ -86,6 +94,11 @@ function Test-DistributionSettingsSchema {
         return
     }
 
+    try { $pendingEpoch=Get-ReverieContentEpoch $pending }
+    catch { Add-Failure $_.Exception.Message; return }
+    if ($pendingEpoch -lt $activeEpoch -or ($pendingEpoch -eq $activeEpoch -and [version]$pending.contentVersion -lt [version]$Settings.contentVersion)) {
+        Add-Failure 'Pending content release would roll back the active generation/version'; return
+    }
     $script:PendingReleaseValid = $true
     Add-Pass "Pending launcher $($pending.launcherVersion) has an exact reviewed archive pin"
 }
@@ -328,6 +341,16 @@ if (-not (Test-Path -LiteralPath $publicKeyPath -PathType Leaf)) {
 }
 
 if ($null -ne $manifest) {
+    try {
+        $manifestEpoch = 0
+        if ($manifest.PSObject.Properties['contentEpoch']) {
+            if (($manifest.contentEpoch -isnot [int] -and $manifest.contentEpoch -isnot [long]) -or $manifest.contentEpoch -notin @(0,1)) { throw 'Invalid signed content epoch.' }
+            $manifestEpoch = [int]$manifest.contentEpoch
+        }
+        if ($manifestEpoch -ne (Get-ReverieContentEpoch $settings) -or
+            ($manifestEpoch -eq 1 -and [version]$manifest.minimumLauncherVersion -lt [version]'2.0.0')) { throw 'Signed content generation or required launcher differs from settings.' }
+        Add-Pass 'Signed content generation and launcher compatibility agree'
+    } catch { Add-Failure $_.Exception.Message }
     if ([string]$manifest.product -ne 'Project Reverie' -or
         [string]$manifest.channel -ne [string]$settings.channel -or
         [string]$manifest.contentVersion -ne [string]$settings.contentVersion -or

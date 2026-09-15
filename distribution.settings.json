@@ -8,5 +8,12 @@
   "contentVersion": "1.30.0",
   "authAddress": "134.122.124.150",
   "authPort": 3724,
-  "worldPort": 8087
+  "worldPort": 8087,
+  "pendingRelease": {
+    "launcherVersion": "2.0.0",
+    "contentVersion": "0.1.30",
+    "contentEpoch": 1,
+    "archiveSha256": "c431668810235f08ecce19891fd05727d432b89a225ecb1160f19b51aa587343",
+    "archiveSize": 96634200
+  }
 }
