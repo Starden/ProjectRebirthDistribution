@@ -8,9 +8,9 @@ until every required boundary below is proven.
 - [x] Public `Starden/ProjectRebirthDistribution` repository exists.
 - [x] GitHub Pages serves the exact signed stable feed over HTTPS.
 - [x] Launcher 1.6.4 ZIP and checksum are published through GitHub Releases.
-- [x] Prepared signed content 1.30.0 advertises only `134.122.124.150:3724/8087`.
+- [x] Live signed content 1.30.0 advertises only `134.122.124.150:3724/8087`.
 - [x] Local 35-payload candidate and both detached signatures match reviewed bytes.
-- [ ] After coordinated activation, recheck the live content 1.30.0 and launcher 1.6.4 feeds and all 35 payload hashes anonymously.
+- [x] On September 15, verified the exact live content 1.30.0 and launcher 1.6.4 feed bytes, both signatures, and all 35 payload hashes anonymously after activation.
 - [x] Project Reverie Launcher 1.6.4 contains no client, MPQ, credential, VPN profile, or private key and uses only the HTTPS public feed bootstrap.
 - [ ] The ZIP hash is sent through a separate trusted private channel.
 
@@ -27,10 +27,12 @@ until every required boundary below is proven.
 
 ## Rebirth host
 
-- [ ] Complete the reviewed QoL server/SQL deployment and save its runtime/backup receipt before promoting the prepared public feeds.
-- [ ] Confirm two-hand upgrade costs, Gladiator persistence and the reviewed eligible 20-to-200 stack migration; do not change account access.
-- [ ] Activate content 1.30.0 and launcher 1.6.4 feeds together only after the server checks pass.
-- [ ] Update the owner launcher too; finish the owner and tester one-time item-cache refresh with WoW closed after feed activation.
+- [x] Completed the reviewed QoL server/SQL deployment and saved runtime/backup receipts before promoting the prepared public feeds. The recovery stability check passed for 183 seconds with 480 unique bot logins.
+- [x] Verified the migration applied to exactly 3,263 eligible item definitions; account access and other realms were preserved.
+- [ ] Confirm two-hand upgrade costs and Gladiator persistence through player-driven in-game acceptance.
+- [x] Activated content 1.30.0 and launcher 1.6.4 feeds together after the server checks passed.
+- [x] Verified the owner's launcher matches the public four-file 1.6.4 ZIP and completed the owner item-cache preparation with WoW closed. Client and launch-helper validation passed.
+- [ ] Each tester updates the launcher/addons and completes Prepare Client with WoW closed; owner preparation does not update remote players' clients.
 - [ ] Perform in-game smoke tests for four-tree talent preview, Shift+Click links and current-level/level-80 Heirloom comparisons.
 - [x] Auth and world remain bound only to the private Rebirth tunnel address.
 - [x] Auth `EnableProxyProtocol` and world `Network.EnableProxyProtocol` are 1.

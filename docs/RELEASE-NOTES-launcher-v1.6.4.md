@@ -16,9 +16,10 @@ folders. Your selected client and preferences remain in your Windows profile.
 
 ## Coordinated Rebirth content 1.30.0
 
-The archive is published before activation of the matching server/content update.
-Until the signed content feed changes to 1.30.0, the existing 1.29.0 content remains
-in use. The launcher does not mark the new cache refresh complete prematurely.
+Activated September 15, 2026: the matching server update is running and the signed
+content feed now serves 1.30.0. The public feed signatures, all 35 addon payloads,
+and the launcher ZIP were verified after publication. The launcher requires
+verified 1.30.0 content before completing the new item-cache refresh.
 
 The coordinated update contains fourth-specialization talent preview fixes,
 Shift-click chat links for fourth-spec talents and Rebirth Skills, current-level
