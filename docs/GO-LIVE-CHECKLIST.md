@@ -7,10 +7,11 @@ until every required boundary below is proven.
 
 - [x] Public `Starden/ProjectRebirthDistribution` repository exists.
 - [x] GitHub Pages serves the exact signed stable feed over HTTPS.
-- [x] Launcher 1.6.3 ZIP and checksum are published through GitHub Releases.
-- [x] Signed content 1.29.0 advertises only `134.122.124.150:3724/8087`.
-- [x] Live manifest, signature, and every payload hash verify after deployment.
-- [x] Project Reverie Launcher 1.6.3 contains no client, MPQ, credential, VPN profile, or key and uses only the HTTPS public feed bootstrap.
+- [x] Launcher 1.6.4 ZIP and checksum are published through GitHub Releases.
+- [x] Prepared signed content 1.30.0 advertises only `134.122.124.150:3724/8087`.
+- [x] Local 35-payload candidate and both detached signatures match reviewed bytes.
+- [ ] After coordinated activation, recheck the live content 1.30.0 and launcher 1.6.4 feeds and all 35 payload hashes anonymously.
+- [x] Project Reverie Launcher 1.6.4 contains no client, MPQ, credential, VPN profile, or private key and uses only the HTTPS public feed bootstrap.
 - [ ] The ZIP hash is sent through a separate trusted private channel.
 
 ## VPS gateway and private transport
@@ -26,6 +27,11 @@ until every required boundary below is proven.
 
 ## Rebirth host
 
+- [ ] Complete the reviewed QoL server/SQL deployment and save its runtime/backup receipt before promoting the prepared public feeds.
+- [ ] Confirm two-hand upgrade costs, Gladiator persistence and the reviewed eligible 20-to-200 stack migration; do not change account access.
+- [ ] Activate content 1.30.0 and launcher 1.6.4 feeds together only after the server checks pass.
+- [ ] Update the owner launcher too; finish the owner and tester one-time item-cache refresh with WoW closed after feed activation.
+- [ ] Perform in-game smoke tests for four-tree talent preview, Shift+Click links and current-level/level-80 Heirloom comparisons.
 - [x] Auth and world remain bound only to the private Rebirth tunnel address.
 - [x] Auth `EnableProxyProtocol` and world `Network.EnableProxyProtocol` are 1.
 - [x] Windows Firewall allows backend TCP only from the VPS gateway peer.

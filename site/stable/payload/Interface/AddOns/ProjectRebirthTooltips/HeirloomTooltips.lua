@@ -14,7 +14,10 @@ local function Catalog()
         if not Number(id, 1, 16777215, true) or type(entry) ~= "table" or
             type(entry.levels) ~= "table" then return end
         count = count + 1
-        if count > 942 then return end
+        -- Match the server's bounded 160-family catalog (six ranks each).
+        -- Revision 10 has 158 families / 948 items; the old 942 limit disabled
+        -- the entire consumer even though every row was individually valid.
+        if count > 160 * 6 then return end
         local levels, actual = {}, 0
         for level, row in pairs(entry.levels) do
             if not Number(level, 1, 80, true) or type(row) ~= "table" then return end
@@ -58,6 +61,7 @@ local api = {version = 1, revision = ProjectRebirthHeirloomTooltipData.revision}
 ProjectRebirthHeirloomTooltips = api
 local active, refreshPending = false, false
 local frames, states = {}, setmetatable({}, {__mode = "k"})
+local previewPending = false
 local unpack = unpack
 
 -- Authored r9/r10 on-use curves, not random ranges. EffectDieSides=0 is valid on
@@ -116,7 +120,7 @@ local function Plain(text)
 end
 
 local function Link(link)
-    if type(link) ~= "string" then return end
+    if type(link) ~= "string" or #link > 1024 then return end
     local body = link:match("|Hitem:([^|]+)|h") or link:match("^item:([^|]+)$")
     if not body then return end
     local fields = {}
@@ -131,7 +135,23 @@ local function Link(link)
         if not Number(level, 0, 255, true) then return end
         if level == 0 then level = nil end
     end
-    return id, level
+    return id, level, fields
+end
+
+-- Change only the native render-level field in a private copy. In particular,
+-- do not change entry/rank, enchantments, gems, random suffix or unique ID.
+local function ContextLink(link, level)
+    local id, _, fields = Link(link)
+    if not id or not data[id] or not Number(level, 1, 80, true) then return end
+    for index = 2, 8 do
+        local value = fields[index] or ""
+        if value ~= "" and not value:match("^%-?%d+$") then return end
+        fields[index] = value == "" and "0" or value
+    end
+    fields[9] = tostring(level)
+    local body = "item:" .. table.concat(fields, ":")
+    if link:sub(1, 5) == "item:" then return body end
+    return (link:gsub("item:[^|]+", function() return body end, 1))
 end
 
 local function Point(link, levelOverride)
@@ -141,6 +161,13 @@ local function Point(link, levelOverride)
     if not Number(level, 1, 255, true) then return end
     level = math.min(level, 80)
     return data[id][level], level, id
+end
+
+local function NativeViewerContext(tooltip, state)
+    local context = state.context
+    return state.primary and UIParent and tooltip.SetOwner and context and
+        context.method ~= "SetHyperlink" and context.method ~= "SetHyperlinkCompareItem" and
+        (context.method ~= "SetInventoryItem" or context.args[1] == "player")
 end
 
 local function Font(tooltip, side, line)
@@ -331,7 +358,7 @@ local function Refresh(tooltip)
     if not active or not state or state.busy or not tooltip.GetItem then return end
     state.busy = true
     local _, link = tooltip:GetItem()
-    local row, level, id = Point(link)
+    local row, level, id = Point(link, NativeViewerContext(tooltip, state) and UnitLevel("player") or nil)
     local context = state.context
     local candidate = context and context.compareLink and Point(context.compareLink)
     local summary, count = nil, tooltip:NumLines() or 0
@@ -347,17 +374,91 @@ local function Refresh(tooltip)
     state.busy = false
 end
 
+local function HidePreview(state)
+    if state.preview then state.preview:Hide() end
+end
+
+local function PositionPreview(tooltip, preview)
+    preview:ClearAllPoints()
+    preview:SetClampedToScreen(true)
+    -- Prefer the side with room; the native clamp also covers low resolutions.
+    local scale = tooltip:GetEffectiveScale() / UIParent:GetEffectiveScale()
+    local room = UIParent:GetWidth() - (tooltip:GetRight() or 0) * scale
+    if room >= preview:GetWidth() * preview:GetEffectiveScale() / UIParent:GetEffectiveScale() + 8 then
+        preview:SetPoint("TOPLEFT", tooltip, "TOPRIGHT", 8, 0)
+    else preview:SetPoint("TOPRIGHT", tooltip, "TOPLEFT", -8, 0) end
+end
+
+local function UpdatePreview(tooltip, state)
+    if not state.primary or not tooltip.SetOwner or not tooltip.GetEffectiveScale or not UIParent then return end
+    if not active or not tooltip:IsShown() then HidePreview(state); return end
+    local context = state.context
+    -- An inspected player's equipped item retains that player's native context.
+    if context and context.method == "SetInventoryItem" and context.args[1] ~= "player" then
+        HidePreview(state); return
+    end
+    local _, link = tooltip:GetItem()
+    local level = UnitLevel and UnitLevel("player")
+    if not Number(level, 1, 255, true) then HidePreview(state); return end
+    level = math.min(level, 80)
+    local original = state.sourceLink or link
+    local current, maximum = ContextLink(original, level), ContextLink(original, 80)
+    if not current or not maximum then HidePreview(state); return end
+    local key = current .. ":" .. tostring(level)
+    if state.viewKey ~= key then
+        state.previewBusy = true
+        -- Bag/equipment/merchant setters already render at the viewer's level:
+        -- preserve their live durability, refund/trade timers and money widgets.
+        -- Only a linked-item panel needs native re-rendering of its level field.
+        -- The independent level-80 panel always uses a copied native link.
+        local ok = true
+        if not NativeViewerContext(tooltip, state) then ok = pcall(tooltip.SetHyperlink, tooltip, current) end
+        if ok then
+            tooltip:AddLine(level == 80 and "At level 80" or ("At your level (" .. level .. ")"), 0.35, 0.85, 1)
+            tooltip:Show()
+            state.viewKey = key
+        end
+        state.previewBusy = false
+        if not ok then HidePreview(state); return end
+    end
+    if level == 80 then HidePreview(state); return end
+    if not state.preview then
+        state.preview = CreateFrame("GameTooltip", tooltip:GetName() .. "RebirthLevel80", UIParent, "GameTooltipTemplate")
+        api.Attach(state.preview)
+    end
+    local preview = state.preview
+    if state.previewLink ~= maximum then
+        preview:SetOwner(tooltip, "ANCHOR_NONE")
+        local ok = pcall(preview.SetHyperlink, preview, maximum)
+        if not ok or not preview:GetItem() then
+            HidePreview(state); state.previewLink = nil; return
+        end
+        preview:AddLine("At level 80 - same upgrade rank", 0.35, 0.85, 1)
+        state.previewLink = maximum
+    end
+    PositionPreview(tooltip, preview)
+    preview:Show()
+end
+
 function api.Attach(tooltip)
     if not tooltip or states[tooltip] then return end
-    local state = {writes = {}}
+    local state = {writes = {}, primary = tooltip == GameTooltip or tooltip == ItemRefTooltip}
     states[tooltip] = state; frames[#frames + 1] = tooltip
     tooltip:HookScript("OnTooltipCleared", function()
-        state.writes = {}; state.context = nil; state.lastLink = nil; state.addedFeral = nil
+        state.writes = {}; state.lastLink = nil; state.addedFeral = nil
+        if not state.previewBusy then
+            state.context = nil; state.sourceLink = nil; state.viewKey = nil
+            state.previewLink = nil; HidePreview(state)
+        end
     end)
     tooltip:HookScript("OnTooltipSetItem", function(self)
         local _, link = self:GetItem()
-        if state.lastLink ~= link then state.writes = {}; state.context = nil; state.addedFeral = nil end
+        if state.lastLink ~= link then
+            state.writes = {}; state.addedFeral = nil
+            if not state.previewBusy then state.context = nil; state.viewKey = nil end
+        end
         state.lastLink = link
+        if not state.previewBusy then state.sourceLink = link; previewPending = true end
         Refresh(self)
     end)
     for _, method in ipairs({"SetBagItem", "SetInventoryItem", "SetMerchantItem", "SetBuybackItem",
@@ -366,13 +467,19 @@ function api.Attach(tooltip)
         if tooltip[method] then
             local setter = method
             hooksecurefunc(tooltip, setter, function(self, ...)
+                if state.previewBusy then return end
                 local args = {...}
                 state.context = {method = setter, args = args, count = select("#", ...),
                     compareLink = setter == "SetHyperlinkCompareItem" and args[1] or nil}
                 Refresh(self)
+                if state.primary then state.viewKey = nil; previewPending = true end
             end)
         end
     end
+    tooltip:HookScript("OnHide", function() HidePreview(state) end)
+    tooltip:HookScript("OnShow", function()
+        if state.primary and not state.previewBusy then previewPending = true end
+    end)
 end
 
 for _, name in ipairs({"GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2", "ShoppingTooltip3",
@@ -385,16 +492,17 @@ eventFrame:SetScript("OnEvent", function(self, event, unit)
     if event == "UNIT_INVENTORY_CHANGED" and unit ~= "player" then return end
     active = GetRealmName and GetRealmName() == "Rebirth"
     if not active then
-        for _, state in pairs(states) do Restore(state) end
+        for _, state in pairs(states) do Restore(state); HidePreview(state) end
         refreshPending = false
         return
     end
     refreshPending = true -- native player level/cache must settle before rerender
 end)
 eventFrame:SetScript("OnUpdate", function()
-    if not refreshPending or not active then return end
+    if not active then return end
+    local nativeRefresh = refreshPending
     refreshPending = false
-    for _, tooltip in ipairs(frames) do
+    if nativeRefresh then for _, tooltip in ipairs(frames) do
         if tooltip:IsShown() then
             local state, context = states[tooltip], states[tooltip].context
             if context and not state.busy then
@@ -402,6 +510,13 @@ eventFrame:SetScript("OnUpdate", function()
                 -- recomputing SSD stats, proc text, money or comparison operands.
                 tooltip[context.method](tooltip, unpack(context.args, 1, context.count))
             else Refresh(tooltip) end
+        end
+    end end
+    if previewPending or nativeRefresh then
+        previewPending = false
+        for _, tooltip in ipairs({GameTooltip, ItemRefTooltip}) do
+            local state = tooltip and states[tooltip]
+            if state then UpdatePreview(tooltip, state) end
         end
     end
 end)

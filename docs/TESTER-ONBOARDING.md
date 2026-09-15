@@ -26,10 +26,13 @@ The Project Reverie launcher does not include or download World of Warcraft.
 
 ## First connection
 
-**Launcher 1.6.3 adds a dedicated embedded updater and retains fourth-spec/Feral Cat native preparation.** Use Start Here to
+**Launcher 1.6.4 / content 1.30.0 adds the visible display selector and coordinated QoL update, retaining the dedicated updater and fourth-spec/Feral Cat native preparation.** Use Start Here to
 request an account and test the gateway. After updating the addons, select
 **Prepare Client** to build Rebirth's item, Heirloom, fourth-spec and Feral Cat data from your own clean client.
 No game archives are downloaded; original client files stay unchanged.
+Already-matching native data are not rebuilt. After content 1.30.0 activates,
+**Prepare Client** performs a one-time, recoverable backup of the enUS item cache
+so revised stack sizes can be fetched; it does not clear other caches or settings.
 Do not bypass verification. A character-creation-only account cannot enter the world
 until the owner grants full access. Password replacement is not automatically
 enforced on first login; follow the owner's private instructions.
@@ -42,8 +45,9 @@ enforced on first login; follow the owner's private instructions.
 4. Start `ProjectReverie.Launcher.exe`, select **Locate Client**, and choose the
    folder containing the clean `Wow.exe`.
 5. Select **Update** for the signed addons.
-6. Select **Prepare Client**, close this WoW client, and confirm.
-7. Once native data and gateway checks pass, select **Play Rebirth** and log in
+6. Close WoW, select **Prepare Client**, and confirm.
+7. Choose Fullscreen, Windowed, or Windowed Maximized in the selector beside Play.
+   Once native data and gateway checks pass, select **Play Rebirth** and log in
    with the dedicated Rebirth test account.
 
 The launcher writes the signed VPS gateway address automatically. Do not edit
@@ -55,8 +59,9 @@ The launcher writes the signed VPS gateway address automatically. Do not edit
   Yes downloads, verifies, installs and reopens it without a browser. No postpones
   the update; use the header's **Update to...** button later. Settings are retained.
   Every 1.6.2-or-older build needs one final manual fresh-folder ZIP update to
-  1.6.3 because its earlier WPF helper cannot reliably install this repair.
-  The dedicated updater is embedded in 1.6.3; no separate install is needed.
+  the latest 1.6.4 because its earlier WPF helper cannot reliably install this repair.
+  Version 1.6.3 can install 1.6.4 through the built-in prompt. The dedicated updater
+  remains embedded; no separate install is needed. Content 1.30.0 requires 1.6.4.
 - Keep the launcher separate from WoW in a regular writable folder, outside linked
   or cloud-managed folders. Keep `ProjectReverie.Launcher.exe` named as supplied.
   Failed replacements restore backups where safe; power loss may need manual
@@ -67,7 +72,12 @@ The launcher writes the signed VPS gateway address automatically. Do not edit
   details.
 - If the update feed is online but the game services are unavailable, contact the
   owner; do not change the realm address manually.
-- If an older launcher says **Native Data Required**, upgrade manually to 1.6.3 and use **Prepare Client**.
+- If an older launcher says **Native Data Required**, update to 1.6.4 and use **Prepare Client**.
+  Use a fresh-folder ZIP install only if running 1.6.2 or older, or recovering a failed update.
+- If preparation reports a pending item-cache refresh, close WoW and retry
+  **Prepare Client**. Keep its backups and markers; do not clear the whole Cache folder.
+- Skill links are shareable descriptions, not proof of ownership or live effect validation.
+  Fourth-spec talents and Skills retain their alpha/WiP labels where applicable.
 - The native generator is tested on English enUS ChromieCraft build 12340. A
   mismatched source table or unknown existing archive is refused. Keep existing
   files and contact the owner; do not delete arbitrary archives.

@@ -1,10 +1,11 @@
 # Publishing the one-tester release
 
-## Launcher 1.6.3 two-phase rollout
+## Launcher 1.6.4 / content 1.30.0 coordinated rollout
 
-Prepare and validate launcher 1.6.3 before changing the active launcher feed.
-This is a launcher-only release: keep content 1.29.0, its signed manifest pair,
-and all 34 owned payloads byte-for-byte unchanged.
+This release changes both launcher and content and must be coordinated with the
+reviewed Rebirth QoL server/SQL deployment. Preparing or installing the launcher
+alone is not evidence that server deployment succeeded. Keep existing account
+permissions and all other realms unchanged.
 
 Phase one commits the release notes, corrected publishing/audit automation, and a
 `pendingRelease` pin containing the exact launcher/content versions plus archive
@@ -12,11 +13,26 @@ SHA-256 and size. The ZIP and sidecar remain ignored under `release-assets/`.
 Keep the active settings and both signed feeds unchanged while this commit is
 pushed and the exact archive is uploaded as a GitHub Release.
 
-After anonymously downloading and verifying that archive, phase two promotes the
-already-reviewed signed launcher pair, changes active `launcherVersion` to 1.6.3,
-and removes `pendingRelease`. Only then update current-version wording in public
-README/onboarding. Never advertise a required upgrade before its exact archive is
-publicly available. Do not alter content or server state during either phase.
+After anonymously verifying the public 1.6.4 archive, prepare phase two locally:
+the exact signed content 1.30.0 pair, 35 owned payloads, signed launcher pair,
+active settings and current player guidance. Seven payloads are new/changed and
+28 are byte-identical to content 1.29.0; native recipes, generated tooltip data
+and Wardrobe payloads remain unchanged. Remove `pendingRelease` in this prepared
+activation change. Do not commit/push this change until the operator confirms
+the coordinated server/SQL deployment and runtime checks passed.
+
+Then commit both feed pairs, their matching content and active documentation as
+one reviewed activation change. Wait for Pages and verify both live signatures,
+versions and all payload hashes. Never advertise a required upgrade before the
+exact archive is public, and never complete the new item-cache revision against
+the old content 1.29.0 feed. The launcher-release minimum remains 1.6.3 so it can
+perform its built-in update; content 1.30.0 itself requires launcher 1.6.4.
+
+Finally update the operator's launcher and complete **Prepare Client** with WoW
+closed. The new cache-only operation backs up just enUS `itemcache.wdb` when
+native data already match; it never clears the whole cache or rebuilds matching
+archives. Preserve pending/backup files if interrupted. The operator's no-sync
+direct-play helper requires the completed root-bound cache revision too.
 
 ## Launcher release and self-update feed
 
@@ -42,7 +58,7 @@ An incomplete pair must block publication. Choose the minimum version deliberate
 it blocks obsolete launchers from installing content or playing, whereas a newer
 optional release only prompts. Because the 1.6.1/1.6.2 WPF helper was found to
 fail before readiness, every 1.6.2-or-older user requires one final manual
-fresh-folder upgrade to 1.6.3. Starting with 1.6.3, the dedicated updater is
+fresh-folder upgrade to the current 1.6.4. Starting with 1.6.3, the dedicated updater is
 embedded in the four-file package; players install no updater sidecar.
 
 The workstation's `Publish-ProjectReverieGitHubRelease.ps1` can publish using the
@@ -84,7 +100,7 @@ repository owner may still need to approve the Pages environment in Settings.
 
 `Prepare-PublicRelease.ps1` is retained for deliberate combined content/setup
 work, not launcher-only publication. It can regenerate signed content and must
-not be used for the 1.6.3 updater release. Pass explicit reviewed versions rather
+not be used to regenerate the already-reviewed 1.30.0 signed candidate. Pass explicit reviewed versions rather
 than relying on its historical defaults.
 
 ```powershell
@@ -129,9 +145,10 @@ be used. No GitHub CLI is required by the canonical path.
 
 4. Download the published asset anonymously and repeat the exact hash, size,
    inventory, PE version, bootstrap and signed-downloader checks.
-5. Commit and push phase two: promote only the signed launcher feed pair, active
-   launcher version and public current-version wording; remove `pendingRelease`.
-   Wait for Pages and verify the live signed pair. Content remains byte-exact.
+5. For a launcher-only release, promote only its signed feed pair, active version
+   and public wording; remove `pendingRelease` and preserve content byte-for-byte.
+   For this coordinated 1.6.4 / 1.30.0 release, follow the server-gated activation
+   procedure above instead. Wait for Pages and verify the live signed feeds.
 
 Generated ZIPs must stay outside Git history. The release-published audit workflow
 validates the uploaded public package independently.

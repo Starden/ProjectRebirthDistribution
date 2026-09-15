@@ -37,6 +37,38 @@ local function NodePosition(node)
     return 35 + (node.column - 1) * COLUMN_STEP, 20 + (node.row - 1) * ROW_STEP
 end
 local Render
+local policy = ProjectRebirthFourthSpecPolicy
+local draft, commitSupported, nativeApplyTarget, requestDeadline
+local nativeApplyFourth, nativeConfirmed, commitExpected
+local requestSerial, awaitedRequestId = 0, nil
+local previewBar, previewLearn, previewReset
+local ApplyPreview
+
+local function PreviewEnabled()
+    return GetCVarBool and GetCVarBool("previewTalents")
+end
+
+local function NativePending()
+    return GetGroupPreviewTalentPointsSpent and
+        GetGroupPreviewTalentPointsSpent(false, GetActiveTalentGroup and GetActiveTalentGroup() or 1) or 0
+end
+
+local function PendingFourth()
+    return draft and snapshot and policy.Total(draft) - snapshot.fourthSpent or 0
+end
+
+local function UpdateNativePreview()
+    if not GetRealmName or GetRealmName() ~= "Rebirth" then return end
+    if not customActive and PreviewEnabled() and snapshot and PlayerTalentFrame and not PlayerTalentFrame.pet and
+        not PlayerTalentFrame.inspect and (not PlayerTalentFrame.talentGroup or PlayerTalentFrame.talentGroup == snapshot.profile) then
+        if PlayerTalentFrameTalentPointsText then
+            PlayerTalentFrameTalentPointsText:SetText("Unspent Talents: |cffffffff" ..
+                math.max(0, snapshot.budget - snapshot.nativeSpent - snapshot.fourthSpent - PendingFourth() - NativePending()) .. "|r")
+        end
+        if PendingFourth() > 0 and PlayerTalentFrameLearnButton and not awaiting then PlayerTalentFrameLearnButton:Enable() end
+        if PendingFourth() > 0 and PlayerTalentFrameResetButton and not awaiting then PlayerTalentFrameResetButton:Enable() end
+    end
+end
 
 local function Active()
     return GetRealmName and GetRealmName() == "Rebirth"
@@ -64,10 +96,20 @@ end
 local function SendRequest(request)
     if not Active() or not SendAddonMessage or not UnitName("player") then return end
     SendAddonMessage(PREFIX, PROTOCOL .. "\t" .. request, "WHISPER", UnitName("player"))
+    if awaiting and not requestDeadline and GetTime then requestDeadline = GetTime() + 10 end
 end
 
-local function RequestState()
-    SendRequest("FOURTH_STATE")
+local function NextRequestId()
+    requestSerial = requestSerial + 1
+    return requestSerial
+end
+
+local function RequestState(confirmNative)
+    if commitSupported then
+        local id = NextRequestId()
+        if confirmNative then awaitedRequestId = id end
+        SendRequest("FOURTH_STATE\t" .. id)
+    else SendRequest("FOURTH_STATE") end
 end
 
 local function Text(parent, template)
@@ -160,6 +202,7 @@ local function NodeByKey(key)
 end
 
 local function Rank(key)
+    if PreviewEnabled() and draft then return draft[key] or 0 end
     return snapshot and snapshot.ranks[key] or 0
 end
 
@@ -169,12 +212,15 @@ local function Tooltip(node, button)
     GameTooltip:SetOwner(button, "ANCHOR_RIGHT")
     GameTooltip:AddLine(node.name, 1, 1, 1)
     GameTooltip:AddLine("Rank " .. rank .. "/" .. node.maxRank, 1, 1, 1)
+    if draft and rank ~= (snapshot.ranks[node.key] or 0) then
+        GameTooltip:AddLine("Preview only - learned rank " .. (snapshot.ranks[node.key] or 0), 0.53, 0.87, 1)
+    end
     if required then
         local met = Rank(required.key) >= node.prerequisiteRank
         GameTooltip:AddLine("Requires " .. node.prerequisiteRank .. " points in " .. required.name,
             1, met and 1 or 0.125, met and 1 or 0.125, true)
     end
-    if node.requiredPoints > (snapshot and snapshot.fourthSpent or 0) then
+    if node.requiredPoints > (draft and policy.Total(draft) or snapshot and snapshot.fourthSpent or 0) then
         GameTooltip:AddLine("Requires " .. node.requiredPoints .. " points in " .. tree.name,
             1, 0.125, 0.125, true)
     end
@@ -192,7 +238,7 @@ local function Tooltip(node, button)
     if rank < node.maxRank and snapshot and snapshot.status == "ready" and snapshot.writable and
         snapshot.budget > snapshot.nativeSpent + snapshot.fourthSpent and
         snapshot.fourthSpent >= node.requiredPoints and Rank(node.prerequisite) >= node.prerequisiteRank then
-        GameTooltip:AddLine("Click to learn", 0.1, 1, 0.1)
+        GameTooltip:AddLine(PreviewEnabled() and "Click to preview; Learn applies pending points" or "Click to learn", 0.1, 1, 0.1)
     end
     ProjectRebirthCompletion.Tooltip(GameTooltip, rank, node.maxRank, node.talentId)
     GameTooltip:Show()
@@ -201,15 +247,73 @@ end
 local function Adjust(node, delta)
     selected = node
     if awaiting then return end
+    if PlayerTalentFrame and PlayerTalentFrame.talentGroup and PlayerTalentFrame.talentGroup ~= Profile() then
+        Say("Select your active talent group before changing fourth-tree talents."); return
+    end
     if not snapshot or snapshot.status ~= "ready" or not snapshot.writable then
         Say("Talents are not available yet. Please try again.")
         RequestState()
+        return
+    end
+    if PreviewEnabled() then
+        if not commitSupported then Say("Update the server before applying fourth-tree previews."); return end
+        local nextDraft, reason = policy.PreviewChange(tree, snapshot.ranks, draft, node.key, delta,
+            snapshot.level, snapshot.nativeSpent + NativePending())
+        if not nextDraft then Say(reason); return end
+        draft = nextDraft
+        Render()
         return
     end
     local target = Rank(node.key) + delta
     if target < 0 or target > node.maxRank then return end
     awaiting = true
     SendRequest("FOURTH_SET\t" .. snapshot.rowVersion .. "\t" .. node.key .. "\t" .. target)
+end
+
+local function CommitFourth()
+    local packed = draft and policy.Pack(tree, draft)
+    if not packed or not snapshot.nativeSignature then return end
+    awaiting = true
+    requestDeadline = nil -- This is a new apply phase, not a passive refresh.
+    awaitedRequestId = NextRequestId()
+    commitExpected = packed
+    SendRequest("FOURTH_COMMIT\t" .. snapshot.rowVersion .. "\t" .. snapshot.profile .. "\t" ..
+        snapshot.level .. "\t" .. snapshot.nativeSpent .. "\t" .. snapshot.revision .. "\t" ..
+        snapshot.nativeSignature .. "\t" .. packed .. "\t" .. awaitedRequestId)
+end
+
+ApplyPreview = function()
+    if awaiting or not snapshot or snapshot.status ~= "ready" or not snapshot.writable then return end
+    if PlayerTalentFrame and PlayerTalentFrame.talentGroup and PlayerTalentFrame.talentGroup ~= Profile() then return end
+    if PendingFourth() > 0 and not commitSupported then Say("The server does not support fourth-tree preview commits."); return end
+    if InCombatLockdown and InCombatLockdown() then Say("Leave combat before learning talents."); return end
+    local pending = NativePending()
+    local valid, reason = policy.Validate(tree, draft or snapshot.ranks, snapshot.level, {snapshot.nativeSpent + pending})
+    if not valid then Say(reason); return end
+    if PendingFourth() == 0 and pending == 0 then draft = nil; Render(); return end
+    nativeConfirmed = false
+    if pending > 0 then
+        -- Native API has its own learn packet, not the module's transaction.
+        -- Confirm its resulting point total before committing the fourth tree.
+        -- Never report full success if either phase fails or becomes uncertain.
+        if not LearnPreviewTalents then Say("Native preview learning is unavailable."); return end
+        nativeApplyTarget = snapshot.nativeSpent + pending
+        nativeApplyFourth = PendingFourth() > 0
+        if nativeApplyFourth then
+            Say("Applying original trees first, then the fourth tree. If the second step fails, original-tree points stay learned.")
+        end
+        awaiting = true
+        LearnPreviewTalents(false)
+        RequestState(true)
+    else CommitFourth() end
+    Render()
+end
+
+local function ResetPreview()
+    if awaiting then return end
+    draft = nil
+    if ResetGroupPreviewTalentPoints then ResetGroupPreviewTalentPoints(false, Profile()) end
+    if Render then Render() end
 end
 
 local function MakeNode(node, index)
@@ -231,6 +335,8 @@ local function MakeNode(node, index)
     button.rank = _G[name .. "Rank"]
     button:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     button:SetScript("OnClick", function(_, mouse)
+        if ProjectRebirthChatLinks and ProjectRebirthChatLinks.Try("Talent", node.talentId,
+            snapshot and snapshot.ranks[node.key] or 0) then return end
         selected, hoveredButton = node, button
         Adjust(node, mouse == "RightButton" and -1 or 1)
         Tooltip(node, button)
@@ -588,6 +694,14 @@ local function BuildIntegratedPane()
     customStatus:SetWidth(275)
     customStatus:SetHeight(22)
     customStatus:SetJustifyV("BOTTOM")
+    previewBar = CreateFrame("Frame", "ProjectRebirthFourthPreviewBar", customPane)
+    previewBar:SetPoint("BOTTOMLEFT", PlayerTalentFrame, "BOTTOMLEFT", 24, 53)
+    previewBar:SetSize(265, 24)
+    previewLearn = SmallButton(previewBar, "Learn", 100, ApplyPreview)
+    previewLearn:SetPoint("LEFT", previewBar, "LEFT", 0, 0)
+    previewReset = SmallButton(previewBar, "Reset Preview", 140, ResetPreview)
+    previewReset:SetPoint("LEFT", previewLearn, "RIGHT", 8, 0)
+    previewBar:Hide()
     customPane:Hide()
 end
 
@@ -638,10 +752,48 @@ local function Integrate()
         end)
         PlayerTalentFrame:HookScript("OnShow", PositionTabs)
     end
+    if PlayerTalentFrameLearnButton then
+        local nativeLearn = PlayerTalentFrameLearnButton:GetScript("OnClick")
+        PlayerTalentFrameLearnButton:SetScript("OnClick", function(...)
+            if Active() and awaiting and not PlayerTalentFrame.pet and not PlayerTalentFrame.inspect then return end
+            if Active() and PreviewEnabled() and PendingFourth() > 0 and not PlayerTalentFrame.pet and
+                not PlayerTalentFrame.inspect and PlayerTalentFrame.talentGroup == Profile() then
+                ApplyPreview()
+            elseif nativeLearn then nativeLearn(...) end
+        end)
+    end
+    if PlayerTalentFrameResetButton then
+        local nativeReset = PlayerTalentFrameResetButton:GetScript("OnClick")
+        PlayerTalentFrameResetButton:SetScript("OnClick", function(...)
+            if Active() and awaiting and not PlayerTalentFrame.pet and not PlayerTalentFrame.inspect then return end
+            if nativeReset then nativeReset(...) end
+        end)
+    end
+    if PlayerTalentFrameTalent_OnClick then
+        local nativeClick = PlayerTalentFrameTalent_OnClick
+        PlayerTalentFrameTalent_OnClick = function(self, mouse)
+            if Active() and PreviewEnabled() and snapshot and not PlayerTalentFrame.pet and
+                not PlayerTalentFrame.inspect and PlayerTalentFrame.talentGroup == Profile() and
+                not (IsModifiedClick and IsModifiedClick("CHATLINK")) then
+                if awaiting then return end
+                if mouse == "LeftButton" and snapshot.nativeSpent + NativePending() +
+                    (draft and policy.Total(draft) or snapshot.fourthSpent) >= snapshot.budget then
+                    Say("The shared talent-point budget is full."); return
+                end
+            end
+            return nativeClick(self, mouse)
+        end
+    end
+    if hooksecurefunc and ResetGroupPreviewTalentPoints then
+        hooksecurefunc("ResetGroupPreviewTalentPoints", function(pet, group)
+            if Active() and not pet and (not group or group == Profile()) and not awaiting then draft = nil end
+        end)
+    end
     if hooksecurefunc and PlayerTalentFrame_Refresh then
         hooksecurefunc("PlayerTalentFrame_Refresh", function()
             PositionTabs()
             if customActive and not refreshing then ApplyCustomView() end
+            UpdateNativePreview()
         end)
     end
     if hooksecurefunc and PlayerTalentFrame_UpdateTabs then
@@ -656,13 +808,25 @@ Render = function()
     if not customActive or not customPane or not tree then return end
     local status = snapshot and snapshot.status or "waiting"
     local level = snapshot and snapshot.level or (UnitLevel("player") or 1)
-    local native = snapshot and snapshot.nativeSpent or 0
-    local fourth = snapshot and snapshot.fourthSpent or 0
+    local native = (snapshot and snapshot.nativeSpent or 0) + (PreviewEnabled() and NativePending() or 0)
+    local fourth = draft and PreviewEnabled() and policy.Total(draft) or snapshot and snapshot.fourthSpent or 0
     local budget = snapshot and snapshot.budget or 0
     customHeader:SetText(string.format("|cff88ddff%s|r  |cffffb040Server-owned|r  Level %d", tree.name, level))
     customStatus:SetText(status == "waiting" and "Loading talents..." or "Talents are currently unavailable.")
     customStatus:SetTextColor(1, 0.82, 0)
     if status ~= "ready" then customStatus:Show() else customStatus:Hide() end
+    if PreviewEnabled() then
+        previewBar:Show()
+        if (PendingFourth() > 0 or NativePending() > 0) and not awaiting then
+            previewReset:Enable()
+            if PendingFourth() == 0 or commitSupported then previewLearn:Enable() else previewLearn:Disable() end
+        else previewLearn:Disable(); previewReset:Disable() end
+        if awaiting or PendingFourth() > 0 then
+            customStatus:SetText(awaiting and "Learning - waiting for server confirmation..." or
+                ("Preview: " .. PendingFourth() .. " unlearned fourth-tree points"))
+            customStatus:Show()
+        end
+    else previewBar:Hide() end
     if PlayerTalentFrameSpentPointsText then
         PlayerTalentFrameSpentPointsText:SetText(tree.name .. " Talents: |cffffffff" .. fourth .. "|r")
     end
@@ -748,7 +912,9 @@ local function Receive(message)
     local fields = Split(message)
     if fields[1] ~= PROTOCOL then return end
     local kind = fields[2]
-    if kind == "FOURTH_BEGIN" and #fields == 15 then
+    if kind == "FOURTH_CAPS" and #fields == 3 then
+        commitSupported = fields[3] == "COMMIT_2"
+    elseif kind == "FOURTH_BEGIN" and #fields == 15 then
         incoming = {
             status=fields[3], profile=tonumber(fields[4]), rowVersion=tonumber(fields[5]),
             classId=tonumber(fields[6]), revision=tonumber(fields[7]), level=tonumber(fields[8]),
@@ -756,21 +922,65 @@ local function Receive(message)
             count=tonumber(fields[12]), writable=fields[13] == "1", authored=fields[14] == "1",
             treeKey=fields[15], ranks={}
         }
+    elseif kind == "FOURTH_CONTEXT" and #fields == 4 and incoming then
+        local id = tonumber(fields[3])
+        if id and id >= 0 and id == math.floor(id) and #fields[4] == 64 and fields[4]:match("^[0-9a-f]+$") then
+            incoming.requestId, incoming.nativeSignature = id, fields[4]
+        end
     elseif kind == "FOURTH_RANK" and #fields == 4 and incoming then
         local rank = tonumber(fields[4])
         if NodeByKey(fields[3]) and rank and rank >= 1 and rank <= 5 then incoming.ranks[fields[3]] = rank end
     elseif kind == "FOURTH_END" and #fields == 3 and incoming then
+        -- Unsolicited or older replies must not unlock or advance a pending apply.
+        if awaitedRequestId and incoming.requestId ~= awaitedRequestId then incoming = nil; return end
         local count = 0
         for _ in pairs(incoming.ranks) do count = count + 1 end
         if tonumber(fields[3]) == incoming.rowVersion and incoming.profile == Profile() and
             tree and incoming.classId == tree.classId and incoming.treeKey == tree.key and
-            incoming.revision == tree.revision and count == incoming.count then
+            incoming.revision == tree.revision and count == incoming.count and
+            (not commitSupported or incoming.nativeSignature) then
+            if draft and snapshot then
+                local changed = incoming.rowVersion ~= snapshot.rowVersion or incoming.level ~= snapshot.level or
+                    incoming.profile ~= snapshot.profile or incoming.status ~= "ready" or not incoming.writable
+                -- Our native learning phase is the only expected native allocation change.
+                if not nativeApplyTarget and incoming.nativeSignature ~= snapshot.nativeSignature then changed = true end
+                if changed then
+                    if not awaiting then Say("Your learned build changed; the fourth-tree preview was cleared.") end
+                    draft = nil
+                end
+            end
             snapshot = incoming
         else
             Say("Unable to update your talents. Please try again.")
+            incoming = nil
+            return -- A malformed reply is never confirmation; the bounded timeout handles it.
         end
         incoming, awaiting = nil, false
+        requestDeadline, awaitedRequestId = nil, nil
+        if nativeApplyTarget then
+            local expected = nativeApplyTarget
+            nativeApplyTarget = nil
+            if snapshot and snapshot.status == "ready" and snapshot.nativeSpent == expected and
+                (not nativeApplyFourth or draft) then
+                nativeConfirmed = true
+                if nativeApplyFourth then CommitFourth() else draft = nil end
+            else
+                draft = nil
+                Say("Native preview was not fully confirmed. Fourth-tree points were not applied; refresh and review your build.")
+            end
+            nativeApplyFourth = nil
+        elseif commitExpected then
+            if not snapshot or snapshot.status ~= "ready" or policy.Pack(tree, snapshot.ranks) ~= commitExpected then
+                Say(nativeConfirmed and "Fourth-tree learning was not confirmed. Original-tree points remain learned; refresh and review." or
+                    "Fourth-tree learning was not confirmed; refresh and review your build.")
+            end
+            commitExpected, nativeConfirmed, draft = nil, nil, nil
+        elseif draft and snapshot then
+            local valid = policy.Validate(tree, draft, snapshot.level, {snapshot.nativeSpent + NativePending()})
+            if not valid then draft = nil; Say("Your preview no longer fits the current build and was cleared.") end
+        end
         if Render then Render() end
+        UpdateNativePreview()
     elseif kind == "FOURTH_NOTICE" and #fields == 3 then
         -- Success is silent. Keep the click guard until its complete snapshot
         -- arrives, so a second click cannot reuse the preceding row version.
@@ -784,7 +994,7 @@ SlashCmdList.REBIRTHFOURTHSPEC = Open
 
 local events = CreateFrame("Frame")
 for _, event in ipairs({"PLAYER_LOGIN", "ADDON_LOADED", "ACTIVE_TALENT_GROUP_CHANGED",
-    "CHARACTER_POINTS_CHANGED", "PLAYER_LEVEL_UP", "CHAT_MSG_ADDON"}) do events:RegisterEvent(event) end
+    "CHARACTER_POINTS_CHANGED", "PLAYER_LEVEL_UP", "CHAT_MSG_ADDON", "CVAR_UPDATE", "PREVIEW_TALENT_POINTS_CHANGED"}) do events:RegisterEvent(event) end
 events:SetScript("OnEvent", function(_, event, ...)
     if event == "CHAT_MSG_ADDON" then
         local prefix, message, channel, sender = ...
@@ -792,11 +1002,19 @@ events:SetScript("OnEvent", function(_, event, ...)
         return
     end
     if not Active() then
+        draft, commitSupported, nativeApplyTarget, nativeApplyFourth, nativeConfirmed, commitExpected = nil, nil, nil, nil, nil, nil
         snapshot, incoming, awaiting = nil, nil, false
+        awaitedRequestId, requestDeadline = nil, nil
         DeactivateCustom(false)
         if customPane then customPane:Hide() end
         if customTab then customTab:Hide() end
         RestoreTalentLayout()
+        return
+    end
+    if event == "CVAR_UPDATE" or event == "PREVIEW_TALENT_POINTS_CHANGED" then
+        if not PreviewEnabled() then draft = nil end
+        if customActive then Render() end
+        UpdateNativePreview()
         return
     end
     if event == "ADDON_LOADED" then
@@ -805,7 +1023,22 @@ events:SetScript("OnEvent", function(_, event, ...)
     end
     tree = ClassTree()
     if PlayerTalentFrame then Integrate() end
-    if event == "ACTIVE_TALENT_GROUP_CHANGED" then snapshot, incoming, awaiting = nil, nil, false end
+    if event == "ACTIVE_TALENT_GROUP_CHANGED" or event == "PLAYER_LEVEL_UP" then
+        snapshot, incoming, awaiting, draft, nativeApplyTarget = nil, nil, false, nil, nil
+        nativeApplyFourth, nativeConfirmed, commitExpected = nil, nil, nil
+        awaitedRequestId, requestDeadline = nil, nil
+    end
     RequestState()
     if customActive then ApplyCustomView() end
+end)
+events:SetScript("OnUpdate", function()
+    if awaiting and requestDeadline and GetTime and GetTime() >= requestDeadline then
+        awaiting, requestDeadline, nativeApplyTarget, draft = false, nil, nil, nil
+        awaitedRequestId = nil
+        Say(nativeConfirmed and "Fourth-tree confirmation timed out. Original-tree points remain learned. Refreshing; no automatic retry." or
+            "Talent confirmation timed out. Refreshing learned state; no automatic retry was sent.")
+        nativeApplyFourth, nativeConfirmed, commitExpected = nil, nil, nil
+        RequestState()
+        if customActive then Render() end
+    end
 end)

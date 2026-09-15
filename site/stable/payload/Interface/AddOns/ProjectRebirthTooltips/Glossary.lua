@@ -310,7 +310,10 @@ local function create()
             GameTooltip:Show()
         end)
         row:SetScript("OnLeave",function() GameTooltip:Hide() end)
-        row:SetScript("OnClick",function(self) selected=self.entry.id; frame.detailScroll:SetVerticalScroll(0); G.Refresh() end)
+        row:SetScript("OnClick",function(self)
+            if ProjectRebirthChatLinks and ProjectRebirthChatLinks.Try("Skill", self.entry.id, 0) then return end
+            selected=self.entry.id; frame.detailScroll:SetVerticalScroll(0); G.Refresh()
+        end)
         frame.rows[i]=row
     end
     frame.detailTitle=label(frame,"",485,-107,420,"GameFontNormalLarge")

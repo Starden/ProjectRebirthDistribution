@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "product": "Project Reverie",
   "channel": "stable",
-  "contentVersion": "1.29.0",
-  "publishedAtUtc": "2026-09-14T00:21:15.0424823Z",
-  "expiresAtUtc": "2026-10-14T00:21:15.0424823Z",
-  "minimumLauncherVersion": "1.6.2",
+  "contentVersion": "1.30.0",
+  "publishedAtUtc": "2026-09-14T23:58:51.6928236Z",
+  "expiresAtUtc": "2026-10-14T23:58:51.6928236Z",
+  "minimumLauncherVersion": "1.6.4",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
   "signatureAlgorithm": "ECDSA_P256_SHA256_P1363",
@@ -16,8 +16,8 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "Rebirth - Heirloom r10 client preparation",
-    "summary": "Update to launcher 1.6.2 and close WoW before Prepare Client. Classic Heirloom upgrade paths, distinct paired progression and enforced fist hands use locally generated native data. Recognized old item caches are backed up. Server r10 rollout is separately controlled and pending.",
+    "headline": "Rebirth - Talent preview and quality-of-life update",
+    "summary": "Update launcher and client before testing. Four-tree talent previews, Shift+Click Skill/talent links, current-level and level-80 Heirloom comparisons. Coordinated server changes add two-hand upgrade costs, Gladiator stance persistence and eligible 200-item stacks.",
     "updateKind": "content",
     "requiresClientUpdate": true
   },
@@ -27,6 +27,12 @@
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/BugReports.lua",
       "size": 9943,
       "sha256": "67476955431ADDF1150392DC2802AAA2382D4F560D4146B50080519543CC16FA"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/ChatLinks.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ChatLinks.lua",
+      "size": 6128,
+      "sha256": "EF0DDEDA41FB7E70736BAF7CBB6440FDED03F985CCE63FA8F3CA6C34D52E6AD5"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Completion.lua",
@@ -61,8 +67,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/FourthSpec.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/FourthSpec.lua",
-      "size": 37186,
-      "sha256": "8225859AB5C1BE9167BA14A0C8FC608AF578E97CD782616979944F287396B277"
+      "size": 50322,
+      "sha256": "E8692CC1C789C0429DB6605297422430F863C51C5ED7E9CC9F8F50A1098FC04E"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/FourthSpecAlphaValues.lua",
@@ -79,8 +85,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/FourthSpecPolicy.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/FourthSpecPolicy.lua",
-      "size": 3261,
-      "sha256": "2C04C99127870C1D1ADADB1F8EB40E747654288E810D8A2668F1C7F38E9F3F29"
+      "size": 4069,
+      "sha256": "C8E22571BCA66F85340A9F7C8D491C94AE989812DB35110CED560DCAEA120EFE"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/GearUpgrade.lua",
@@ -91,8 +97,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Glossary.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Glossary.lua",
-      "size": 17651,
-      "sha256": "25AB787A740D9C7FB3504EB2F0F818D064779DE7FF3CED1B669F59710DFCF2E5"
+      "size": 17785,
+      "sha256": "C1FD5B259F02978C5C8C63D4B4B6E06346A5E556BB4E37642697B158B00D3654"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/GlossaryData.lua",
@@ -103,8 +109,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/HeirloomTooltips.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/HeirloomTooltips.lua",
-      "size": 18869,
-      "sha256": "A16A5B19B48986339E3496BBC3F819CD8487DF48337739DC0E8A0275E84168CE"
+      "size": 24544,
+      "sha256": "DBCFFAC1268F29495FCD26B31B80FBAE17DE54B1A5C57A6268B052BF68F9426A"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Battlemage.tga",
@@ -187,8 +193,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
-      "size": 921,
-      "sha256": "6266DF869CDED88F6574A48B947410A3F9D1791912BCF42D3A4CB68E18322C75"
+      "size": 936,
+      "sha256": "2E802D66C4E7E5DEB64F6A4A9AA50458A612366FBDE0CF0FA708D79D668741D4"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/RankData.lua",
@@ -211,8 +217,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
-      "size": 91182,
-      "sha256": "59594233B20A066157A53CBA9D237D83DC8117028601D2F1AB0EFA8493E948B0"
+      "size": 91670,
+      "sha256": "494A94CFC4C178F38963D721BAF8C7C07366A3CF3E1D21F684A482FFF99CE754"
     },
     {
       "path": "Interface/AddOns/RebirthWardrobe/RebirthWardrobe.toc",

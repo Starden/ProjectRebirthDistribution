@@ -455,6 +455,8 @@ local function AcquireSkillButton(index)
     local button = CreateFrame("Button", nil, skillGridChild)
     ConfigureGridButton(button, 42)
     button:SetScript("OnClick", function(self)
+        local skill = FindSkill(self.entryId)
+        if ProjectRebirthChatLinks and ProjectRebirthChatLinks.Try("Skill", self.entryId, skill and skill.rank) then return end
         selectedSkillId = self.entryId
         Render()
     end)
@@ -797,6 +799,7 @@ local function AcquireChoiceCard(index)
     card.details:SetJustifyH("LEFT")
     card.details:SetJustifyV("TOP")
     card:SetScript("OnClick", function(self)
+        if ProjectRebirthChatLinks and ProjectRebirthChatLinks.Try("Skill", self.choice and self.choice.skillId, 0) then return end
         if actionPending or not self.choiceOrdinal then return end
         selectedChoiceOrdinal = self.choiceOrdinal
         selectedChoiceOpportunityId = state.offer and state.offer.opportunityId or nil
@@ -1445,6 +1448,8 @@ local function CreateInterface()
         slot.lock:SetPoint("CENTER", slot, "CENTER", 0, 0)
         slot.lock:SetTexture("Interface\\Buttons\\LockButton-Locked-Up")
         slot:SetScript("OnClick", function(self)
+            local skill = FindSkill(self.entryId)
+            if ProjectRebirthChatLinks and ProjectRebirthChatLinks.Try("Skill", self.entryId, skill and skill.rank) then return end
             if self.entryId then
                 selectedSkillId = self.entryId
                 Render()

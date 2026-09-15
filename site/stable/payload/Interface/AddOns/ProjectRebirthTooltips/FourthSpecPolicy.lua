@@ -75,3 +75,28 @@ function P.Change(tree, ranks, key, delta, level, nativeTotals)
     if not ok then return nil, reason end
     return copy
 end
+
+function P.Total(ranks)
+    local total = 0
+    for _, rank in pairs(ranks or {}) do total = total + rank end
+    return total
+end
+
+function P.PreviewChange(tree, committed, draft, key, delta, level, nativePoints)
+    local ranks = draft or committed
+    if delta == -1 and (ranks[key] or 0) <= (committed[key] or 0) then
+        return nil, "Reset Preview only removes unlearned points."
+    end
+    return P.Change(tree, ranks, key, delta, level, {nativePoints})
+end
+
+function P.Pack(tree, ranks)
+    local digits = {}
+    for _, node in ipairs(tree.nodes) do
+        local rank = ranks[node.key] or 0
+        if not Integer(rank, 0, node.maxRank) then return end
+        digits[#digits + 1] = tostring(rank)
+    end
+    if #digits == 0 or #digits > 64 then return end
+    return table.concat(digits)
+end
