@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "product": "Project Reverie",
   "channel": "stable",
-  "contentVersion": "0.1.32",
+  "contentVersion": "0.1.33",
   "contentEpoch": 1,
-  "publishedAtUtc": "2026-09-16T12:02:53.5180829Z",
-  "expiresAtUtc": "2026-10-16T12:02:53.5180829Z",
-  "minimumLauncherVersion": "2.0.0",
+  "publishedAtUtc": "2026-09-16T12:15:16.4622053Z",
+  "expiresAtUtc": "2026-10-16T12:15:16.4622053Z",
+  "minimumLauncherVersion": "2.0.2",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
   "signatureAlgorithm": "ECDSA_P256_SHA256_P1363",
@@ -17,9 +17,9 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "Heirloom tooltip pair restored",
-    "summary": "Restores the level-80 panel beside your current-level Heirloom tooltip, including after reopening the same item. Verified in the live client.",
-    "updateKind": "hotfix",
+    "headline": "Vampire and Demonic Heritages",
+    "summary": "Adds the first two new Heritage choices: Vampire and Demonic, with persistent levels, complete effect descriptions, and native combat spells. Update the launcher and prepare client data before playing. Other new Heritage designs are not enabled by this batch.",
+    "updateKind": "content",
     "requiresClientUpdate": true
   },
   "files": [
@@ -195,7 +195,7 @@
       "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "size": 936,
-      "sha256": "234AB09F12A5DE99208E02BFDCBBFC3A22E7D7B923F74AF436D09E3B2955BE01"
+      "sha256": "E9F6F7C8690F87A266602725BA3A2DD8A0AAD32F3F41AA80039AE3E3555E0DD9"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/RankData.lua",
@@ -218,8 +218,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
-      "size": 91670,
-      "sha256": "494A94CFC4C178F38963D721BAF8C7C07366A3CF3E1D21F684A482FFF99CE754"
+      "size": 95172,
+      "sha256": "EAF6AFD83020C9067DFED949B5DF04C85B7F4BC12FA382FC346A5D082C1A2C2A"
     },
     {
       "path": "Interface/AddOns/RebirthWardrobe/RebirthWardrobe.toc",

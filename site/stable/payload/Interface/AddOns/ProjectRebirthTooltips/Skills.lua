@@ -662,6 +662,10 @@ local function RenderHeritageTab()
             button.tooltipMeta = string.format("Rank %d / %d • %d XP • %s all stats • %s • Locked",
                 tonumber(entry.rank) or 0, tonumber(entry.maxRank) or 100,
                 tonumber(entry.xp) or 0, FormatMilliValue(entry.bonusMilli, "percent"), scopeLabel)
+            if entry.id == 1103 or entry.id == 1104 then
+                button.tooltipMeta = string.format("Level %d / %d • %s • Selected for this Life",
+                    tonumber(entry.rank) or 0, tonumber(entry.maxRank) or 100, scopeLabel)
+            end
         else
             button.tooltipMeta = string.format("Not selected • Rank 1–%d • %s",
                 tonumber(entry.maxRank) or 0, scopeLabel)
@@ -720,14 +724,44 @@ local function RenderHeritageTab()
         racialDetails ..
         "\n|cff73e6ffProgress:|r " .. progressText ..
         "\n|cff9aa6bfHeritage receives exactly 10% of eligible source XP; fractional credit is retained.|r")
+    local offensive = heritage.id == 1103 or heritage.id == 1104
+    if offensive then
+        local combat = state.heritageCombat and state.heritageCombat[heritage.id]
+        local description = "Retrieving Heritage effects..."
+        if combat then
+            local function Percent(value) return string.format("%.3g%%", value / 1000) end
+            description = "Increases your damage dealt by " .. Percent(combat.damage) .. "."
+            if heritage.id == 1103 then
+                description = description .. " Your attacks and damaging spells restore " ..
+                    Percent(combat.lifeSteal) .. " of the damage dealt as health."
+            end
+            local name = heritage.id == 1103 and "Blood Transfer" or "Infernal Burst"
+            local school = heritage.id == 1103 and "Shadow" or "Fire or Shadow"
+            local unlock = heritage.rank < 10 and " (unlocks at Heritage level 10)" or ""
+            description = description .. "\n\n|cffffd100" .. name .. unlock .. "|r\n" ..
+                "Your direct attacks and damaging spells have a " .. Percent(combat.chance * 10) ..
+                " chance to deal an additional " .. Percent(combat.signature) .. " of their damage as " .. school .. " damage."
+            if heritage.id == 1103 then
+                description = description .. " Heals you for the additional damage dealt."
+            end
+            description = description .. " Can occur once every " .. combat.cooldown .. " sec."
+        end
+        heritageDetailSummary:SetText(description ..
+            "\n\nGrows with Heritage experience. Level and experience are retained through Rebirth; choose a Heritage for each new Life.")
+    end
     if heritage.selected then
         heritageDetailMeta:SetText(string.format("Rank %d / %d  •  %s XP  •  %s all stats  •  Locked",
             heritage.rank, heritage.maxRank, ProjectRebirthProgress.Format(heritage.xpExact),
             FormatMilliValue(heritage.bonusMilli, "percent")))
+        if offensive then
+            heritageDetailMeta:SetText(string.format("Level %d / %d  •  %s XP",
+                heritage.rank, heritage.maxRank, ProjectRebirthProgress.Format(heritage.xpExact)))
+        end
         if heritage.eligible then
             heritageWarning:SetText(heritage.progressionScope == "character" and
                 "Selected permanently; its progression persists across Rebirth." or
                 "This Heritage is permanently selected for the current Life.")
+            if offensive then heritageWarning:SetText("Selected for this Life. " .. progressText) end
         else
             heritageWarning:SetText("Selected but dormant: " .. eligibilityText)
         end
@@ -738,6 +772,8 @@ local function RenderHeritageTab()
             heritage.maxRank))
         if not heritage.eligible then
             heritageWarning:SetText(eligibilityText)
+        elseif offensive then
+            heritageWarning:SetText("Selected for this Life; level and experience persist through Rebirth.")
         elseif heritage.progressionScope == "character" then
             heritageWarning:SetText("Selection is permanent; Rank and XP persist across Rebirth.")
         else
@@ -1571,6 +1607,9 @@ local function CreateInterface()
         local scopeWarning = heritage.progressionScope == "character" and
             "This choice is permanent. Rank and XP persist across Rebirth." or
             "This choice is permanent for the current Life."
+        if heritage.id == 1103 or heritage.id == 1104 then
+            scopeWarning = "Selected for this Life; level and experience persist through Rebirth."
+        end
         StaticPopup_Show("PROJECT_REBIRTH_CONFIRM_HERITAGE", heritage.name or "this Heritage", scopeWarning)
     end)
 
@@ -1951,6 +1990,7 @@ local function HandleAddonMessage(prefix, message, channel, sender)
     elseif messageType == "HERITAGE_BEGIN" then
         ProjectRebirthProgress.Clear("heritage")
         state.heritages = {}
+        state.heritageCombat = {}
         state.heritage.status = fields[3] or "unknown"
         state.heritage.canSelect = false
     elseif messageType == "HERITAGE_OPTION" then
@@ -1980,6 +2020,18 @@ local function HandleAddonMessage(prefix, message, channel, sender)
         table.insert(state.heritages, option)
         if option.selected then
             state.heritage = option
+        end
+    elseif messageType == "HERITAGE_COMBAT" then
+        local id = tonumber(fields[3])
+        if #fields == 8 and (id == 1103 or id == 1104) then
+            local damage, lifeSteal, signature = tonumber(fields[4]), tonumber(fields[5]), tonumber(fields[6])
+            local chance, cooldown = tonumber(fields[7]), tonumber(fields[8])
+            if damage and damage >= 0 and damage <= 100000 and lifeSteal and lifeSteal >= 0 and lifeSteal <= 100000 and
+                signature and signature >= 0 and signature <= 120000 and chance and chance >= 0 and chance <= 10000 and
+                cooldown and cooldown >= 1 and cooldown <= 3600 then
+                state.heritageCombat = state.heritageCombat or {}
+                state.heritageCombat[id] = {damage=damage, lifeSteal=lifeSteal, signature=signature, chance=chance, cooldown=cooldown}
+            end
         end
     elseif messageType == "HERITAGE" then
         local legacyHeritage = {
