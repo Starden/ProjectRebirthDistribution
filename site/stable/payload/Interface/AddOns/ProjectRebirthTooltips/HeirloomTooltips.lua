@@ -437,7 +437,12 @@ local function UpdatePreview(tooltip, state)
         -- Only a linked-item panel needs native re-rendering of its level field.
         -- The independent level-80 panel always uses a copied native link.
         local ok = true
-        if not NativeViewerContext(tooltip, state) then ok = pcall(tooltip.SetHyperlink, tooltip, current) end
+        if not NativeViewerContext(tooltip, state) then
+            -- The 3.3.5a renderer needs an explicit reset when rendering the
+            -- same link again (including a viewer who is already level 80).
+            tooltip:ClearLines()
+            ok = pcall(tooltip.SetHyperlink, tooltip, current)
+        end
         if ok then
             Label(tooltip, state, "At your level (" .. level .. ")")
             tooltip:Show()
@@ -455,8 +460,14 @@ local function UpdatePreview(tooltip, state)
         states[state.preview].levelPreview = true
     end
     local preview = state.preview
-    if state.previewLink ~= maximum then
+    -- Native Hide can discard the item even while our cached link survives.
+    if state.previewLink ~= maximum or not preview:GetItem() then
         preview:SetOwner(tooltip, "ANCHOR_NONE")
+        -- Establish an anchor before the native setter can show the frame.
+        -- An unanchored ANCHOR_NONE tooltip can lose its rendered contents.
+        preview:ClearAllPoints()
+        preview:SetPoint("TOPLEFT", tooltip, "TOPRIGHT", 8, 0)
+        preview:ClearLines()
         local ok = pcall(preview.SetHyperlink, preview, maximum)
         if not ok or not preview:GetItem() then
             HidePreview(state); state.previewLink = nil; return
@@ -464,8 +475,8 @@ local function UpdatePreview(tooltip, state)
         preview:AddLine("At level 80 - same upgrade rank", 0.35, 0.85, 1)
         state.previewLink = maximum
     end
-    preview:Show()
     PositionPreview(tooltip, preview, state, key)
+    preview:Show()
 end
 
 function api.Attach(tooltip)

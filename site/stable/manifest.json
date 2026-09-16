@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "product": "Project Reverie",
   "channel": "stable",
-  "contentVersion": "0.1.31",
+  "contentVersion": "0.1.32",
   "contentEpoch": 1,
-  "publishedAtUtc": "2026-09-16T11:36:01.7730120Z",
-  "expiresAtUtc": "2026-10-16T11:36:01.7730120Z",
+  "publishedAtUtc": "2026-09-16T12:02:53.5180829Z",
+  "expiresAtUtc": "2026-10-16T12:02:53.5180829Z",
   "minimumLauncherVersion": "2.0.0",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
@@ -17,8 +17,8 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "Stable Heirloom level previews",
-    "summary": "Heirloom tooltips now keep your current level on the left and level 80 on the right, including at level 80. Repeated hover refreshes no longer rebuild or swap the comparison panels. Item stats and gameplay are unchanged.",
+    "headline": "Heirloom tooltip pair restored",
+    "summary": "Restores the level-80 panel beside your current-level Heirloom tooltip, including after reopening the same item. Verified in the live client.",
     "updateKind": "hotfix",
     "requiresClientUpdate": true
   },
@@ -110,8 +110,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/HeirloomTooltips.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/HeirloomTooltips.lua",
-      "size": 27642,
-      "sha256": "AE860AD5A942D8ED5C6E4EB99441FA734AB85959DF668E04BC9709534F2D4718"
+      "size": 28230,
+      "sha256": "8A12D0D4180D82B1BA0A697AAB61AC8479CFF97A8FAA92A9D7B4A7ED5122D832"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Battlemage.tga",
@@ -195,7 +195,7 @@
       "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "size": 936,
-      "sha256": "57BBD94F86DD2BCF1BDF8B3BF7DAC1E26FDE9EF01DFDFADFA1E0A75F6EC3CBF0"
+      "sha256": "234AB09F12A5DE99208E02BFDCBBFC3A22E7D7B923F74AF436D09E3B2955BE01"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/RankData.lua",

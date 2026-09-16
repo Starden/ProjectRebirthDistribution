@@ -15,11 +15,11 @@ You will also need:
 - your own lawful, clean ChromieCraft WoW 3.3.5a client, build 12340; and
 - an approved Rebirth account supplied privately by the server owner.
 
-**Release package: launcher 2.0.1 / content 0.1.31 — stable Heirloom tooltips.**
+**Release package: launcher 2.0.1 / content 0.1.32 — Heirloom tooltip pair restored.**
 
-Content 0.1.31 keeps the current-level Heirloom tooltip on the left and the
+Content 0.1.32 keeps the current-level Heirloom tooltip on the left and the
 level-80 preview on the right, with stable positioning during hover refreshes.
-Both remain visible at level 80. See the [tooltip hotfix notes](docs/RELEASE-NOTES-content-0.1.31.md).
+Both remain visible at level 80. See the [tooltip hotfix notes](docs/RELEASE-NOTES-content-0.1.32.md).
 
 The launcher now carries its public configuration inside the EXE, so moving the
 EXE alone no longer breaks startup. Keep it in a separate writable folder outside
