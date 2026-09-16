@@ -4,17 +4,10 @@
   "repositoryName": "ProjectRebirthDistribution",
   "pagesBaseUri": "https://starden.github.io/ProjectRebirthDistribution/",
   "channel": "stable",
-  "launcherVersion": "2.0.0",
+  "launcherVersion": "2.0.1",
   "contentVersion": "0.1.30",
   "authAddress": "134.122.124.150",
   "authPort": 3724,
   "worldPort": 8087,
-  "contentEpoch": 1,
-  "pendingRelease": {
-    "launcherVersion": "2.0.1",
-    "contentVersion": "0.1.30",
-    "contentEpoch": 1,
-    "archiveSha256": "7b7597d2fa8471f62abf3ce45f4350a17d7624854852ab9e8766145844e129f8",
-    "archiveSize": 96636091
-  }
+  "contentEpoch": 1
 }

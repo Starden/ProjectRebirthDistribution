@@ -15,13 +15,19 @@ You will also need:
 - your own lawful, clean ChromieCraft WoW 3.3.5a client, build 12340; and
 - an approved Rebirth account supplied privately by the server owner.
 
-**Release package: launcher 2.0.0 / content 0.1.30 — Void and Moonstone redesign.**
+**Release package: launcher 2.0.1 / content 0.1.30 — launcher folder fix.**
+
+The launcher now carries its public configuration inside the EXE, so moving the
+EXE alone no longer breaks startup. Keep it in a separate writable folder outside
+WoW for built-in updates. If an older copy cannot start or update, close it and
+extract the entire latest ZIP into a fresh folder outside WoW. Use a shortcut for
+desktop access; your selected game folder and preferences are retained.
 
 Use **Update launcher → Update addons → close WoW → Prepare Client** before playing.
 Content **0.1.30 requires launcher 2.0.0**. Users on **1.6.3 or newer** can accept the built-in
 **Update and restart?** prompt. Every **1.6.2-or-older** user needs one final manual
 fresh-folder install of the latest ZIP because its earlier update helper is unreliable.
-See the [2.0.0 release notes](docs/RELEASE-NOTES-launcher-v2.0.0.md).
+See the [2.0.1 release notes](docs/RELEASE-NOTES-launcher-v2.0.1.md).
 
 Choose **Follow Windows**, **Void**, or **Moonstone** in **Settings → Appearance**.
 The design includes the Reverie emblem, embedded fonts, and clearer status panels.
@@ -41,7 +47,7 @@ own clean client, **Prepare Client** generates and verifies Rebirth's item,
 Heirloom, fourth-specialization, Feral Cat and tooltip data locally.
 The update preserves the existing Skill descriptions, Currency tab, gear-upgrade
 and Heirloom interface. Existing 1.6.2 and older users need one final manual ZIP
-update to 2.0.0. Starting with 1.6.3, later launcher updates prompt and install
+update to 2.0.1. Starting with 1.6.3, later launcher updates prompt and install
 inside the launcher without redirecting to GitHub. After upgrading, select **Update** for the new signed content metadata with WoW
 closed. Use **Prepare Client** only if prompted. Its earlier QoL preparation
 backs up only the English item-information cache once so the client can fetch
