@@ -15,7 +15,11 @@ You will also need:
 - your own lawful, clean ChromieCraft WoW 3.3.5a client, build 12340; and
 - an approved Rebirth account supplied privately by the server owner.
 
-**Release package: launcher 2.0.1 / content 0.1.30 — launcher folder fix.**
+**Release package: launcher 2.0.1 / content 0.1.31 — stable Heirloom tooltips.**
+
+Content 0.1.31 keeps the current-level Heirloom tooltip on the left and the
+level-80 preview on the right, with stable positioning during hover refreshes.
+Both remain visible at level 80. See the [tooltip hotfix notes](docs/RELEASE-NOTES-content-0.1.31.md).
 
 The launcher now carries its public configuration inside the EXE, so moving the
 EXE alone no longer breaks startup. Keep it in a separate writable folder outside
@@ -32,8 +36,8 @@ See the [2.0.1 release notes](docs/RELEASE-NOTES-launcher-v2.0.1.md).
 Choose **Follow Windows**, **Void**, or **Moonstone** in **Settings → Appearance**.
 The design includes the Reverie emblem, embedded fonts, and clearer status panels.
 Content **0.1.30** follows legacy **1.30.0** using a signed generation field; it is
-not a downgrade. Rollback checks remain enabled. All 35 addon payloads and native
-client recipes are unchanged in this release. Already-completed preparation and
+not a downgrade. Rollback checks remain enabled. This hotfix changes only the
+Heirloom renderer and addon version; native client recipes are unchanged. Already-completed preparation and
 item-cache refreshes remain valid; do not repeat them unless prompted.
 
 The display-mode selector stays beside **Play Rebirth**, visible on every tab.

@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "product": "Project Reverie",
   "channel": "stable",
-  "contentVersion": "0.1.30",
+  "contentVersion": "0.1.31",
   "contentEpoch": 1,
-  "publishedAtUtc": "2026-09-15T12:30:40.2677771Z",
-  "expiresAtUtc": "2026-10-15T12:30:40.2677771Z",
+  "publishedAtUtc": "2026-09-16T11:36:01.7730120Z",
+  "expiresAtUtc": "2026-10-16T11:36:01.7730120Z",
   "minimumLauncherVersion": "2.0.0",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
@@ -17,9 +17,9 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "A new horizon",
-    "summary": "Rebirth continues. Discover your build, forge your heritage, and begin again. Launcher 2.0.0 introduces Void and Moonstone; content 0.1.30 begins our new numbering. Existing gameplay and native data are unchanged.",
-    "updateKind": "content",
+    "headline": "Stable Heirloom level previews",
+    "summary": "Heirloom tooltips now keep your current level on the left and level 80 on the right, including at level 80. Repeated hover refreshes no longer rebuild or swap the comparison panels. Item stats and gameplay are unchanged.",
+    "updateKind": "hotfix",
     "requiresClientUpdate": true
   },
   "files": [
@@ -110,8 +110,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/HeirloomTooltips.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/HeirloomTooltips.lua",
-      "size": 24544,
-      "sha256": "DBCFFAC1268F29495FCD26B31B80FBAE17DE54B1A5C57A6268B052BF68F9426A"
+      "size": 27642,
+      "sha256": "AE860AD5A942D8ED5C6E4EB99441FA734AB85959DF668E04BC9709534F2D4718"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Battlemage.tga",
@@ -195,7 +195,7 @@
       "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "size": 936,
-      "sha256": "2E802D66C4E7E5DEB64F6A4A9AA50458A612366FBDE0CF0FA708D79D668741D4"
+      "sha256": "57BBD94F86DD2BCF1BDF8B3BF7DAC1E26FDE9EF01DFDFADFA1E0A75F6EC3CBF0"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/RankData.lua",

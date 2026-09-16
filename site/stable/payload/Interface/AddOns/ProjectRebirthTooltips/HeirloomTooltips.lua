@@ -62,6 +62,7 @@ ProjectRebirthHeirloomTooltips = api
 local active, refreshPending = false, false
 local frames, states = {}, setmetatable({}, {__mode = "k"})
 local previewPending = false
+local cacheReady = {}
 local unpack = unpack
 
 -- Authored r9/r10 on-use curves, not random ranges. EffectDieSides=0 is valid on
@@ -378,15 +379,39 @@ local function HidePreview(state)
     if state.preview then state.preview:Hide() end
 end
 
-local function PositionPreview(tooltip, preview)
+local function PositionPreview(tooltip, preview, state, key)
     preview:ClearAllPoints()
     preview:SetClampedToScreen(true)
-    -- Prefer the side with room; the native clamp also covers low resolutions.
+    -- Keep current on the left and 80 on the right. Clamp the pair, not two
+    -- independently flipping panels. Reuse the position for the same hover so
+    -- periodic merchant refreshes cannot move it as labels are rebuilt.
     local scale = tooltip:GetEffectiveScale() / UIParent:GetEffectiveScale()
-    local room = UIParent:GetWidth() - (tooltip:GetRight() or 0) * scale
-    if room >= preview:GetWidth() * preview:GetEffectiveScale() / UIParent:GetEffectiveScale() + 8 then
-        preview:SetPoint("TOPLEFT", tooltip, "TOPRIGHT", 8, 0)
-    else preview:SetPoint("TOPRIGHT", tooltip, "TOPLEFT", -8, 0) end
+    local owner = tooltip:GetOwner()
+    if tooltip.GetLeft and tooltip.GetTop and tooltip.SetPoint and tooltip.ClearAllPoints then
+        if state.positionKey ~= key or state.positionOwner ~= owner then
+            state.positionX = (tooltip:GetLeft() or 0) * scale
+            state.positionY = (tooltip:GetTop() or 0) * scale
+            state.positionKey, state.positionOwner = key, owner
+        end
+        local width = tooltip:GetWidth() * scale +
+            preview:GetWidth() * preview:GetEffectiveScale() / UIParent:GetEffectiveScale() + 8
+        local x = math.max(0, math.min(state.positionX, UIParent:GetWidth() - width))
+        if tooltip.SetAnchorType then tooltip:SetAnchorType("ANCHOR_NONE") end
+        tooltip:ClearAllPoints()
+        tooltip:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x / scale, state.positionY / scale)
+    end
+    preview:SetPoint("TOPLEFT", tooltip, "TOPRIGHT", 8, 0)
+end
+
+local function Label(tooltip, state, text)
+    local font = state.labelLine and Font(tooltip, "Left", state.labelLine)
+    if font and font:GetText() == state.labelText then
+        font:SetText(text)
+    else
+        tooltip:AddLine(text, 0.35, 0.85, 1)
+        state.labelLine = tooltip:NumLines()
+    end
+    state.labelText = text
 end
 
 local function UpdatePreview(tooltip, state)
@@ -414,17 +439,20 @@ local function UpdatePreview(tooltip, state)
         local ok = true
         if not NativeViewerContext(tooltip, state) then ok = pcall(tooltip.SetHyperlink, tooltip, current) end
         if ok then
-            tooltip:AddLine(level == 80 and "At level 80" or ("At your level (" .. level .. ")"), 0.35, 0.85, 1)
+            Label(tooltip, state, "At your level (" .. level .. ")")
             tooltip:Show()
             state.viewKey = key
         end
         state.previewBusy = false
         if not ok then HidePreview(state); return end
     end
-    if level == 80 then HidePreview(state); return end
     if not state.preview then
         state.preview = CreateFrame("GameTooltip", tooltip:GetName() .. "RebirthLevel80", UIParent, "GameTooltipTemplate")
+        -- A native GameTooltipTemplate polls its owner's UpdateTooltip method.
+        -- This panel is a fixed-level renderer, never a second hover scanner.
+        state.preview:SetScript("OnUpdate", nil)
         api.Attach(state.preview)
+        states[state.preview].levelPreview = true
     end
     local preview = state.preview
     if state.previewLink ~= maximum then
@@ -436,8 +464,8 @@ local function UpdatePreview(tooltip, state)
         preview:AddLine("At level 80 - same upgrade rank", 0.35, 0.85, 1)
         state.previewLink = maximum
     end
-    PositionPreview(tooltip, preview)
     preview:Show()
+    PositionPreview(tooltip, preview, state, key)
 end
 
 function api.Attach(tooltip)
@@ -446,9 +474,12 @@ function api.Attach(tooltip)
     states[tooltip] = state; frames[#frames + 1] = tooltip
     tooltip:HookScript("OnTooltipCleared", function()
         state.writes = {}; state.lastLink = nil; state.addedFeral = nil
+        state.labelLine = nil; state.labelText = nil
         if not state.previewBusy then
             state.context = nil; state.sourceLink = nil; state.viewKey = nil
-            state.previewLink = nil; HidePreview(state)
+            -- A native setter clears before rebuilding. Decide whether to hide
+            -- after that setter finishes, not in the middle of every refresh.
+            previewPending = true
         end
     end)
     tooltip:HookScript("OnTooltipSetItem", function(self)
@@ -472,11 +503,17 @@ function api.Attach(tooltip)
                 state.context = {method = setter, args = args, count = select("#", ...),
                     compareLink = setter == "SetHyperlinkCompareItem" and args[1] or nil}
                 Refresh(self)
-                if state.primary then state.viewKey = nil; previewPending = true end
+                if state.primary then
+                    state.viewKey = nil
+                    UpdatePreview(self, state)
+                    previewPending = true
+                end
             end)
         end
     end
-    tooltip:HookScript("OnHide", function() HidePreview(state) end)
+    tooltip:HookScript("OnHide", function()
+        HidePreview(state); state.positionKey = nil; state.positionOwner = nil
+    end)
     tooltip:HookScript("OnShow", function()
         if state.primary and not state.previewBusy then previewPending = true end
     end)
@@ -485,16 +522,47 @@ end
 for _, name in ipairs({"GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2", "ShoppingTooltip3",
     "ItemRefShoppingTooltip1", "ItemRefShoppingTooltip2", "ItemRefShoppingTooltip3"}) do api.Attach(_G[name]) end
 
+-- Stock comparison can show an embedded level-1 copy and shift the primary
+-- anchor. Owned Heirlooms use the explicit current/80 pair instead; all other
+-- items and inspected-player contexts keep the original comparison behavior.
+local nativeCompare = GameTooltip_ShowCompareItem
+if type(nativeCompare) == "function" then
+    GameTooltip_ShowCompareItem = function(tooltip, ...)
+        tooltip = tooltip or GameTooltip
+        local state = states[tooltip]
+        local _, link = tooltip:GetItem()
+        local id = Link(link)
+        local context = state and state.context
+        if active and state and state.primary and data[id] and
+            not (context and context.method == "SetInventoryItem" and context.args[1] ~= "player") then
+            for _, comparison in pairs(tooltip.shoppingTooltips or {}) do comparison:Hide() end
+            UpdatePreview(tooltip, state)
+            return
+        end
+        return nativeCompare(tooltip, ...)
+    end
+end
+
 local eventFrame = CreateFrame("Frame")
 for _, event in ipairs({"PLAYER_LOGIN", "PLAYER_ENTERING_WORLD", "PLAYER_LEVEL_UP",
     "GET_ITEM_INFO_RECEIVED", "PLAYER_EQUIPMENT_CHANGED", "UNIT_INVENTORY_CHANGED"}) do eventFrame:RegisterEvent(event) end
-eventFrame:SetScript("OnEvent", function(self, event, unit)
+eventFrame:SetScript("OnEvent", function(self, event, unit, success)
     if event == "UNIT_INVENTORY_CHANGED" and unit ~= "player" then return end
     active = GetRealmName and GetRealmName() == "Rebirth"
     if not active then
         for _, state in pairs(states) do Restore(state); HidePreview(state) end
         refreshPending = false
         return
+    end
+    if event == "GET_ITEM_INFO_RECEIVED" then
+        if not success or not data[unit] or cacheReady[unit] then return end
+        cacheReady[unit] = true
+        local relevant = false
+        for _, tooltip in ipairs(frames) do
+            local _, link = tooltip:GetItem()
+            if tooltip:IsShown() and Link(link) == unit then relevant = true; break end
+        end
+        if not relevant then return end
     end
     refreshPending = true -- native player level/cache must settle before rerender
 end)
@@ -503,7 +571,7 @@ eventFrame:SetScript("OnUpdate", function()
     local nativeRefresh = refreshPending
     refreshPending = false
     if nativeRefresh then for _, tooltip in ipairs(frames) do
-        if tooltip:IsShown() then
+        if tooltip:IsShown() and not states[tooltip].levelPreview then
             local state, context = states[tooltip], states[tooltip].context
             if context and not state.busy then
                 -- Repopulate through the captured native setter, rather than
