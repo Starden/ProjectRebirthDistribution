@@ -9,5 +9,12 @@
   "authAddress": "134.122.124.150",
   "authPort": 3724,
   "worldPort": 8087,
-  "contentEpoch": 1
+  "contentEpoch": 1,
+  "pendingRelease": {
+    "launcherVersion": "2.0.3",
+    "contentVersion": "0.1.34",
+    "contentEpoch": 1,
+    "archiveSha256": "a73e4f6896c137af12e24d4c47829f42beb1e470d0dceace3d1006fdddb39e94",
+    "archiveSize": 96658422
+  }
 }
