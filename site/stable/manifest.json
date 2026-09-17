@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "product": "Project Reverie",
   "channel": "stable",
-  "contentVersion": "0.1.33",
+  "contentVersion": "0.1.34",
   "contentEpoch": 1,
-  "publishedAtUtc": "2026-09-16T12:15:16.4622053Z",
-  "expiresAtUtc": "2026-10-16T12:15:16.4622053Z",
-  "minimumLauncherVersion": "2.0.2",
+  "publishedAtUtc": "2026-09-17T14:06:06.4066519Z",
+  "expiresAtUtc": "2026-10-17T14:06:06.4066519Z",
+  "minimumLauncherVersion": "2.0.3",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
   "signatureAlgorithm": "ECDSA_P256_SHA256_P1363",
@@ -17,8 +17,8 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "Vampire and Demonic Heritages",
-    "summary": "Adds the first two new Heritage choices: Vampire and Demonic, with persistent levels, complete effect descriptions, and native combat spells. Update the launcher and prepare client data before playing. Other new Heritage designs are not enabled by this batch.",
+    "headline": "The full non-Monarch Heritage roster",
+    "summary": "Adds the remaining ten Heritage choices with complete native effects, full descriptions, and Dragon and Element choices. Everyone eligible receives one free Heritage reselection without Rebirth; earned Heritage progress is preserved. Update the launcher and prepare client data before playing.",
     "updateKind": "content",
     "requiresClientUpdate": true
   },
@@ -195,7 +195,7 @@
       "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "size": 936,
-      "sha256": "E9F6F7C8690F87A266602725BA3A2DD8A0AAD32F3F41AA80039AE3E3555E0DD9"
+      "sha256": "6B4C260CF573DCC3D392F57031BBB87190EE0A9B16FEEF0C3E7F03BE01460B37"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/RankData.lua",
@@ -218,8 +218,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
-      "size": 95172,
-      "sha256": "EAF6AFD83020C9067DFED949B5DF04C85B7F4BC12FA382FC346A5D082C1A2C2A"
+      "size": 102732,
+      "sha256": "1898985C64C1C12D2AF99C619B412319957DB159D9DE92E6B4E45F58CC86B3A3"
     },
     {
       "path": "Interface/AddOns/RebirthWardrobe/RebirthWardrobe.toc",

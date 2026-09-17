@@ -46,6 +46,9 @@ local heritageDetailIcon
 local heritageDetailName
 local heritageDetailMeta
 local heritageDetailSummary
+local heritageDetailScroll
+local heritageDetailChild
+local heritageAspectDropdown
 local heritageWarning
 local heritageButton
 local pendingChoicesButton
@@ -71,6 +74,7 @@ local rebirthPreviewButton
 local rebirthConfirmButton
 local skillButtons = {}
 local heritageButtons = {}
+local heritagePrompt = { shown = false, ready = false }
 local selectedSkillId
 local selectedHeritageId = 1101
 local selectedChoiceOrdinal
@@ -91,6 +95,27 @@ local ShowManifestationChoices
 
 local SKILL_ICON = "Interface\\Icons\\INV_Misc_QuestionMark"
 local HERITAGE_ICON = "Interface\\Icons\\INV_Misc_Rune_01"
+local heritageIcons = {
+    [1101] = "INV_Misc_Rune_01", [1102] = "Spell_Holy_InnerFire",
+    [1103] = "Spell_Shadow_LifeDrain02", [1104] = "Spell_Shadow_Metamorphosis",
+    [1105] = "INV_Misc_Head_Dragon_01", [1106] = "Spell_Shadow_RaiseDead",
+    [1107] = "Spell_Holy_PowerWordShield", [1108] = "Spell_Nature_ThunderClap",
+    [1109] = "Ability_Druid_PredatoryInstincts", [1110] = "Spell_Shadow_Shadowfury",
+    [1111] = "Spell_Fire_Elemental_Totem", [1112] = "Spell_Shadow_ChillTouch",
+    [1113] = "Ability_Druid_Berserk", [1114] = "Spell_Nature_SpiritWolf",
+}
+local heritageAspects = {
+    [1105] = { {1, "Red - Fire"}, {2, "Blue - Frost"}, {3, "Green - Nature"},
+        {4, "Bronze - Arcane"}, {5, "Black - Shadow"} },
+    [1111] = { {0, "Fire"}, {1, "Frost"}, {2, "Nature"}, {3, "Arcane"} },
+}
+local function HeritageIcon(id)
+    return heritageIcons[tonumber(id)] and ("Interface\\Icons\\" .. heritageIcons[tonumber(id)]) or HERITAGE_ICON
+end
+local function IsCombatHeritage(id)
+    id = tonumber(id) or 0
+    return id >= 1103 and id <= 1114
+end
 local OFFER_ICON = "Interface\\Icons\\Spell_Arcane_Arcane01"
 
 local state = {
@@ -107,6 +132,9 @@ local state = {
     inspectedName = nil,
     offer = nil,
     heritages = {},
+    heritageDetails = {},
+    heritageDetailParts = {},
+    heritageAspects = {},
     heritage = {
         status = "waiting",
         selected = false,
@@ -168,6 +196,8 @@ local notices = {
     unknown_request = "The server rejected an unknown addon request.",
     inspect_target_unavailable = "That player or PlayerBot is not currently available for build inspection.",
     ineligible_race = "This Heritage is not available to your current race.",
+    heritage_aspect_selected = "Your Heritage attunement has changed.",
+    heritage_aspect_unavailable = "You can change your Heritage attunement while resting or in a sanctuary, out of combat.",
 }
 
 local function Rarity(id)
@@ -608,6 +638,40 @@ local function RenderSkillTab()
     skillDetailFrame:SetBackdropBorderColor(rarity.color[1], rarity.color[2], rarity.color[3], 1)
 end
 
+local function RenderHeritageAspect(heritage)
+    if not heritageAspectDropdown then return end
+    local choices = heritageAspects[heritage.id]
+    if not choices or not heritage.selected or not heritage.eligible or not heritage.effects or state.inspectedName then
+        heritageAspectDropdown:Hide()
+        return
+    end
+    heritageAspectDropdown:Show()
+    local chosen = state.heritageAspects[heritage.id]
+    local title = heritage.id == 1105 and "Lineage" or "Attunement"
+    local label = "Retrieving " .. string.lower(title) .. "..."
+    for _, choice in ipairs(choices) do
+        if choice[1] == chosen then label = title .. ": " .. choice[2] end
+    end
+    UIDropDownMenu_SetText(heritageAspectDropdown, label)
+    UIDropDownMenu_Initialize(heritageAspectDropdown, function()
+        for _, choice in ipairs(choices) do
+            local ordinal, name = choice[1], choice[2]
+            local info = UIDropDownMenu_CreateInfo()
+            info.text, info.checked = name, ordinal == chosen
+            info.disabled = actionPending or chosen == nil
+            info.func = function()
+                local current = FindHeritage(heritage.id)
+                if actionPending or state.inspectedName or not current or not current.selected or
+                    not current.eligible or not current.effects or selectedHeritageId ~= heritage.id then return end
+                actionPending = true
+                SendRequest("HERITAGE_ASPECT\t" .. heritage.id .. "\t" .. ordinal)
+                Render()
+            end
+            UIDropDownMenu_AddButton(info)
+        end
+    end)
+end
+
 local function RenderHeritageTab()
     local heritages = state.heritages or {}
     if #heritages == 0 and state.heritage then
@@ -650,7 +714,7 @@ local function RenderHeritageTab()
         local row = math.floor((index - 1) / 4)
         button:ClearAllPoints()
         button:SetPoint("TOPLEFT", heritageGridChild, "TOPLEFT", column * 68, -(row * 62))
-        button.icon:SetTexture(HERITAGE_ICON)
+        button.icon:SetTexture(HeritageIcon(entry.id))
         button.entryId = entry.id or 1101
         button.rank:SetText((tonumber(entry.rank) or 0) > 0 and entry.rank or "")
         button.tooltipName = entry.name or "Paragon"
@@ -662,7 +726,7 @@ local function RenderHeritageTab()
             button.tooltipMeta = string.format("Rank %d / %d • %d XP • %s all stats • %s • Locked",
                 tonumber(entry.rank) or 0, tonumber(entry.maxRank) or 100,
                 tonumber(entry.xp) or 0, FormatMilliValue(entry.bonusMilli, "percent"), scopeLabel)
-            if entry.id == 1103 or entry.id == 1104 then
+            if IsCombatHeritage(entry.id) then
                 button.tooltipMeta = string.format("Level %d / %d • %s • Selected for this Life",
                     tonumber(entry.rank) or 0, tonumber(entry.maxRank) or 100, scopeLabel)
             end
@@ -685,7 +749,7 @@ local function RenderHeritageTab()
     end
     heritageGridChild:SetHeight(math.max(3, math.ceil(#heritages / 4)) * 62)
 
-    heritageDetailIcon:SetTexture(HERITAGE_ICON)
+    heritageDetailIcon:SetTexture(HeritageIcon(heritage.id))
     heritageDetailName:SetText(heritage.name or "Paragon")
     heritageDetailName:SetTextColor(0.45, 0.90, 1.00)
     local progressText
@@ -748,6 +812,22 @@ local function RenderHeritageTab()
         end
         heritageDetailSummary:SetText(description ..
             "\n\nGrows with Heritage experience. Level and experience are retained through Rebirth; choose a Heritage for each new Life.")
+    end
+    if state.heritageDetails[heritage.id] then
+        heritageDetailSummary:SetText(state.heritageDetails[heritage.id])
+    elseif heritage.id >= 1105 and heritage.id <= 1114 then
+        heritageDetailSummary:SetText("Retrieving Heritage effects...")
+    end
+    offensive = IsCombatHeritage(heritage.id)
+    RenderHeritageAspect(heritage)
+    if heritageDetailChild and heritageDetailScroll then
+        heritageDetailSummary:SetHeight(0)
+        heritageDetailChild:SetHeight(math.max(1, heritageDetailSummary:GetStringHeight() + 12))
+        if heritageDetailScroll.heritageId ~= heritage.id then
+            heritageDetailScroll:SetVerticalScroll(0)
+            heritageDetailScroll.heritageId = heritage.id
+        end
+        heritageDetailScroll:UpdateScrollChildRect()
     end
     if heritage.selected then
         heritageDetailMeta:SetText(string.format("Rank %d / %d  •  %s XP  •  %s all stats  •  Locked",
@@ -1338,6 +1418,27 @@ local function CreateRebirthMicroButton()
     UpdatePendingIndicator()
 end
 
+local function CreateHeritageDetailContent()
+    heritageDetailScroll = CreateFrame("ScrollFrame", "ProjectRebirthHeritageDetailScrollFrame",
+        heritageDetailFrame, "UIPanelScrollFrameTemplate")
+    heritageDetailScroll:SetPoint("TOPLEFT", heritageDetailFrame, "TOPLEFT", 14, -84)
+    heritageDetailScroll:SetPoint("BOTTOMRIGHT", heritageDetailFrame, "BOTTOMRIGHT", -30, 235)
+    heritageDetailChild = CreateFrame("Frame", nil, heritageDetailScroll)
+    heritageDetailChild:SetWidth(330)
+    heritageDetailChild:SetHeight(1)
+    heritageDetailScroll:SetScrollChild(heritageDetailChild)
+    heritageDetailSummary = heritageDetailChild:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    heritageDetailSummary:SetPoint("TOPLEFT", heritageDetailChild, "TOPLEFT", 0, 0)
+    heritageDetailSummary:SetWidth(330)
+    heritageDetailSummary:SetJustifyH("LEFT")
+    heritageDetailSummary:SetJustifyV("TOP")
+    heritageAspectDropdown = CreateFrame("Frame", "ProjectRebirthHeritageAspectDropdown",
+        heritageDetailFrame, "UIDropDownMenuTemplate")
+    heritageAspectDropdown:SetPoint("BOTTOMLEFT", heritageDetailFrame, "BOTTOMLEFT", 0, 194)
+    UIDropDownMenu_SetWidth(heritageAspectDropdown, 296)
+    heritageAspectDropdown:Hide()
+end
+
 local function CreateInterface()
     if panel then
         return
@@ -1583,11 +1684,7 @@ local function CreateInterface()
     heritageDetailMeta:SetPoint("TOPLEFT", heritageDetailName, "BOTTOMLEFT", 0, -5)
     heritageDetailMeta:SetPoint("RIGHT", heritageDetailFrame, "RIGHT", -14, 0)
     heritageDetailMeta:SetJustifyH("LEFT")
-    heritageDetailSummary = heritageDetailFrame:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
-    heritageDetailSummary:SetPoint("TOPLEFT", heritageDetailFrame, "TOPLEFT", 14, -84)
-    heritageDetailSummary:SetPoint("RIGHT", heritageDetailFrame, "RIGHT", -14, 0)
-    heritageDetailSummary:SetJustifyH("LEFT")
-    heritageDetailSummary:SetHeight(186)
+    CreateHeritageDetailContent()
     ProjectRebirthProgress.CreateHeritage(heritageDetailFrame)
     heritageWarning = heritageDetailFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     heritageWarning:SetPoint("BOTTOMLEFT", heritageDetailFrame, "BOTTOMLEFT", 14, 42)
@@ -1607,7 +1704,7 @@ local function CreateInterface()
         local scopeWarning = heritage.progressionScope == "character" and
             "This choice is permanent. Rank and XP persist across Rebirth." or
             "This choice is permanent for the current Life."
-        if heritage.id == 1103 or heritage.id == 1104 then
+        if heritage.id >= 1103 and heritage.id <= 1114 then
             scopeWarning = "Selected for this Life; level and experience persist through Rebirth."
         end
         StaticPopup_Show("PROJECT_REBIRTH_CONFIRM_HERITAGE", heritage.name or "this Heritage", scopeWarning)
@@ -1724,6 +1821,23 @@ local function EnsureInterface()
     end
     CreateInterface()
     return panel ~= nil
+end
+
+local function PromptHeritageSelection()
+    if heritagePrompt.shown or not heritagePrompt.ready or not active or state.inspectedName or
+        not state.complete or not state.heritage or state.heritage.selected or not state.heritage.canSelect then return end
+    if (InCombatLockdown and InCombatLockdown()) or (UnitAffectingCombat and UnitAffectingCombat("player")) then return end
+    local available
+    for _, heritage in ipairs(state.heritages or {}) do
+        if heritage.canSelect and heritage.eligible ~= false then available = heritage; break end
+    end
+    if not available or not EnsureInterface() then return end
+    heritagePrompt.shown = true
+    selectedHeritageId = available.id
+    activeTab = "heritages"
+    panelWanted = true
+    panel:Show()
+    Render()
 end
 
 local function HandleAddonMessage(prefix, message, channel, sender)
@@ -1988,9 +2102,13 @@ local function HandleAddonMessage(prefix, message, channel, sender)
         actionPending = false
         Render()
     elseif messageType == "HERITAGE_BEGIN" then
+        heritagePrompt.ready = false
         ProjectRebirthProgress.Clear("heritage")
         state.heritages = {}
         state.heritageCombat = {}
+        state.heritageDetails = {}
+        state.heritageDetailParts = {}
+        state.heritageAspects = {}
         state.heritage.status = fields[3] or "unknown"
         state.heritage.canSelect = false
     elseif messageType == "HERITAGE_OPTION" then
@@ -2020,6 +2138,40 @@ local function HandleAddonMessage(prefix, message, channel, sender)
         table.insert(state.heritages, option)
         if option.selected then
             state.heritage = option
+        end
+    elseif messageType == "HERITAGE_DETAIL" then
+        local id = ParseInteger(fields[3], 1101, 1114)
+        local index, count = ParseInteger(fields[4], 1, 64), ParseInteger(fields[5], 1, 64)
+        local chunk = fields[6]
+        if #fields ~= 6 or not id or not index or not count or index > count or not chunk or
+            string.len(chunk) > 180 or not FindHeritage(id) then return end
+        local assembly = state.heritageDetailParts[id]
+        if not assembly then
+            assembly = { count = count, received = 0, chunks = {} }
+            state.heritageDetailParts[id] = assembly
+        end
+        if assembly.count ~= count or assembly.invalid then return end
+        if assembly.chunks[index] and assembly.chunks[index] ~= chunk then
+            assembly.invalid = true
+            state.heritageDetails[id] = nil
+            return
+        end
+        if not assembly.chunks[index] then assembly.received = assembly.received + 1 end
+        assembly.chunks[index] = chunk
+        if assembly.received == count then
+            state.heritageDetails[id] = DecodeField(table.concat(assembly.chunks))
+            Render()
+        end
+    elseif messageType == "HERITAGE_ASPECT" then
+        local id, ordinal = tonumber(fields[3]), tonumber(fields[4])
+        if #fields ~= 4 or not heritageAspects[id] or not ordinal or ordinal ~= math.floor(ordinal) then return end
+        for _, choice in ipairs(heritageAspects[id]) do
+            if choice[1] == ordinal then
+                state.heritageAspects[id] = ordinal
+                actionPending = false
+                Render()
+                break
+            end
         end
     elseif messageType == "HERITAGE_COMBAT" then
         local id = tonumber(fields[3])
@@ -2051,6 +2203,7 @@ local function HandleAddonMessage(prefix, message, channel, sender)
             bonusMilli = tonumber(fields[14]) or 0,
         }
         state.heritage = legacyHeritage
+        heritagePrompt.ready = true
         if #(state.heritages or {}) == 0 then
             state.heritages = { legacyHeritage }
         end
@@ -2087,6 +2240,7 @@ local function HandleAddonMessage(prefix, message, channel, sender)
         end
         actionPending = false
         Render()
+        PromptHeritageSelection()
     end
 end
 
@@ -2098,6 +2252,8 @@ eventFrame:RegisterEvent("PLAYER_LOGOUT")
 eventFrame:RegisterEvent("CHAT_MSG_ADDON")
 eventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "PLAYER_LOGIN" then
+        heritagePrompt.shown = false
+        heritagePrompt.ready = false
         if RegisterAddonMessagePrefix then
             RegisterAddonMessagePrefix(PREFIX)
         end
@@ -2118,6 +2274,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
         state.glossaryReady = false
         state.glossaryReceiving = false
     elseif event == "PLAYER_REGEN_ENABLED" then
+        PromptHeritageSelection()
         if active and state.offer and deferredOfferReveal then
             ShowManifestationChoices(revealedOpportunityId ~= state.offer.opportunityId)
         end
