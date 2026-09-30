@@ -15,12 +15,20 @@ You will also need:
 - your own lawful, clean ChromieCraft WoW 3.3.5a client, build 12340; and
 - an approved Rebirth account supplied privately by the server owner.
 
-**Release package: launcher 2.0.3 / content 0.1.34 — The full non-Monarch Heritage roster.**
+**Release package: launcher 2.1.0 / content 0.1.34.**
 
-Updater validation now allows five minutes. If your 2.0.1 launcher still times
-out while updating, close it and extract the complete 2.0.3 ZIP into a fresh
-folder outside WoW. The longer timeout takes effect after the old launcher is
-replaced. See the [2.0.3 release notes](docs/RELEASE-NOTES-launcher-v2.0.3.md).
+Launcher 2.1.0 adds world selection and verified background launcher downloads.
+Rebirth is ready; Skillful shows **Awaiting first release / COMING SOON**.
+Existing Rebirth settings carry over, including the complete 2.0.3 Heritage fixes.
+This is optional: the minimum supported launcher remains 2.0.3.
+See the [2.1.0 release notes](docs/RELEASE-NOTES-launcher-v2.1.0.md).
+
+The Rebirth content feed was renewed on September 30 and is valid through
+October 30, 2026. Content remains 0.1.34 with identical payloads; the renewal
+does not require a content reinstall or Prepare Client rebuild.
+
+If an older launcher cannot update, close it and extract the complete 2.1.0 ZIP
+into a fresh writable folder outside WoW.
 
 This release supplies matching client data for all fourteen non-Monarch
 Heritages. Eligible players receive one free Heritage reselection without a
