@@ -1,174 +1,56 @@
-# Project Reverie Distribution — Rebirth
+# Project Reverie — Rebirth and Skillful
 
-## Player quick start
+Download the latest **Project-Reverie-Launcher-2.2.0-win-x64.zip** from the [Releases page](https://github.com/Starden/ProjectRebirthDistribution/releases/latest), extract it into its own writable folder outside WoW, and run `ProjectReverie.Launcher.exe`.
 
-From this GitHub repository, you only need to download **one file**: the latest
-`Project-Reverie-Launcher-*-win-x64.zip` from the
-[Releases page](https://github.com/Starden/ProjectRebirthDistribution/releases/latest).
+Choose **Rebirth** or **Skillful** in the launcher before opening WoW. Each game uses a separate client folder. You need your own lawful, clean English enUS ChromieCraft WoW 3.3.5a client, build 12340, and an approved game account. Players need no VPN or separate patcher. The launcher does not include or download a game client or Blizzard archives.
 
-You do **not** need to download the source code, the `.sha256` file, WireGuard,
-a VPN client, a separate patcher, or any other networking software. The launcher
-handles Project Reverie updates for the Rebirth realm and writes the correct server address for you.
+## Current release
 
-You will also need:
+- Launcher **2.2.0**, required for the new Skillful feed.
+- Rebirth content **0.1.34**; its existing payloads and preparation remain unchanged.
+- Skillful addon **0.11.3**, with visible Bottle of Experience quest rewards and locally prepared Hero/ranged data and vial art.
 
-- your own lawful, clean ChromieCraft WoW 3.3.5a client, build 12340; and
-- an approved Rebirth account supplied privately by the server owner.
+Existing player accounts now have Skillful access. Rebirth accounts newly copied to Skillful use the same password; accounts that already existed on Skillful retain their Skillful password. No password reset is required for this update.
 
-**Release package: launcher 2.1.0 / content 0.1.34.**
+See the [2.2.0 release notes](docs/RELEASE-NOTES-launcher-v2.2.0.md). Both games remain in testing; availability is controlled by the server operator.
 
-Launcher 2.1.0 adds world selection and verified background launcher downloads.
-Rebirth is ready; Skillful shows **Awaiting first release / COMING SOON**.
-Existing Rebirth settings carry over, including the complete 2.0.3 Heritage fixes.
-This is optional: the minimum supported launcher remains 2.0.3.
-See the [2.1.0 release notes](docs/RELEASE-NOTES-launcher-v2.1.0.md).
+## Play
 
-The Rebirth content feed was renewed on September 30 and is valid through
-October 30, 2026. Content remains 0.1.34 with identical payloads; the renewal
-does not require a content reinstall or Prepare Client rebuild.
+1. Select **Rebirth** or **Skillful** in the launcher.
+2. Use **Locate Client** to select that game's separate clean `Wow.exe` folder.
+3. Choose **Update** to install the signed addons.
+4. Close WoW, then use **Prepare Client** when prompted.
+5. Select your display mode and **Play**, then sign in with your approved account.
 
-If an older launcher cannot update, close it and extract the complete 2.1.0 ZIP
-into a fresh writable folder outside WoW.
+Preparation creates the required data from your own client and verifies the result. Original game archives and character settings are preserved. Unknown custom patches or incompatible source data are refused. Do not share one prepared client folder between the two games or edit `realmlist.wtf` manually.
 
-This release supplies matching client data for all fourteen non-Monarch
-Heritages. Eligible players receive one free Heritage reselection without a
-Rebirth; earned Heritage progress, character levels, Skills, and gear are kept.
-The menu shows full effects and growth, plus Dragonkin lineage and Elemental attunement choices.
-Close WoW, update the addons, then use **Prepare Client** if prompted.
-Content 0.1.34 requires launcher 2.0.3; existing Heirloom tooltip fixes are retained.
+Rebirth retains all fourteen non-Monarch Heritage definitions, four-tree talent previews, current-level and level-80 Heirloom comparisons, the Currency tab, gear upgrades and Wardrobe. Both Heirloom tooltips remain visible at level 80. Existing item-cache preparation stays valid unless the launcher asks you to refresh it. Skillful retains its current profession repair and equipment requirements; this release does not apply the pending item balance draft.
 
-Content 0.1.32 keeps the current-level Heirloom tooltip on the left and the
-level-80 preview on the right, with stable positioning during hover refreshes.
-Both remain visible at level 80. See the [tooltip hotfix notes](docs/RELEASE-NOTES-content-0.1.32.md).
-
-The launcher now carries its public configuration inside the EXE, so moving the
-EXE alone no longer breaks startup. Keep it in a separate writable folder outside
-WoW for built-in updates. If an older copy cannot start or update, close it and
-extract the entire latest ZIP into a fresh folder outside WoW. Use a shortcut for
-desktop access; your selected game folder and preferences are retained.
-
-Use **Update launcher → Update addons → close WoW → Prepare Client** before playing.
-Content **0.1.34 requires launcher 2.0.3**. Users on **1.6.3 or newer** can accept the built-in
-**Update and restart?** prompt. Every **1.6.2-or-older** user needs one final manual
-fresh-folder install of the latest ZIP because its earlier update helper is unreliable.
-If validation times out in an older build, use the manual fresh-folder install above.
-
-Choose **Follow Windows**, **Void**, or **Moonstone** in **Settings → Appearance**.
-The design includes the Reverie emblem, embedded fonts, and clearer status panels.
-Content **0.1.30** follows legacy **1.30.0** using a signed generation field; it is
-not a downgrade. Rollback checks remain enabled. The Heritage release adds
-native spell definitions; use **Prepare Client** if prompted. Existing item-cache
-refreshes remain valid; do not repeat them unless prompted.
-
-The display-mode selector stays beside **Play Rebirth**, visible on every tab.
-Choose Fullscreen, Windowed, or Windowed Maximized there. The QoL addon update
-includes four-tree talent preview, Shift+Click links for fourth-spec talents and
-Skills, and current-level/level-80 Heirloom comparisons. Gameplay remains alpha;
-server activation and availability are controlled separately by the operator.
-
-You can request an account and test the gateway immediately. After locating your
-own clean client, **Prepare Client** generates and verifies Rebirth's item,
-Heirloom, fourth-specialization, Feral Cat and tooltip data locally.
-The update preserves the existing Skill descriptions, Currency tab, gear-upgrade
-and Heirloom interface. Existing 1.6.2 and older users need one final manual ZIP
-update to 2.0.3. Starting with 1.6.3, later launcher updates prompt and install
-inside the launcher without redirecting to GitHub. After upgrading, select **Update** for the new signed content metadata with WoW
-closed. Use **Prepare Client** only if prompted. Its earlier QoL preparation
-backs up only the English item-information cache once so the client can fetch
-revised stack limits. Already-matching native archives are not rebuilt;
-other caches and character settings stay unchanged.
-Your selected client and launcher preferences are retained. Server activation is
-separately controlled; installing client definitions is not proof every alpha
-ability has passed in-game testing. Existing account permissions are unchanged.
-No game archives are downloaded and no separate patcher is needed. Original
-client archives are left unchanged. Server access is granted separately:
-a character-creation-only account cannot enter the world.
-
-To get started:
-
-1. Download the launcher ZIP from the Releases page.
-2. Extract the entire ZIP into its own folder.
-3. Run `ProjectReverie.Launcher.exe`.
-4. Use **Start Here** to request an account and **Test Connection**.
-5. Under **Home**, choose **Locate Client** and select your clean `Wow.exe` folder.
-6. Choose **Update** for the signed Rebirth addons.
-7. Close WoW, choose **Prepare Client**, and confirm local preparation.
-8. Choose a display mode beside **Play Rebirth**, then play after checks pass and log in with your approved account.
-   World entry also requires the owner's full-access approval.
-
-If an older launcher says **Native Data Required** or **Release Pending**, update
-to 2.0.3. For 1.6.2 and older, close the launcher, download the complete 2.0.3 ZIP, extract every
-file into a new regular folder, and run it. Your client selection is retained. No password
-reset or VPN is needed. This release is tested with the English enUS clean client;
-incompatible source data or unknown existing patches are refused, not overwritten.
+New players can use **Start Here** to request an account and **Test Connection**. The owner reviews access before world entry. The [tester onboarding guide](docs/TESTER-ONBOARDING.md) contains further Rebirth guidance.
 
 ## Launcher updates
 
-Starting with **1.6.3**, choose **Yes** at **Update and restart?** to download,
-verify, install and reopen a newer launcher automatically. Choose **No** to wait,
-then use the header's **Update to...** button later. No browser or manual ZIP
-extraction is needed for future updates. Your client selection and preferences
-are retained. Updates install only after your confirmation.
+The launcher checks a separately signed release feed and offers a verified update to 2.2.0. Accept **Restart to update** when ready. Your selected client folders and preferences carry over. Keep the launcher in its own regular writable folder outside WoW; a desktop shortcut can point to it.
 
-**1.6.2 and older:** download the 2.0.3 ZIP once, close the old launcher, extract
-every file into a fresh folder and run it. Those builds cannot reliably install
-the repair themselves. The dedicated updater introduced in 1.6.3 is retained in 2.0.3;
-there is no separate updater installation.
-Keep the launcher separate from WoW in a regular writable, non-cloud/linked folder,
-and keep the executable named `ProjectReverie.Launcher.exe`. The updater replaces
-only its four package files, not your game installation or saved settings.
-Verified backups remain under `.reverie-update-*` in the launcher folder; a failed
-replacement restores the previous files where safe. A power failure may need
-manual backup recovery or a fresh ZIP. Never bypass signature/hash warnings.
+If an older launcher cannot start or update, close it and extract the complete latest ZIP into a fresh folder. Versions 1.6.2 and older require this manual upgrade once. The dedicated updater is embedded in newer packages, so no separate updater installation is needed. Windows may show **Unknown publisher** because the package is not yet Authenticode-signed.
 
-The launcher-release feed is signed independently of game-content updates.
-An upgrade below the minimum supported version is required before installing
-content or playing. Failed or expired checks are labelled unavailable, not
-current. Older launchers can read the independently signed release feed and offer
-an update; launcher **2.0.3** is required before installing content 0.1.34 or playing.
-All 1.6.2-or-older users need a **one-time manual fresh-folder upgrade to 2.0.3**.
+Launcher updates replace only the four package files. Verified backups are retained under `.reverie-update-*`; failed replacements restore the previous files where safe. Do not bypass signature or hash errors.
 
-Do not edit `realmlist.wtf` manually. The launcher does not include or download
-the base World of Warcraft client. Windows may show an **Unknown publisher**
-warning during this early test because the launcher is not yet Authenticode-signed.
-
-For more detail, see the [tester onboarding guide](docs/TESTER-ONBOARDING.md).
-
-## Repository purpose
-
-This repository is the public distribution edge for a small, controlled Project
-Rebirth test. It contains only:
-
-- the HTTPS update site under `site/`;
-- a detached ECDSA P-256 signature for the exact update manifest bytes;
-- Project Reverie-owned Rebirth add-on payload files;
-- public verification and release automation;
-- publisher and tester documentation.
-
-The launcher archive is uploaded directly to GitHub Releases and is deliberately
-ignored by Git. The repository never contains a World of Warcraft client,
-`Wow.exe`, MPQ archives, extracted Blizzard data, game credentials, WireGuard
-private keys, or publisher private-key material.
+The signed launcher and Skillful feeds are valid through October 30, 2026. Rebirth's existing signed content renewal is preserved. Feed renewal is an operator task, even when content has not changed.
 
 ## Public endpoints
 
-- Update manifest: `https://starden.github.io/ProjectRebirthDistribution/stable/manifest.json`
-- Detached signature: `https://starden.github.io/ProjectRebirthDistribution/stable/manifest.json.sig`
-- Launcher version: `https://starden.github.io/ProjectRebirthDistribution/stable/launcher.json`
-- Launcher version signature: `https://starden.github.io/ProjectRebirthDistribution/stable/launcher.json.sig`
-- Launcher releases: `https://github.com/Starden/ProjectRebirthDistribution/releases`
+The launcher chooses the appropriate signed feed and configures the game endpoint:
 
-The signed realm endpoint is the public VPS gateway at `134.122.124.150:3724`;
-world service status uses `134.122.124.150:8087`. The gateway carries traffic to
-the Rebirth host over a private WireGuard link and preserves public client
-addresses with PROXY protocol v2. Testers do not install a VPN. The client-data
-and account-access prerequisites above still apply.
+| Game | Login | World | Signed content |
+| --- | --- | --- | --- |
+| Rebirth | 134.122.124.150:3724 | 134.122.124.150:8087 | [Rebirth stable feed](https://starden.github.io/ProjectRebirthDistribution/stable/manifest.json) |
+| Skillful | 134.122.124.150:3725 | 134.122.124.150:8085 | [Skillful stable feed](https://starden.github.io/ProjectRebirthDistribution/skillful/stable/manifest.json) |
 
-## Validate locally
+The [launcher release feed](https://starden.github.io/ProjectRebirthDistribution/stable/launcher.json) and [public verification key](https://starden.github.io/ProjectRebirthDistribution/update-signing-public-key.pem) are served over HTTPS. Detached signatures accompany both game manifests and the launcher feed.
 
-```powershell
-pwsh -NoProfile -File ./tools/Test-PublicDistribution.ps1
-```
+## Repository purpose and validation
 
-Server operators should review [publishing](docs/PUBLISHING.md) and
-[go-live checks](docs/GO-LIVE-CHECKLIST.md) before publishing anything.
+This repository contains the public HTTPS distribution site, signed metadata, Project Reverie-owned addon payloads, verification automation and player documentation. Launcher ZIPs are uploaded to GitHub Releases and excluded from Git. No client, Blizzard data, account credentials, publisher private key or VPN profile belongs here.
+
+Run `pwsh -NoProfile -File ./tools/Test-PublicDistribution.ps1` to validate the signed feeds, payloads and launcher archive. Operators should follow the [publishing procedure](docs/PUBLISHING.md) and [go-live checks](docs/GO-LIVE-CHECKLIST.md).

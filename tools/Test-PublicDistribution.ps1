@@ -502,6 +502,13 @@ elseif (-not $SkipReleaseAsset -and $null -ne $bootstrap) {
 }
 
 Write-Host ''
+if (Test-Path -LiteralPath (Join-Path $DistributionRoot 'site/skillful')) {
+    try {
+        & (Join-Path $PSHOME 'pwsh.exe') -NoProfile -File (Join-Path $DistributionRoot 'tools/Test-SkillfulDistribution.ps1') -DistributionRoot $DistributionRoot
+        if ($LASTEXITCODE -ne 0) { throw 'Skillful signed feed validation failed.' }
+        Add-Pass 'Independent Skillful feed, public endpoint and exact owned payloads'
+    } catch { Add-Failure $_.Exception.Message }
+}
 Write-Host "Result: $script:Passes passed, $($script:Failures.Count) failed" -ForegroundColor Cyan
 if ($script:Failures.Count -gt 0) {
     exit 1

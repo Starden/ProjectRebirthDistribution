@@ -1,0 +1,57 @@
+{
+  "schemaVersion": 1,
+  "product": "Project Skillful",
+  "channel": "stable",
+  "contentVersion": "0.11.3",
+  "contentEpoch": 0,
+  "publishedAtUtc": "2026-09-30T23:35:22.0867205Z",
+  "expiresAtUtc": "2026-10-30T23:35:22.0867205Z",
+  "minimumLauncherVersion": "2.2.0",
+  "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
+  "requiredWowBuild": 12340,
+  "signatureAlgorithm": "ECDSA_P256_SHA256_P1363",
+  "realm": {
+    "name": "Skillful",
+    "authAddress": "134.122.124.150",
+    "authPort": 3725,
+    "worldPort": 8085
+  },
+  "release": {
+    "headline": "Skillful is ready to play",
+    "summary": "Choose Skillful and prepare your separate clean client. Quest rewards now show your Bottle of Experience before turn-in.",
+    "updateKind": "content",
+    "requiresClientUpdate": true
+  },
+  "files": [
+    {
+      "path": "Interface/AddOns/ProjectSkillful/Equipment.lua",
+      "url": "payload/Interface/AddOns/ProjectSkillful/Equipment.lua",
+      "size": 4339,
+      "sha256": "87E914C44C45EDA2FEF842D4DC0FF3B95C6E31434C481416AAA9673B0E70820C"
+    },
+    {
+      "path": "Interface/AddOns/ProjectSkillful/ProjectSkillful.lua",
+      "url": "payload/Interface/AddOns/ProjectSkillful/ProjectSkillful.lua",
+      "size": 68522,
+      "sha256": "FD6C07A932AF0C024AE2E140C79899FE54DA963C92169FBC72E58F1DDF55B2C0"
+    },
+    {
+      "path": "Interface/AddOns/ProjectSkillful/ProjectSkillful.toc",
+      "url": "payload/Interface/AddOns/ProjectSkillful/ProjectSkillful.toc",
+      "size": 257,
+      "sha256": "6AB1009E887E53CEAA9A2B7B9F40914E14B0B990955C4296921BD1D8959AC64E"
+    },
+    {
+      "path": "Interface/AddOns/ProjectSkillful/QuestRewards.lua",
+      "url": "payload/Interface/AddOns/ProjectSkillful/QuestRewards.lua",
+      "size": 6068,
+      "sha256": "268D368AF1567712FA61618160A6E759F8B013AF24EFC9364531AAC5E13B0DF0"
+    },
+    {
+      "path": "Interface/AddOns/ProjectSkillful/README.md",
+      "url": "payload/Interface/AddOns/ProjectSkillful/README.md",
+      "size": 6183,
+      "sha256": "1DB42FFA97BD4D6811F673F8AE63601FD2219562E0EB4785E46E94B3380F1A9A"
+    }
+  ]
+}
