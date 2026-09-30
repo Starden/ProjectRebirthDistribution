@@ -1,0 +1,16 @@
+name: check-skillful-gateway
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  protocol:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify Skillful login and game protocol from outside the host network
+        run: python3 tools/Test-SkillfulGatewayProtocol.py
