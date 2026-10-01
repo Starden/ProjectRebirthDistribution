@@ -1,6 +1,6 @@
 # Project Skillful addon
 
-WoW 3.3.5a progression display for Project Skillful (addon v0.11.6). Copy this directory under a legal
+WoW 3.3.5a progression display for Project Skillful (addon v0.11.7). Copy this directory under a legal
 client's `Interface\AddOns` directory, enable it at character selection, and enter `/skillful` or use
 the Skills button on the menu bar (between Talents and Achievements).
 
@@ -96,10 +96,12 @@ If your equipment has an unsupported item, random affix, special effect or encha
 The 26 held first-batch entries still need mappings. Native item text is retained for wider-world use.
 Weapon skills are unchanged.
 
-## Cruel Barb reference tooltip trial (0.11.6)
+## Cruel Barb reference tooltip trial (0.11.7)
 
 Only Cruel Barb (5191) replaces its normal tooltip with the requested item layout:
 its own rarity-colored name/native icon and binding, One-Hand/Sword header,
+then a gold `Tier N - Step` line directly underneath using the server's catalog
+(Cruel Barb is currently `Tier 3 - Entry`),
 grouped melee offense/five defense lines, trained Attack20 requirement with your current level, and
 Edwin VanCleef drop source. Existing approved/authenticated server bonus data is
 used; Stab/Slash/Crush/Ranged/Magic order is preserved (Stab displayed as Pierce).
@@ -108,7 +110,7 @@ not percentages or flat damage. All approved two-decimal values are retained.
 A solid dark navy texture fills the body; tinting the stock background alone left
 the scene visible in the owner's 0.11.5 screenshot. Requirements turn red when unmet and white
 when met. The body refreshes in place, retaining the hovered item's binding and
-native owner/anchors. Normal damage/AP/flavor/debug-tier rows are omitted from
+native owner/anchors. Normal damage/AP/flavor rows are omitted from
 this Northshire view. There is no fabricated set or effect. Other items retain
 the existing preview/tooltips; actual combat values/requirements are unchanged.
 
@@ -124,4 +126,5 @@ client artwork is bundled; the icon is supplied by the client's GetItemInfo.
 The addon-free trial was visually rejected: stock WoW quotes descriptions below
 its retained weapon/spell lines. Its description is withdrawn by the additive
 2026_10_01_01 world migration. Enable ProjectSkillful in AddOns for this new trial.
-Real-client size/wrapping/comparison rendering still needs the owner's check.
+The owner accepted the cleaned 0.11.6 layout and solid background. The new tier
+line's real-client placement and comparison rendering still need the owner's check.

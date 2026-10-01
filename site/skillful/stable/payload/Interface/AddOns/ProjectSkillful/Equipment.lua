@@ -175,6 +175,7 @@ local function renderCruel(tooltip, link, definition, balance)
     tooltip:AddLine(data.name,data.r,data.g,data.b)
     if data.binding then tooltip:AddLine(data.binding,1,1,1) end
     tooltip:AddDoubleLine(data.slot,data.subtype,1,1,1,1,1,1)
+    tooltip:AddLine("Tier " .. definition.tier .. " - " .. steps[definition.step + 1],1,0.82,0)
     tooltip:AddLine(" ")
     tooltip:AddLine("Melee offense",1,0.82,0)
     tooltip:AddLine(string.format("+%.2f Accuracy (hit chance)",balance.accuracy),1,1,1)
