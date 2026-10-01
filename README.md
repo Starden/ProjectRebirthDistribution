@@ -8,7 +8,7 @@ Choose **Rebirth** or **Skillful** in the launcher before opening WoW. Each game
 
 - Launcher **2.2.0**, required for the new Skillful feed.
 - Rebirth content **0.1.34**; its existing payloads and preparation remain unchanged.
-- Skillful addon **0.11.5**, with a Cruel Barb tooltip layout trial and Northshire equipment bonus previews, visible Bottle of Experience quest rewards and locally prepared Hero/ranged data and vial art.
+- Skillful addon **0.11.6**, with clearer Cruel Barb bonus groups, trained Attack requirement and a solid tooltip background and Northshire equipment bonus previews, visible Bottle of Experience quest rewards and locally prepared Hero/ranged data and vial art.
 
 Existing player accounts now have Skillful access. Rebirth accounts newly copied to Skillful use the same password; accounts that already existed on Skillful retain their Skillful password. No password reset is required for this update.
 

@@ -1,6 +1,6 @@
 # Project Skillful addon
 
-WoW 3.3.5a progression display for Project Skillful (addon v0.11.4). Copy this directory under a legal
+WoW 3.3.5a progression display for Project Skillful (addon v0.11.6). Copy this directory under a legal
 client's `Interface\AddOns` directory, enable it at character selection, and enter `/skillful` or use
 the Skills button on the menu bar (between Talents and Achievements).
 
@@ -76,7 +76,7 @@ The server's native self-whisper echo of this request is ignored by the catalog 
 Definitions remain hidden until `BEGIN`, all rows, and a matching `END|count` arrive.
 
 After an addon update, enter `/reload` and hover the item again. Cruel Barb should show
-`Requires Attack (20)` for this slice. Equipment power remains native pending normalization.
+`Requires Attack 20 (yours: N)` for this slice. This is trained Attack, not combat level.
 
 No patches or protected Blizzard assets are required or bundled.
 
@@ -96,26 +96,29 @@ If your equipment has an unsupported item, random affix, special effect or encha
 The 26 held first-batch entries still need mappings. Native item text is retained for wider-world use.
 Weapon skills are unchanged.
 
-## Cruel Barb reference tooltip trial (0.11.5)
+## Cruel Barb reference tooltip trial (0.11.6)
 
 Only Cruel Barb (5191) replaces its normal tooltip with the requested item layout:
 its own rarity-colored name/native icon and binding, One-Hand/Sword header,
-separate accuracy/power/five defense lines, trained Attack20 requirement, and
+grouped melee offense/five defense lines, trained Attack20 requirement with your current level, and
 Edwin VanCleef drop source. Existing approved/authenticated server bonus data is
 used; Stab/Slash/Crush/Ranged/Magic order is preserved (Stab displayed as Pierce).
-The background is opaque dark navy. Requirements turn red when unmet and white
+Accuracy is labeled as hit chance and Power as maximum hit; these are bonus points,
+not percentages or flat damage. All approved two-decimal values are retained.
+A solid dark navy texture fills the body; tinting the stock background alone left
+the scene visible in the owner's 0.11.5 screenshot. Requirements turn red when unmet and white
 when met. The body refreshes in place, retaining the hovered item's binding and
 native owner/anchors. Normal damage/AP/flavor/debug-tier rows are omitted from
 this Northshire view. There is no fabricated set or effect. Other items retain
 the existing preview/tooltips; actual combat values/requirements are unchanged.
 
-The gray Northshire scope and orange unsupported-loadout notice remain truthful:
+The gray "Bonuses: Northshire test creatures only" and orange "Inactive: unsupported equipment" remain truthful:
 these bonuses apply only against the configured Northshire test creatures with
 supported equipment. Wider-world combat still uses the existing item behavior.
 Both committed server catalogs and cached native identity are required; stale,
 malformed/unsupported protocol or missing data restores the standard tooltip.
 GameTooltip, linked items and both comparison tooltip frames are covered. Icon
-and custom colors are removed when changing items or hiding the tooltip. No
+and solid fill/custom colors are removed when changing items or hiding the tooltip. No
 client artwork is bundled; the icon is supplied by the client's GetItemInfo.
 
 The addon-free trial was visually rejected: stock WoW quotes descriptions below

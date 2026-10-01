@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "product": "Project Skillful",
   "channel": "stable",
-  "contentVersion": "0.11.5",
+  "contentVersion": "0.11.6",
   "contentEpoch": 0,
-  "publishedAtUtc": "2026-10-01T14:06:15.2003310Z",
-  "expiresAtUtc": "2026-10-31T14:06:15.2003310Z",
+  "publishedAtUtc": "2026-10-01T14:23:38.5709250Z",
+  "expiresAtUtc": "2026-10-31T14:23:38.5709250Z",
   "minimumLauncherVersion": "2.2.0",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
@@ -17,8 +17,8 @@
     "worldPort": 8085
   },
   "release": {
-    "headline": "Skillful - Cruel Barb tooltip layout trial",
-    "summary": "Cruel Barb uses a clean item tooltip with its own icon, separate Skillful bonuses, trained Attack requirement and drop source. The rejected quoted description is removed. Item values and other item tooltips are unchanged.",
+    "headline": "Skillful - Cruel Barb tooltip cleanup",
+    "summary": "Cruel Barb now groups melee and defense bonuses, explains Accuracy and Power, shows your trained Attack level, and uses a solid dark background. Combat values are unchanged.",
     "updateKind": "hotfix",
     "requiresClientUpdate": true
   },
@@ -26,20 +26,20 @@
     {
       "path": "Interface/AddOns/ProjectSkillful/Equipment.lua",
       "url": "payload/Interface/AddOns/ProjectSkillful/Equipment.lua",
-      "size": 13778,
-      "sha256": "0CC42F46CB8CD53FE78BC65ABCDFE9020466D67F3E00153DC353B343A70B298F"
+      "size": 14736,
+      "sha256": "259F9FE0DC7FE8387717BB31B1C6DC2150FB83582BBC311DB448A225E9EAE159"
     },
     {
       "path": "Interface/AddOns/ProjectSkillful/ProjectSkillful.lua",
       "url": "payload/Interface/AddOns/ProjectSkillful/ProjectSkillful.lua",
       "size": 68522,
-      "sha256": "DE224163D95FA548170C974F81992DF2F5A4F7A0E21D5E41E1585E18ACAF5B3F"
+      "sha256": "72076B61529E98F2E46D1FC5BA4F0756946BD6CEE7FFB51101FCF03A011CFA8C"
     },
     {
       "path": "Interface/AddOns/ProjectSkillful/ProjectSkillful.toc",
       "url": "payload/Interface/AddOns/ProjectSkillful/ProjectSkillful.toc",
       "size": 257,
-      "sha256": "3911DF91406419263584DF25DCADA0B45AD3737C4172670F2334406409136D76"
+      "sha256": "18F5FB5464FCC39614BAAFECBF8CFEE99FA0697020149170D277CAF2FFD708AD"
     },
     {
       "path": "Interface/AddOns/ProjectSkillful/QuestRewards.lua",
@@ -50,8 +50,8 @@
     {
       "path": "Interface/AddOns/ProjectSkillful/README.md",
       "url": "payload/Interface/AddOns/ProjectSkillful/README.md",
-      "size": 8607,
-      "sha256": "1035AF442A91ED6C2F5CA8DB74D7F9C118837100C67C9A91BD7DAB3F9566A3C3"
+      "size": 8930,
+      "sha256": "EB10C7EBD9DC68CD74AC03E91763622C9EDA0403C1AC4AEF1C09DE69B5D2BC94"
     }
   ]
 }

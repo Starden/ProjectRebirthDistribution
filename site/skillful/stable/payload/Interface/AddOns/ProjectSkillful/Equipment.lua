@@ -102,11 +102,12 @@ local function clearCruelPresentation(tooltip)
     if tooltip.skillfulCruelBackdrop then tooltip:SetBackdropColor(unpack(tooltip.skillfulCruelBackdrop)) end
     if tooltip.skillfulCruelBorder then tooltip:SetBackdropBorderColor(unpack(tooltip.skillfulCruelBorder)) end
     if tooltip.skillfulCruelIcon then tooltip.skillfulCruelIcon:Hide() end
+    if tooltip.skillfulCruelFill then tooltip.skillfulCruelFill:Hide() end
     tooltip.skillfulCruelData, tooltip.skillfulCruelBackdrop, tooltip.skillfulCruelBorder = nil, nil, nil
 end
 
 local function cruelSnapshot(tooltip, link)
-    local name, _, quality, _, _, _, subtype, _, location, icon = GetItemInfo(link)
+    local name, _, quality, _, _, _, _, _, location, icon = GetItemInfo(link)
     if not name or not quality or not icon then return nil end
     local r,g,b = GetItemQualityColor(quality)
     local binding
@@ -120,7 +121,21 @@ local function cruelSnapshot(tooltip, link)
         end
     end
     return {link=link, name=name, binding=binding, slot=_G[location] or "One-Hand",
-        subtype=subtype or "Sword", icon=icon, r=r, g=g, b=b}
+        subtype="Sword", icon=icon, r=r, g=g, b=b}
+end
+
+local function showCruelFill(tooltip)
+    local fill = tooltip.skillfulCruelFill
+    if not fill then
+        -- Wrath's backdrop artwork contains transparency even at color alpha 1.
+        -- Use the legacy solid-color texture API, below the text and inside the border.
+        fill = tooltip:CreateTexture(nil,"BACKGROUND")
+        fill:SetPoint("TOPLEFT",tooltip,"TOPLEFT",4,-4)
+        fill:SetPoint("BOTTOMRIGHT",tooltip,"BOTTOMRIGHT",-4,4)
+        fill:SetTexture(0.025,0.03,0.09,1)
+        tooltip.skillfulCruelFill = fill
+    end
+    fill:Show()
 end
 
 local function showCruelIcon(tooltip, texture)
@@ -160,27 +175,35 @@ local function renderCruel(tooltip, link, definition, balance)
     tooltip:AddLine(data.name,data.r,data.g,data.b)
     if data.binding then tooltip:AddLine(data.binding,1,1,1) end
     tooltip:AddDoubleLine(data.slot,data.subtype,1,1,1,1,1,1)
-    tooltip:AddLine(string.format("+%.2f Melee Accuracy",balance.accuracy),1,1,1)
-    tooltip:AddLine(string.format("+%.2f Melee Power",balance.power),1,1,1)
+    tooltip:AddLine(" ")
+    tooltip:AddLine("Melee offense",1,0.82,0)
+    tooltip:AddLine(string.format("+%.2f Accuracy (hit chance)",balance.accuracy),1,1,1)
+    tooltip:AddLine(string.format("+%.2f Power (maximum hit)",balance.power),1,1,1)
+    tooltip:AddLine(" ")
+    tooltip:AddLine("Defense bonuses",1,0.82,0)
     -- B|1 contract order is Stab / Slash / Crush / Ranged / Magic.
-    for _, style in ipairs({{3,"Crush"},{2,"Slash"},{1,"Pierce"},{4,"Ranged"},{5,"Magic"}}) do
+    for _, style in ipairs({{1,"Pierce"},{2,"Slash"},{3,"Crush"},{4,"Ranged"},{5,"Magic"}}) do
         tooltip:AddLine(string.format("+%.2f %s Defense",balance.defence[style[1]],style[2]),1,1,1)
     end
+    tooltip:AddLine(" ")
     for _, requirement in ipairs(definition.requirements) do
         local trained = PS.state.skills[requirement[1]]
         local r,g,b = 1,1,1
         if not trained then r,g,b = 0.6,0.6,0.6
         elseif trained.level < requirement[2] then r,g,b = 1,0.125,0.125 end
-        tooltip:AddLine("Requires " .. skillNames[requirement[1]] .. " (" .. requirement[2] .. ")",r,g,b)
+        local current = trained and tostring(trained.level) or "unknown"
+        tooltip:AddLine("Requires " .. skillNames[requirement[1]] .. " " .. requirement[2] ..
+            " (yours: " .. current .. ")",r,g,b)
     end
     tooltip:AddLine(" ")
-    tooltip:AddLine("Northshire combat bonuses",0.6,0.6,0.6)
+    tooltip:AddLine("Bonuses: Northshire test creatures only",0.6,0.6,0.6,true)
     if balanceLoadout and not balanceLoadout.active then
-        tooltip:AddLine("Inactive with your current equipment",1,0.65,0.2)
+        tooltip:AddLine("Inactive: unsupported equipment",1,0.65,0.2,true)
     end
     tooltip:AddLine("Dropped by: Edwin VanCleef",1,1,1)
     tooltip:SetBackdropColor(0.025,0.03,0.09,1)
     tooltip:SetBackdropBorderColor(0.6,0.6,0.66,1)
+    showCruelFill(tooltip)
     showCruelIcon(tooltip,data.icon)
     tooltip:Show()
     tooltip.skillfulCruelRendering = nil
