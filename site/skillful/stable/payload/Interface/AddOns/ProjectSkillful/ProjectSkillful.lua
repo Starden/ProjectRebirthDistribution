@@ -1,7 +1,7 @@
 local addonName, PS = ...
 PS = PS or {}
 ProjectSkillful = PS
-PS.version = "0.11.8"
+PS.version = "0.12.0"
 PS.protocolVersion = 3
 PS.debug = false
 PS.state = PS.state or { skills = {} }

@@ -1,6 +1,6 @@
 # Project Skillful addon
 
-WoW 3.3.5a progression display for Project Skillful (addon v0.11.8). Copy this directory under a legal
+WoW 3.3.5a progression display for Project Skillful (addon v0.12.0). Copy this directory under a legal
 client's `Interface\AddOns` directory, enable it at character selection, and enter `/skillful` or use
 the Skills button on the menu bar (between Talents and Achievements).
 
@@ -98,44 +98,40 @@ skill row already exists. Profession ranks continue to mirror Skillful experienc
 Mining opens Smelting; gathering professions provide their native gathering action.
 Secure profession buttons explicitly use a left-button release. Relog after this server update.
 
-## First item-balance slice
+## Northshire equipment (0.12.0)
 
-Supported equipment shows Northshire bonus previews for accuracy, power and five defence styles.
-The first batch contains 164 static items, including starter equipment and Cruel Barb.
-These bonuses apply against the existing Northshire test creatures. Other world combat keeps its current rules.
-If your equipment has an unsupported item, random affix, special effect or enchant, your whole loadout keeps the existing rules; the tooltip reports that state.
-The 26 held first-batch entries still need mappings. Native item text is retained for wider-world use.
-Weapon skills are unchanged.
+The approved v0.1 budgets now cover 165 static items and 167 exact physical
+item/affix pairs across 20 more Northshire items. The two free test vendors still
+supply all190 test items. The other347 affix pairs, four Magic/recovery items and
+Tribal Pants remain held; unsupported equipment keeps the whole previous combat
+path. Native templates, instances, rolled names, prices and weapon skills are preserved.
 
-## Cruel Barb reference tooltip trial (0.11.7)
+All supported items use the accepted Cruel Barb layout: native rarity/name/icon
+and actual binding, equipment slot/type/material, then gold Tier N - Step directly
+underneath. Offense and five defense styles appear in clear groups, with permanent
+trained-skill gates and your current levels. Armor's active-family offense follows
+the current physical style; this does not grant simultaneous melee and ranged bonuses.
+The two ungated starter fixtures retain their approved Tier1/Entry presentation.
+Only Cruel Barb shows its verified Edwin VanCleef source; no other drop sources,
+sets or effects are fabricated. Item points retain two decimals; the character
+pane shows the separately supplied effective whole-loadout totals.
 
-Only Cruel Barb (5191) replaces its normal tooltip with the requested item layout:
-its own rarity-colored name/native icon and binding, One-Hand/Sword header,
-then a gold `Tier N - Step` line directly underneath using the server's catalog
-(Cruel Barb is currently `Tier 3 - Entry`),
-grouped melee offense/five defense lines, trained Attack20 requirement with your current level, and
-Edwin VanCleef drop source. Existing approved/authenticated server bonus data is
-used; Stab/Slash/Crush/Ranged/Magic order is preserved (Stab displayed as Pierce).
-Accuracy is labeled as hit chance and Power as maximum hit; these are bonus points,
-not percentages or flat damage. All approved two-decimal values are retained.
-A solid dark navy texture fills the body; tinting the stock background alone left
-the scene visible in the owner's 0.11.5 screenshot. Requirements turn red when unmet and white
-when met. The body refreshes in place, retaining the hovered item's binding and
-native owner/anchors. Normal damage/AP/flavor rows are omitted from
-this Northshire view. There is no fabricated set or effect. Other items retain
-the existing preview/tooltips; actual combat values/requirements are unchanged.
+The authenticated atomic A|1 extension identifies each supported host/property
+pair alongside existing B|1 static definitions, E|1 gates and L|1 effective totals.
+The hovered link's property ID must match exactly. A partial/malformed/unsupported
+catalog clears stale data. Unexpected variants or added enchant/gem modifiers keep
+the native tooltip and show an unmapped-state notice. Old addons ignore A|1 safely.
+No DBC records or client art are bundled; identities and icons come from GetItemInfo.
 
-The gray "Bonuses: Northshire test creatures only" and orange "Inactive: unsupported equipment" remain truthful:
-these bonuses apply only against the configured Northshire test creatures with
-supported equipment. Wider-world combat still uses the existing item behavior.
-Both committed server catalogs and cached native identity are required; stale,
-malformed/unsupported protocol or missing data restores the standard tooltip.
-GameTooltip, linked items and both comparison tooltip frames are covered. Icon
-and solid fill/custom colors are removed when changing items or hiding the tooltip. No
-client artwork is bundled; the icon is supplied by the client's GetItemInfo.
+The opaque navy body and icon refresh in place across bags, vendors, linked items
+and comparison frames, retaining native owner/anchors and binding. Missing cached
+identity restores native text. Hide, item changes and rejected data clear the custom
+presentation. Bonuses apply only to configured Northshire test creatures; an orange
+inactive notice means the current whole loadout is unsupported. Wider-world combat
+continues to use existing item behavior. These points are not percentages or flat
+added damage. No gameplay formula, HP/Mana rule or weapon skill is changed.
 
-The addon-free trial was visually rejected: stock WoW quotes descriptions below
-its retained weapon/spell lines. Its description is withdrawn by the additive
-2026_10_01_01 world migration. Enable ProjectSkillful in AddOns for this new trial.
-The owner accepted the cleaned 0.11.6 layout and solid background. The new tier
-line's real-client placement and comparison rendering still need the owner's check.
+The owner accepted the Cruel Barb0.11.7 layout and character pane0.11.8. Expanded
+armor/ranged/affix layouts and real-client equip/relog checks remain owner acceptance.
+The rejected addon-free Cruel Barb description stays withdrawn. Enable ProjectSkillful
+in AddOns for these tooltips.

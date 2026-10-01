@@ -2,20 +2,56 @@ local PS = ProjectSkillful
 if not PS then return end
 local catalog, pending = {}, nil
 local balanceCatalog, balancePending, balanceLoadout = {}, nil, nil
+local affixCatalog, affixPending = {}, nil
 local skillNames = { "Attack", "Strength", "Defence", "Vitality", "Ranged", "Magic", "Devotion" }
 local steps = { "Entry", "Standard", "Advanced", "Pinnacle" }
 
 PS.ClearEquipmentCatalog = function()
     catalog, pending = {}, nil
     balanceCatalog, balancePending, balanceLoadout = {}, nil, nil
+    affixCatalog, affixPending = {}, nil
     if PS.RefreshEquipmentTooltips then PS.RefreshEquipmentTooltips() end
 end
 PS.EquipmentRequirements = function(entry) return catalog[entry] end
-PS.ItemBalanceBonuses = function(entry) return balanceCatalog[entry] end
+PS.ItemBalanceBonuses = function(entry, property)
+    if property and property ~= 0 then return affixCatalog[entry .. ":" .. property] end
+    return balanceCatalog[entry]
+end
 PS.ItemBalanceLoadout = function() return balanceLoadout end
 local function clearBalance()
     balanceCatalog, balancePending, balanceLoadout = {}, nil, nil
+    affixCatalog, affixPending = {}, nil
     if PS.RefreshEquipmentTooltips then PS.RefreshEquipmentTooltips() end
+end
+local function affixMessage(message)
+    if string.sub(message,1,2) ~= "A|" then return false end
+    local function reject()
+        affixCatalog, affixPending = {}, nil
+        balanceLoadout = nil
+        if PS.RefreshEquipmentTooltips then PS.RefreshEquipmentTooltips() end
+        return true
+    end
+    if tonumber(string.match(message,"^A|(%d+)|")) ~= 1 then return reject() end
+    if message == "A|1|BEGIN" then affixPending = {}; return true end
+    local count=tonumber(string.match(message,"^A|1|END|(%d+)$"))
+    if count then
+        local actual=0
+        if affixPending then for _ in pairs(affixPending) do actual=actual+1 end end
+        if not affixPending or actual~=count then return reject() end
+        affixCatalog, affixPending = affixPending, nil
+        if PS.RefreshEquipmentTooltips then PS.RefreshEquipmentTooltips() end
+        return true
+    end
+    local id,property,family,accuracy,power,stab,slash,crush,ranged,magic =
+        string.match(message,"^A|1|(%d+)|(%d+)|(%d+)|(%d+%.%d+)|(%d+%.%d+)|(%d+%.%d+)|(%d+%.%d+)|(%d+%.%d+)|(%d+%.%d+)|(%d+%.%d+)$")
+    id,property,family=tonumber(id),tonumber(property),tonumber(family)
+    local values={tonumber(accuracy),tonumber(power),tonumber(stab),tonumber(slash),tonumber(crush),tonumber(ranged),tonumber(magic)}
+    local valid=affixPending and id and id>0 and property and property>0 and property<2147483648 and family and family<=2 and #values==7
+    if valid then for _,value in ipairs(values) do if value>1000 then valid=false end end end
+    local key=valid and (id .. ":" .. property)
+    if not valid or affixPending[key] then return reject() end
+    affixPending[key]={family=family,accuracy=values[1],power=values[2],defence={values[3],values[4],values[5],values[6],values[7]}}
+    return true
 end
 local function balanceMessage(message)
     local kind = string.sub(message,1,2)
@@ -61,6 +97,7 @@ local function balanceMessage(message)
     return true
 end
 PS.HandleEquipmentMessage = function(message)
+    if affixMessage(message) then return true end
     if balanceMessage(message) then return true end
     if string.sub(message, 1, 2) ~= "E|" then return false end
     -- AzerothCore delivers the catalog before echoing our self-whisper request.
@@ -94,21 +131,50 @@ PS.HandleEquipmentMessage = function(message)
     return true
 end
 
--- One-item presentation trial. Values remain authenticated server definitions;
--- native combat data is not changed. Preserve the hovered instance's binding and
--- tooltip owner/anchors while refreshing the custom body in place.
-local function clearCruelPresentation(tooltip)
-    if tooltip.skillfulCruelRendering then return end
-    if tooltip.skillfulCruelBackdrop then tooltip:SetBackdropColor(unpack(tooltip.skillfulCruelBackdrop)) end
-    if tooltip.skillfulCruelBorder then tooltip:SetBackdropBorderColor(unpack(tooltip.skillfulCruelBorder)) end
-    if tooltip.skillfulCruelIcon then tooltip.skillfulCruelIcon:Hide() end
-    if tooltip.skillfulCruelFill then tooltip.skillfulCruelFill:Hide() end
-    tooltip.skillfulCruelData, tooltip.skillfulCruelBackdrop, tooltip.skillfulCruelBorder = nil, nil, nil
+-- The accepted item layout uses authenticated static definitions. Preserve the
+-- hovered instance's identity/binding and native owner/anchors during refresh.
+-- These two starter fixtures have approved Tier 1 / Entry budgets but no skill gate.
+local starterDefinitions = {
+    [39]={tier=1,step=0,requirements={}}, [40]={tier=1,step=0,requirements={}}
+}
+local shortTypes = {
+    ["One-Handed Swords"]="Sword", ["Two-Handed Swords"]="Sword",
+    ["One-Handed Axes"]="Axe", ["Two-Handed Axes"]="Axe",
+    ["One-Handed Maces"]="Mace", ["Two-Handed Maces"]="Mace",
+    ["Daggers"]="Dagger", ["Staves"]="Staff", ["Polearms"]="Polearm",
+    ["Bows"]="Bow", ["Guns"]="Gun", ["Crossbows"]="Crossbow",
+    ["Fist Weapons"]="Fist Weapon", ["Shields"]="Shield"
+}
+local function itemModifiers(link)
+    local fields = link and string.match(link,"item:([%d:%-]+)")
+    local index, property, unsupported = 0, 0, false
+    for value in string.gmatch((fields or "") .. ":", "([^:]*):") do
+        index = index + 1
+        -- Native link: entry, enchant, four gems, random property, unique id, ...
+        if index >= 2 and index <= 6 and (tonumber(value) or 0) ~= 0 then unsupported=true end
+        if index==7 then property=tonumber(value) or 0; if property<0 then unsupported=true end end
+    end
+    return property, unsupported
+end
+local function linkBalance(id,link)
+    local property, unsupported=itemModifiers(link)
+    if unsupported then return nil,true end
+    local balance=PS.ItemBalanceBonuses(id,property)
+    return balance, property~=0 and not balance
+end
+local function clearItemPresentation(tooltip)
+    if tooltip.skillfulItemRendering then return end
+    if tooltip.skillfulItemBackdrop then tooltip:SetBackdropColor(unpack(tooltip.skillfulItemBackdrop)) end
+    if tooltip.skillfulItemBorder then tooltip:SetBackdropBorderColor(unpack(tooltip.skillfulItemBorder)) end
+    if tooltip.skillfulItemIcon then tooltip.skillfulItemIcon:Hide() end
+    if tooltip.skillfulItemFill then tooltip.skillfulItemFill:Hide() end
+    tooltip.skillfulItemData, tooltip.skillfulItemBackdrop, tooltip.skillfulItemBorder = nil, nil, nil
 end
 
-local function cruelSnapshot(tooltip, link)
-    local name, _, quality, _, _, _, _, _, location, icon = GetItemInfo(link)
-    if not name or not quality or not icon then return nil end
+local function itemSnapshot(tooltip, link)
+    local name, _, quality, _, _, _, subtype, _, location, icon = GetItemInfo(link)
+    if not name or not quality or not icon or not location or not _G[location] then return nil end
+    name=string.match(link,"|h%[(.-)%]|h") or name -- Keep the actual rolled affix name.
     local r,g,b = GetItemQualityColor(quality)
     local binding
     local frameName = tooltip:GetName()
@@ -120,12 +186,12 @@ local function cruelSnapshot(tooltip, link)
             binding = text; break
         end
     end
-    return {link=link, name=name, binding=binding, slot=_G[location] or "One-Hand",
-        subtype="Sword", icon=icon, r=r, g=g, b=b}
+    return {link=link, name=name, binding=binding, slot=_G[location],
+        subtype=shortTypes[subtype] or subtype or "", icon=icon, r=r, g=g, b=b}
 end
 
-local function showCruelFill(tooltip)
-    local fill = tooltip.skillfulCruelFill
+local function showItemFill(tooltip)
+    local fill = tooltip.skillfulItemFill
     if not fill then
         -- Wrath's backdrop artwork contains transparency even at color alpha 1.
         -- Use the legacy solid-color texture API, below the text and inside the border.
@@ -133,13 +199,13 @@ local function showCruelFill(tooltip)
         fill:SetPoint("TOPLEFT",tooltip,"TOPLEFT",4,-4)
         fill:SetPoint("BOTTOMRIGHT",tooltip,"BOTTOMRIGHT",-4,4)
         fill:SetTexture(0.025,0.03,0.09,1)
-        tooltip.skillfulCruelFill = fill
+        tooltip.skillfulItemFill = fill
     end
     fill:Show()
 end
 
-local function showCruelIcon(tooltip, texture)
-    local frame = tooltip.skillfulCruelIcon
+local function showItemIcon(tooltip, texture)
+    local frame = tooltip.skillfulItemIcon
     if not frame then
         frame = CreateFrame("Frame", nil, tooltip)
         frame:SetWidth(64); frame:SetHeight(64)
@@ -154,30 +220,32 @@ local function showCruelIcon(tooltip, texture)
         frame.texture = frame:CreateTexture(nil,"ARTWORK")
         frame.texture:SetPoint("TOPLEFT",frame,"TOPLEFT",8,-8)
         frame.texture:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",-8,8)
-        tooltip.skillfulCruelIcon = frame
+        tooltip.skillfulItemIcon = frame
     end
     frame.texture:SetTexture(texture)
     frame:Show()
 end
 
-local function renderCruel(tooltip, link, definition, balance)
-    if not definition or not balance or balance.family ~= 1 then return false end
-    local data = tooltip.skillfulCruelData or cruelSnapshot(tooltip, link)
+local function renderItem(tooltip, link, definition, balance)
+    if not definition or not balance or balance.family == 3 then return false end
+    local cached = tooltip.skillfulItemData
+    local data = cached and cached.link == link and cached or itemSnapshot(tooltip, link)
     if not data then return false end -- Leave the native tooltip usable while item data loads.
-    if not tooltip.skillfulCruelBackdrop then
-        tooltip.skillfulCruelBackdrop = {tooltip:GetBackdropColor()}
-        tooltip.skillfulCruelBorder = {tooltip:GetBackdropBorderColor()}
+    if not tooltip.skillfulItemBackdrop then
+        tooltip.skillfulItemBackdrop = {tooltip:GetBackdropColor()}
+        tooltip.skillfulItemBorder = {tooltip:GetBackdropBorderColor()}
     end
-    tooltip.skillfulCruelRendering = true
+    tooltip.skillfulItemRendering = true
     tooltip:ClearLines()
-    tooltip.skillfulCruelData = data
+    tooltip.skillfulItemData = data
     tooltip.skillfulEquipmentAdded = true
     tooltip:AddLine(data.name,data.r,data.g,data.b)
     if data.binding then tooltip:AddLine(data.binding,1,1,1) end
     tooltip:AddDoubleLine(data.slot,data.subtype,1,1,1,1,1,1)
     tooltip:AddLine("Tier " .. definition.tier .. " - " .. steps[definition.step + 1],1,0.82,0)
     tooltip:AddLine(" ")
-    tooltip:AddLine("Melee offense",1,0.82,0)
+    local offense = ({[0]="Melee / ranged offense",[1]="Melee offense",[2]="Ranged offense"})[balance.family]
+    tooltip:AddLine(offense,1,0.82,0)
     tooltip:AddLine(string.format("+%.2f Accuracy (hit chance)",balance.accuracy),1,1,1)
     tooltip:AddLine(string.format("+%.2f Power (maximum hit)",balance.power),1,1,1)
     tooltip:AddLine(" ")
@@ -198,28 +266,33 @@ local function renderCruel(tooltip, link, definition, balance)
     end
     tooltip:AddLine(" ")
     tooltip:AddLine("Bonuses: Northshire test creatures only",0.6,0.6,0.6,true)
+    if balance.family == 0 then
+        tooltip:AddLine("Offense follows your active physical style",0.6,0.6,0.6,true)
+    end
     if balanceLoadout and not balanceLoadout.active then
         tooltip:AddLine("Inactive: unsupported equipment",1,0.65,0.2,true)
     end
-    tooltip:AddLine("Dropped by: Edwin VanCleef",1,1,1)
+    if tonumber(string.match(link,"item:(%d+):")) == 5191 then
+        tooltip:AddLine("Dropped by: Edwin VanCleef",1,1,1)
+    end
     tooltip:SetBackdropColor(0.025,0.03,0.09,1)
     tooltip:SetBackdropBorderColor(0.6,0.6,0.66,1)
-    showCruelFill(tooltip)
-    showCruelIcon(tooltip,data.icon)
+    showItemFill(tooltip)
+    showItemIcon(tooltip,data.icon)
     tooltip:Show()
-    tooltip.skillfulCruelRendering = nil
+    tooltip.skillfulItemRendering = nil
     return true
 end
 
 PS.RenderEquipmentTooltip = function(tooltip)
-    if tooltip.skillfulCruelRendering then return end
+    if tooltip.skillfulItemRendering then return end
     local _, link = tooltip:GetItem()
-    link = link or (tooltip.skillfulCruelData and tooltip.skillfulCruelData.link)
+    link = link or (tooltip.skillfulItemData and tooltip.skillfulItemData.link)
     local id = link and tonumber(string.match(link, "item:(%d+):"))
     local definition = id and catalog[id]
-    local balance = id and balanceCatalog[id]
+    local balance, unsupported = linkBalance(id,link)
     if (not definition and not balance) or tooltip.skillfulEquipmentAdded then return end
-    if id == 5191 and renderCruel(tooltip,link,definition,balance) then return end
+    if renderItem(tooltip,link,definition or starterDefinitions[id],balance) then return end
     tooltip.skillfulEquipmentAdded = true
     if definition then
     tooltip:AddLine("Tier " .. definition.tier .. " • " .. steps[definition.step + 1], 1, 0.82, 0)
@@ -239,6 +312,9 @@ PS.RenderEquipmentTooltip = function(tooltip)
         tooltip:AddLine(string.format("Defence: %.2f stab / %.2f slash / %.2f crush",balance.defence[1],balance.defence[2],balance.defence[3]),1,1,1)
         tooltip:AddLine(string.format("Defence: %.2f ranged / %.2f magic",balance.defence[4],balance.defence[5]),1,1,1)
         if balanceLoadout and not balanceLoadout.active then tooltip:AddLine("Rebalance inactive for your current equipment",1,0.65,0.2) end
+    elseif definition and next(balanceCatalog) then
+        tooltip:AddLine(unsupported and "Northshire bonuses: unsupported item modifiers" or
+            "Northshire bonuses: mapping pending",1,0.65,0.2,true)
     end
     tooltip:Show()
 end
@@ -251,12 +327,13 @@ PS.RefreshEquipmentTooltips = function()
     for _, tooltip in ipairs({GameTooltip, ItemRefTooltip, ShoppingTooltip1, ShoppingTooltip2}) do
         if tooltip and tooltip:IsShown() then
             local _, link = tooltip:GetItem()
-            local data = tooltip.skillfulCruelData
+            local data = tooltip.skillfulItemData
             link = link or (data and data.link)
             if link then
                 tooltip.skillfulEquipmentAdded = nil
                 local id = tonumber(string.match(link,"item:(%d+):"))
-                if not (data and id == 5191 and renderCruel(tooltip,link,catalog[id],balanceCatalog[id])) then
+                local balance=linkBalance(id,link)
+                if not (data and renderItem(tooltip,link,catalog[id] or starterDefinitions[id],balance)) then
                     tooltip:SetHyperlink(link)
                 end
             end
@@ -267,11 +344,11 @@ end
 for _, tooltip in ipairs({GameTooltip, ItemRefTooltip, ShoppingTooltip1, ShoppingTooltip2}) do
     if tooltip then
         tooltip:HookScript("OnTooltipCleared", function(self)
-            if self.skillfulCruelRendering then return end
+            if self.skillfulItemRendering then return end
             self.skillfulEquipmentAdded = nil
-            clearCruelPresentation(self)
+            clearItemPresentation(self)
         end)
-        tooltip:HookScript("OnHide", clearCruelPresentation)
+        tooltip:HookScript("OnHide", clearItemPresentation)
         tooltip:HookScript("OnTooltipSetItem", PS.RenderEquipmentTooltip)
     end
 end

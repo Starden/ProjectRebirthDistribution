@@ -8,7 +8,7 @@ Choose **Rebirth** or **Skillful** in the launcher before opening WoW. Each game
 
 - Launcher **2.2.0**, required for the new Skillful feed.
 - Rebirth content **0.1.34**; its existing payloads and preparation remain unchanged.
-- Skillful addon **0.11.8**, with a character equipment-bonuses pane and Cruel Barb tier/step beneath its weapon type, clearer bonus groups, trained Attack requirement and a solid tooltip background and Northshire equipment bonus previews, visible Bottle of Experience quest rewards and locally prepared Hero/ranged data and vial art.
+- Skillful addon **0.12.0**, with the accepted tiered tooltip layout across supported Northshire equipment, 167 approved physical affix variants, clear skill requirements and grouped bonuses, and the character equipment-bonuses pane.
 
 Existing player accounts now have Skillful access. Rebirth accounts newly copied to Skillful use the same password; accounts that already existed on Skillful retain their Skillful password. No password reset is required for this update.
 
@@ -24,7 +24,7 @@ See the [2.2.0 release notes](docs/RELEASE-NOTES-launcher-v2.2.0.md). Both games
 
 Preparation creates the required data from your own client and verifies the result. Original game archives and character settings are preserved. Unknown custom patches or incompatible source data are refused. Do not share one prepared client folder between the two games or edit `realmlist.wtf` manually.
 
-Rebirth retains all fourteen non-Monarch Heritage definitions, four-tree talent previews, current-level and level-80 Heirloom comparisons, the Currency tab, gear upgrades and Wardrobe. Both Heirloom tooltips remain visible at level 80. Existing item-cache preparation stays valid unless the launcher asks you to refresh it. Skillful retains its profession repair and equipment requirements. Its approved first item pass now uses 164 supported static item definitions against the Northshire test creatures. Unsupported equipment and enchants retain the existing combat rules; wider-world conversion and weapon-skill changes are pending.
+Rebirth retains all fourteen non-Monarch Heritage definitions, four-tree talent previews, current-level and level-80 Heirloom comparisons, the Currency tab, gear upgrades and Wardrobe. Both Heirloom tooltips remain visible at level 80. Existing item-cache preparation stays valid unless the launcher asks you to refresh it. Skillful retains its profession repair and equipment requirements. Its approved first item pass now uses 165 supported static item definitions and 167 exact physical affix mappings across 20 additional items against the Northshire test creatures. Five other item mappings and 347 unsupported affix variants remain held. Unsupported equipment and enchants retain the existing combat rules; wider-world conversion and weapon-skill changes are pending.
 
 New players can use **Start Here** to request an account and **Test Connection**. The owner reviews access before world entry. The [tester onboarding guide](docs/TESTER-ONBOARDING.md) contains further Rebirth guidance.
 
@@ -36,7 +36,7 @@ If an older launcher cannot start or update, close it and extract the complete l
 
 Launcher updates replace only the four package files. Verified backups are retained under `.reverie-update-*`; failed replacements restore the previous files where safe. Do not bypass signature or hash errors.
 
-The signed launcher and Skillful feeds are valid through October 30, 2026. Rebirth's existing signed content renewal is preserved. Feed renewal is an operator task, even when content has not changed.
+The signed launcher feed is valid through October 30, 2026; the Skillful feed is valid through October 31, 2026. Rebirth's existing signed content renewal is preserved. Feed renewal is an operator task, even when content has not changed.
 
 ## Public endpoints
 

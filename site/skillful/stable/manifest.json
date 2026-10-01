@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "product": "Project Skillful",
   "channel": "stable",
-  "contentVersion": "0.11.8",
+  "contentVersion": "0.12.0",
   "contentEpoch": 0,
-  "publishedAtUtc": "2026-10-01T16:41:22.3292550Z",
-  "expiresAtUtc": "2026-10-31T16:41:22.3292550Z",
+  "publishedAtUtc": "2026-10-01T17:07:30.3667156Z",
+  "expiresAtUtc": "2026-10-31T17:07:30.3667156Z",
   "minimumLauncherVersion": "2.2.0",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
@@ -17,29 +17,29 @@
     "worldPort": 8085
   },
   "release": {
-    "headline": "Skillful - Character equipment bonuses",
-    "summary": "The character equipment tab now shows effective Accuracy, Power and five defense totals beside the character sheet, with hover explanations and Northshire loadout status. Combat rules are unchanged.",
-    "updateKind": "hotfix",
+    "headline": "Northshire equipment and physical affixes",
+    "summary": "Supported Northshire equipment now uses the clear item layout with tiers, skill requirements and grouped bonuses. Approved physical affix variants show their own bonuses; unmapped variants remain identified.",
+    "updateKind": "content",
     "requiresClientUpdate": true
   },
   "files": [
     {
       "path": "Interface/AddOns/ProjectSkillful/Equipment.lua",
       "url": "payload/Interface/AddOns/ProjectSkillful/Equipment.lua",
-      "size": 14904,
-      "sha256": "700A5974F2F36DF62F31CE418CE5026F20B74396EAEF6713EE8FB06A02792041"
+      "size": 19056,
+      "sha256": "98F1717A0E27D84ADA279E2A56EE0622085A613F7D5273E2E4712C5FB119CD87"
     },
     {
       "path": "Interface/AddOns/ProjectSkillful/ProjectSkillful.lua",
       "url": "payload/Interface/AddOns/ProjectSkillful/ProjectSkillful.lua",
       "size": 76502,
-      "sha256": "7EE1A3541423446BDCDE32B1B2C71E7022ECA8B6E313F646F039F8C32F5E7848"
+      "sha256": "CD683EE58CD741F1F1486EF6D07159FA25270874C2CC2BDA4C8A0BAA494A85ED"
     },
     {
       "path": "Interface/AddOns/ProjectSkillful/ProjectSkillful.toc",
       "url": "payload/Interface/AddOns/ProjectSkillful/ProjectSkillful.toc",
       "size": 257,
-      "sha256": "8F1DFF7267B5F970D2F22667EB87214E557C68EC7D48FB99195FAB4F7BD4E2A1"
+      "sha256": "98F426DA225E8B473D47D6FC084C22D413D127436F4F5858D4CE66B933BE236B"
     },
     {
       "path": "Interface/AddOns/ProjectSkillful/QuestRewards.lua",
@@ -50,8 +50,8 @@
     {
       "path": "Interface/AddOns/ProjectSkillful/README.md",
       "url": "payload/Interface/AddOns/ProjectSkillful/README.md",
-      "size": 10115,
-      "sha256": "D42346F6B506AE0558B6702E751066E9C44440FEBA893E04880AAE4D541B14EA"
+      "size": 9697,
+      "sha256": "D20B066E9484E09C7DBB159ECEA5DF14ABF914932357128759F626931F480AE7"
     }
   ]
 }
