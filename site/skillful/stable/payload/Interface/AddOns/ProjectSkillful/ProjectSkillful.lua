@@ -1,7 +1,7 @@
 local addonName, PS = ...
 PS = PS or {}
 ProjectSkillful = PS
-PS.version = "0.12.0"
+PS.version = "0.12.1"
 PS.protocolVersion = 3
 PS.debug = false
 PS.state = PS.state or { skills = {} }
@@ -36,12 +36,12 @@ local FAMILIES = {
         title = "Combat",
         skills = {
             { 1, "Attack", "Ability_MeleeDamage" },
-            { 2, "Strength", "Ability_Warrior_InnerRage" },
+            { 2, "Strength", "Spell_Nature_Strength" },
             { 3, "Defence", "Ability_Warrior_DefensiveStance" },
-            { 4, "Vitality", "Spell_Holy_WordFortitude" },
+            { 4, "Vitality", "INV_Misc_Organ_01" },
             { 5, "Ranged", "Ability_Marksmanship" },
             { 6, "Magic", "Spell_Holy_MagicalSentry" },
-            { 7, "Devotion", "Spell_Holy_SealOfWisdom" },
+            { 7, "Devotion", "Spell_Holy_HolyGuidance" },
         },
     },
     {
@@ -94,7 +94,7 @@ end
 local TRAINING_BY_STYLE = {
     melee = {
         { 1, "Attack", "Interface\\Icons\\Ability_MeleeDamage" },
-        { 2, "Strength", "Interface\\Icons\\Ability_Warrior_InnerRage" },
+        { 2, "Strength", "Interface\\Icons\\Spell_Nature_Strength" },
         { 4, "Defence", "Interface\\Icons\\Ability_Warrior_DefensiveStance" },
     },
     ranged = {
@@ -778,12 +778,22 @@ end
 ---------------------------------------------------------------------------------------------------
 
 local PANEL_ART = "Interface\\PaperDollInfoFrame\\"
+-- OSRS-style skill tiles: three columns of recessed tiles, icon left, level as two stacked numbers.
 local GRID_COLUMNS = 3
-local GRID_LEFT = 23
-local GRID_TOP = -81
-local GRID_COLUMN_WIDTH = 108
+local GRID_LEFT = 25
+local GRID_TOP = -80
+local GRID_COLUMN_WIDTH = 107
 local GRID_ROW_HEIGHT = 32
-local SKILL_ICON_SIZE = 27
+local TILE_WIDTH = 103
+local TILE_HEIGHT = 30
+local SKILL_ICON_SIZE = 26
+-- OSRS level yellow.
+local LEVEL_YELLOW = { 1.0, 0.92, 0.0 }
+
+-- Footer: total level, combat level, quests completed — the OSRS skills tab's bottom row.
+local TOTAL_LEVEL_ICON = SKILLS_ICON
+local COMBAT_LEVEL_ICON = "Ability_DualWield"
+local QUESTS_ICON = "Achievement_Quests_Completed_06"
 
 local function RequestTrainingSelection(panel, clickedButton)
     local selection = 0
@@ -843,6 +853,75 @@ local function SetSkillIcon(texture, path, planned)
     if texture.SetDesaturated then texture:SetDesaturated(planned and 1 or nil) end
 end
 
+-- A recessed tile: dark well with a one-pixel bevel, dark above and left, lit below and right.
+local function AddRecess(frame)
+    local well = frame:CreateTexture(nil, "BACKGROUND")
+    well:SetAllPoints(frame)
+    well:SetTexture(0, 0, 0, 0.45)
+    local function Edge(r, g, b, a, point1, point2, horizontal)
+        local edge = frame:CreateTexture(nil, "BACKGROUND")
+        edge:SetTexture(r, g, b, a)
+        edge:SetPoint(point1, frame, point1, 0, 0)
+        edge:SetPoint(point2, frame, point2, 0, 0)
+        if horizontal then edge:SetHeight(1) else edge:SetWidth(1) end
+    end
+    Edge(0, 0, 0, 0.9, "TOPLEFT", "TOPRIGHT", true)
+    Edge(0, 0, 0, 0.9, "TOPLEFT", "BOTTOMLEFT", false)
+    Edge(1, 1, 1, 0.14, "BOTTOMLEFT", "BOTTOMRIGHT", true)
+    Edge(1, 1, 1, 0.14, "TOPRIGHT", "BOTTOMRIGHT", false)
+end
+
+local function LevelText(parent)
+    local text = parent:CreateFontString(nil, "OVERLAY", "NumberFontNormal")
+    text:SetTextColor(LEVEL_YELLOW[1], LEVEL_YELLOW[2], LEVEL_YELLOW[3])
+    return text
+end
+
+local function CreateFooterStat(page, iconName, x, title, description)
+    local stat = CreateFrame("Frame", nil, page)
+    stat:SetWidth(64)
+    stat:SetHeight(20)
+    stat:SetPoint("LEFT", page, "TOPLEFT", x, -422)
+    stat:EnableMouse(true)
+    local icon = stat:CreateTexture(nil, "ARTWORK")
+    icon:SetWidth(18)
+    icon:SetHeight(18)
+    icon:SetPoint("LEFT", stat, "LEFT", 0, 0)
+    icon:SetTexture(ICONS .. iconName)
+    icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+    stat.value = LevelText(stat)
+    stat.value:SetPoint("LEFT", icon, "RIGHT", 5, 0)
+    stat.value:SetText("—")
+    stat:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_TOP")
+        GameTooltip:SetText(title, 1, 1, 1)
+        GameTooltip:AddLine(description, GOLD[1], GOLD[2], GOLD[3], true)
+        GameTooltip:Show()
+    end)
+    stat:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    return stat
+end
+
+-- Quests completed comes from the client's own query of the character's rewarded quests, so no
+-- server change is involved. Throttled: the reply lists every completed quest ID.
+local QUEST_QUERY_INTERVAL = 5
+local function RequestQuestTotal()
+    if not QueryQuestsCompleted then return end
+    local now = GetTime and GetTime() or 0
+    if PS.questQueryAt and now - PS.questQueryAt < QUEST_QUERY_INTERVAL then return end
+    PS.questQueryAt = now
+    QueryQuestsCompleted()
+end
+
+local function ReadQuestTotal()
+    if not GetQuestsCompleted then return end
+    local completed = GetQuestsCompleted({})
+    if type(completed) ~= "table" then return end
+    local count = 0
+    for _ in pairs(completed) do count = count + 1 end
+    PS.state.questsCompleted = count
+end
+
 local function CreatePanelChrome(panel)
     -- The art sits on its own child frame so that it draws over the portrait, which shows through
     -- the ring's transparent centre exactly as the character frame's portrait does.
@@ -896,29 +975,40 @@ local function CreateSkillsPage(panel)
         local row = math.floor((index - 1) / GRID_COLUMNS)
 
         local cell = CreateFrame("Button", nil, page)
-        cell:SetWidth(GRID_COLUMN_WIDTH - 2)
-        cell:SetHeight(SKILL_ICON_SIZE)
+        cell:SetWidth(TILE_WIDTH)
+        cell:SetHeight(TILE_HEIGHT)
         cell:SetPoint("TOPLEFT", page, "TOPLEFT",
             GRID_LEFT + column * GRID_COLUMN_WIDTH, GRID_TOP - row * GRID_ROW_HEIGHT)
+        AddRecess(cell)
 
-        local iconAnchor = CreateFrame("Frame", nil, cell)
-        iconAnchor:SetWidth(SKILL_ICON_SIZE)
-        iconAnchor:SetHeight(SKILL_ICON_SIZE)
-        iconAnchor:SetPoint("LEFT", cell, "LEFT", 0, 0)
-        local icon = AddSpellSlot(cell, iconAnchor, SKILL_ICON_SIZE)
+        local frame = cell:CreateTexture(nil, "BORDER")
+        frame:SetTexture(0, 0, 0, 0.9)
+        frame:SetWidth(SKILL_ICON_SIZE + 2)
+        frame:SetHeight(SKILL_ICON_SIZE + 2)
+        frame:SetPoint("LEFT", cell, "LEFT", 3, 0)
+        local icon = cell:CreateTexture(nil, "ARTWORK")
+        icon:SetWidth(SKILL_ICON_SIZE)
+        icon:SetHeight(SKILL_ICON_SIZE)
+        icon:SetPoint("CENTER", frame, "CENTER", 0, 0)
+        icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
         SetSkillIcon(icon, definition[3], definition[4])
+        if definition[4] then icon:SetAlpha(0.55) end
 
-        local name = cell:CreateFontString(nil, "OVERLAY", definition[4] and "GameFontDisableSmall" or "GameFontNormalSmall")
-        name:SetPoint("TOPLEFT", iconAnchor, "TOPRIGHT", 4, -1)
-        name:SetWidth(GRID_COLUMN_WIDTH - SKILL_ICON_SIZE - 6)
-        name:SetHeight(12)
-        name:SetJustifyH("LEFT")
-        name:SetText(definition[2])
+        -- Two stacked numbers split by a slash, as in OSRS: current level above, base level below.
+        -- With no temporary boosts yet the two are always equal.
+        local numbers = SKILL_ICON_SIZE + 8 + (TILE_WIDTH - SKILL_ICON_SIZE - 8) / 2 - 6
+        local current = LevelText(cell)
+        current:SetPoint("RIGHT", cell, "LEFT", numbers + 1, 6)
+        current:SetJustifyH("RIGHT")
+        local slash = LevelText(cell)
+        slash:SetPoint("CENTER", cell, "LEFT", numbers + 6, 0)
+        slash:SetText("/")
+        local base = LevelText(cell)
+        base:SetPoint("LEFT", cell, "LEFT", numbers + 11, -7)
+        base:SetJustifyH("LEFT")
+        if definition[4] then slash:Hide() end
 
-        local value = cell:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-        value:SetPoint("TOPLEFT", name, "BOTTOMLEFT", 0, -1)
-        value:SetJustifyH("LEFT")
-        value:SetText(definition[4] and "|cff808080Planned|r" or "|cff808080—|r")
+        cell:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
 
         cell.skillId = definition[1]
         cell.skillName = definition[2]
@@ -937,21 +1027,17 @@ local function CreateSkillsPage(panel)
             if PS.OpenSkillDetail then PS.OpenSkillDetail(self.skillId) end
         end)
 
-        panel.rows[definition[1]] = { value = value, icon = icon, tile = cell, name = name }
+        panel.rows[definition[1]] = { current = current, base = base, icon = icon, tile = cell }
     end
 
-    -- Bottom strip of SkillFrame-Bot art: a recessed well on the left, a button well on the right.
-    panel.footerLabel = page:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
-    panel.footerLabel:SetPoint("LEFT", page, "TOPLEFT", 30, -422)
-    panel.footerValue = page:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    panel.footerValue:SetPoint("LEFT", panel.footerLabel, "RIGHT", 4, 0)
-
-    local close = CreateFrame("Button", nil, page, "UIPanelButtonTemplate")
-    close:SetWidth(80)
-    close:SetHeight(22)
-    close:SetPoint("CENTER", page, "TOPLEFT", 305, -422)
-    close:SetText(CLOSE or "Close")
-    close:SetScript("OnClick", function() PS.HidePanel() end)
+    -- Bottom strip of SkillFrame-Bot art: total level at the left of the long well, combat level at
+    -- the panel's centre, quests completed in the short well on the right.
+    panel.footerTotal = CreateFooterStat(page, TOTAL_LEVEL_ICON, 30, "Total Level",
+        "The sum of all your skill levels.")
+    panel.footerCombat = CreateFooterStat(page, COMBAT_LEVEL_ICON, 160, "Combat Level",
+        "Calculated from your combat skills.")
+    panel.footerQuests = CreateFooterStat(page, QUESTS_ICON, 278, "Quests Completed",
+        "Every quest this character has turned in.")
     return page
 end
 
@@ -1110,6 +1196,7 @@ local function CreatePanel()
 
     panel:SetScript("OnShow", function(self)
         PlayUISound("igCharacterInfoOpen")
+        RequestQuestTotal()
         ShowPanelPage(self, self.selectedTab or 1)
         CallGlobal("UpdateMicroButtons")
     end)
@@ -1274,17 +1361,13 @@ local function RefreshPanel()
     local total, known = TotalLevel()
     local combat = tonumber(PS.state.combatLevel)
     if PS.state.revision and combat then
-        panel.subtitle:SetText("Combat Level " .. combat)
+        panel.subtitle:SetText(UnitName and UnitName("player") or "")
     else
         panel.subtitle:SetText("Waiting for the server")
     end
-    if known > 0 then
-        panel.footerLabel:SetText("Total Level:")
-        panel.footerValue:SetText(tostring(total))
-    else
-        panel.footerLabel:SetText("")
-        panel.footerValue:SetText("")
-    end
+    panel.footerTotal.value:SetText(known > 0 and tostring(total) or "—")
+    panel.footerCombat.value:SetText(PS.state.revision and combat and tostring(combat) or "—")
+    panel.footerQuests.value:SetText(PS.state.questsCompleted and tostring(PS.state.questsCompleted) or "—")
     RefreshHeroPaperDoll()
 
     local combatPage = panel.combatPage
@@ -1312,16 +1395,14 @@ local function RefreshPanel()
         end
     end
 
-    -- The grid shows the level only; each tooltip carries experience and the remainder.
+    -- The grid shows levels only; each tooltip carries the name, experience and the remainder.
     for _, definition in ipairs(SKILLS) do
         local skill = PS.state.skills[definition[1]]
         local row = panel.rows[definition[1]]
-        if skill and row then
-            if skill.level >= 100 then
-                row.value:SetText("|cffffd100Level " .. skill.level .. "|r")
-            else
-                row.value:SetText("Level " .. skill.level)
-            end
+        if row then
+            local level = skill and tostring(skill.level) or (definition[4] and "" or "–")
+            row.current:SetText(level)
+            row.base:SetText(level)
         end
     end
 end
@@ -1718,6 +1799,7 @@ frame:RegisterEvent("UNIT_MAXRAGE")
 frame:RegisterEvent("UNIT_ENERGY")
 frame:RegisterEvent("UNIT_MAXENERGY")
 frame:RegisterEvent("UNIT_DISPLAYPOWER")
+frame:RegisterEvent("QUEST_QUERY_COMPLETE")
 frame:SetScript("OnEvent", function(_, event, ...)
     if event == "ADDON_LOADED" then
         local loadedName = ...
@@ -1744,6 +1826,10 @@ frame:SetScript("OnEvent", function(_, event, ...)
         CustomizeHeroPaperDoll()
         RefreshNativeResources()
         RefreshResourceDock()
+        RequestQuestTotal()
+    elseif event == "QUEST_QUERY_COMPLETE" then
+        ReadQuestTotal()
+        if PS.panel and PS.panel:IsShown() then RefreshPanel() end
     elseif event == "CHAT_MSG_ADDON" then
         local prefix, message, channel, sender = ...
         if sender and sender ~= UnitName("player") then return end

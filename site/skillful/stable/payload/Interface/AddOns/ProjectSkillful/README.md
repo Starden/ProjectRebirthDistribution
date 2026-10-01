@@ -1,6 +1,6 @@
 # Project Skillful addon
 
-WoW 3.3.5a progression display for Project Skillful (addon v0.12.0). Copy this directory under a legal
+WoW 3.3.5a progression display for Project Skillful (addon v0.12.1). Copy this directory under a legal
 client's `Interface\AddOns` directory, enable it at character selection, and enter `/skillful` or use
 the Skills button on the menu bar (between Talents and Achievements).
 
@@ -12,10 +12,12 @@ the stock interface rather than an addon:
 - **Skills window.** A standard left-docked UI panel in the character frame's art: portrait ring,
   title bar, close button, bottom tabs, and the Skills tab's footer wells. It docks and shifts like the
   Spellbook or Talents, closes with Escape, and plays the stock open, close, and tab sounds.
-  - *Skills tab:* all 22 server-authoritative skills and eight planned ones in a three-column grid of
-    spellbook-style slots (icon, gold name, level beneath). Planned skills are greyed and desaturated.
-    Tooltips give level, total experience, and experience to the next level. Total level sits in the
-    footer well.
+  - *Skills tab:* laid out like the OSRS skills tab. All 22 server-authoritative skills and eight
+    planned ones sit in a three-column grid of recessed tiles: icon on the left, level on the right as
+    two stacked yellow numbers (current over base; equal until temporary boosts exist). Names,
+    experience and experience to the next level are in each tile's tooltip. Planned skills are dimmed
+    and show no numbers. The footer shows Total Level (left), Combat Level (centre) and Quests
+    Completed (right); the quest total comes from the client's own completed-quest query.
   - *Skill detail:* opened by clicking a skill. Shows the stock Skills-tab progress bar, experience to
     the next level, and, for professions, an **Open** button. That button is a secure action button,
     because casting a profession spell is protected and cannot be done from ordinary addon code.

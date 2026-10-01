@@ -2,10 +2,11 @@
   "schemaVersion": 1,
   "product": "Project Skillful",
   "channel": "stable",
-  "contentVersion": "0.12.0",
+  "contentVersion": "0.12.1",
   "contentEpoch": 0,
-  "publishedAtUtc": "2026-10-01T17:07:30.3667156Z",
-  "expiresAtUtc": "2026-10-31T17:07:30.3667156Z",
+  "skillfulNativeDataRevision": 0,
+  "publishedAtUtc": "2026-10-01T23:01:45.0090596Z",
+  "expiresAtUtc": "2026-10-31T23:01:45.0090596Z",
   "minimumLauncherVersion": "2.2.0",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
@@ -17,8 +18,8 @@
     "worldPort": 8085
   },
   "release": {
-    "headline": "Northshire equipment and physical affixes",
-    "summary": "Supported Northshire equipment now uses the clear item layout with tiers, skill requirements and grouped bonuses. Approved physical affix variants show their own bonuses; unmapped variants remain identified.",
+    "headline": "A new Skills tab",
+    "summary": "The Skills tab now uses compact skill tiles with stacked levels, and shows your total level, combat level and completed quests along the bottom. Strength, Vitality and Devotion have new icons.",
     "updateKind": "content",
     "requiresClientUpdate": true
   },
@@ -32,14 +33,14 @@
     {
       "path": "Interface/AddOns/ProjectSkillful/ProjectSkillful.lua",
       "url": "payload/Interface/AddOns/ProjectSkillful/ProjectSkillful.lua",
-      "size": 76502,
-      "sha256": "CD683EE58CD741F1F1486EF6D07159FA25270874C2CC2BDA4C8A0BAA494A85ED"
+      "size": 80252,
+      "sha256": "1D6863AB0316324E82E5EE8CE1EDBD9DDB51AE24D9CA273928CF4424D7F99A81"
     },
     {
       "path": "Interface/AddOns/ProjectSkillful/ProjectSkillful.toc",
       "url": "payload/Interface/AddOns/ProjectSkillful/ProjectSkillful.toc",
       "size": 257,
-      "sha256": "98F426DA225E8B473D47D6FC084C22D413D127436F4F5858D4CE66B933BE236B"
+      "sha256": "83894DF08238D6DAC7E485FD6FADCE55113837A8C51429A4A44D07BDF9A9A452"
     },
     {
       "path": "Interface/AddOns/ProjectSkillful/QuestRewards.lua",
@@ -50,8 +51,8 @@
     {
       "path": "Interface/AddOns/ProjectSkillful/README.md",
       "url": "payload/Interface/AddOns/ProjectSkillful/README.md",
-      "size": 9697,
-      "sha256": "D20B066E9484E09C7DBB159ECEA5DF14ABF914932357128759F626931F480AE7"
+      "size": 9957,
+      "sha256": "6D3088280DA98B436C78F43CFE5465FC10738042081799B3AE48E4448817C580"
     }
   ]
 }

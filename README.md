@@ -8,7 +8,7 @@ Choose **Rebirth** or **Skillful** in the launcher before opening WoW. Each game
 
 - Launcher **2.2.0**, required for the new Skillful feed.
 - Rebirth content **0.1.34**; its existing payloads and preparation remain unchanged.
-- Skillful addon **0.12.0**, with the accepted tiered tooltip layout across supported Northshire equipment, 167 approved physical affix variants, clear skill requirements and grouped bonuses, and the character equipment-bonuses pane.
+- Skillful addon **0.12.1**, with compact Skills tiles, stacked levels, new Strength/Vitality/Devotion icons, and totals for level, combat level and completed quests. The accepted Northshire item tooltips, 167 physical affix variants and equipment-bonuses pane remain available.
 
 Existing player accounts now have Skillful access. Rebirth accounts newly copied to Skillful use the same password; accounts that already existed on Skillful retain their Skillful password. No password reset is required for this update.
 
