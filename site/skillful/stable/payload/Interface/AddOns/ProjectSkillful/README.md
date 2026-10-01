@@ -95,3 +95,30 @@ These bonuses apply against the existing Northshire test creatures. Other world 
 If your equipment has an unsupported item, random affix, special effect or enchant, your whole loadout keeps the existing rules; the tooltip reports that state.
 The 26 held first-batch entries still need mappings. Native item text is retained for wider-world use.
 Weapon skills are unchanged.
+
+## Cruel Barb reference tooltip trial (0.11.5)
+
+Only Cruel Barb (5191) replaces its normal tooltip with the requested item layout:
+its own rarity-colored name/native icon and binding, One-Hand/Sword header,
+separate accuracy/power/five defense lines, trained Attack20 requirement, and
+Edwin VanCleef drop source. Existing approved/authenticated server bonus data is
+used; Stab/Slash/Crush/Ranged/Magic order is preserved (Stab displayed as Pierce).
+The background is opaque dark navy. Requirements turn red when unmet and white
+when met. The body refreshes in place, retaining the hovered item's binding and
+native owner/anchors. Normal damage/AP/flavor/debug-tier rows are omitted from
+this Northshire view. There is no fabricated set or effect. Other items retain
+the existing preview/tooltips; actual combat values/requirements are unchanged.
+
+The gray Northshire scope and orange unsupported-loadout notice remain truthful:
+these bonuses apply only against the configured Northshire test creatures with
+supported equipment. Wider-world combat still uses the existing item behavior.
+Both committed server catalogs and cached native identity are required; stale,
+malformed/unsupported protocol or missing data restores the standard tooltip.
+GameTooltip, linked items and both comparison tooltip frames are covered. Icon
+and custom colors are removed when changing items or hiding the tooltip. No
+client artwork is bundled; the icon is supplied by the client's GetItemInfo.
+
+The addon-free trial was visually rejected: stock WoW quotes descriptions below
+its retained weapon/spell lines. Its description is withdrawn by the additive
+2026_10_01_01 world migration. Enable ProjectSkillful in AddOns for this new trial.
+Real-client size/wrapping/comparison rendering still needs the owner's check.

@@ -94,12 +94,108 @@ PS.HandleEquipmentMessage = function(message)
     return true
 end
 
+-- One-item presentation trial. Values remain authenticated server definitions;
+-- native combat data is not changed. Preserve the hovered instance's binding and
+-- tooltip owner/anchors while refreshing the custom body in place.
+local function clearCruelPresentation(tooltip)
+    if tooltip.skillfulCruelRendering then return end
+    if tooltip.skillfulCruelBackdrop then tooltip:SetBackdropColor(unpack(tooltip.skillfulCruelBackdrop)) end
+    if tooltip.skillfulCruelBorder then tooltip:SetBackdropBorderColor(unpack(tooltip.skillfulCruelBorder)) end
+    if tooltip.skillfulCruelIcon then tooltip.skillfulCruelIcon:Hide() end
+    tooltip.skillfulCruelData, tooltip.skillfulCruelBackdrop, tooltip.skillfulCruelBorder = nil, nil, nil
+end
+
+local function cruelSnapshot(tooltip, link)
+    local name, _, quality, _, _, _, subtype, _, location, icon = GetItemInfo(link)
+    if not name or not quality or not icon then return nil end
+    local r,g,b = GetItemQualityColor(quality)
+    local binding
+    local frameName = tooltip:GetName()
+    for index=2, tooltip:NumLines() do
+        local font = frameName and _G[frameName .. "TextLeft" .. index]
+        local text = font and font:GetText()
+        if text and (text == ITEM_SOULBOUND or text == ITEM_BIND_ON_PICKUP or
+            text == ITEM_BIND_ON_EQUIP or text == ITEM_BIND_ON_USE or text == ITEM_BIND_QUEST) then
+            binding = text; break
+        end
+    end
+    return {link=link, name=name, binding=binding, slot=_G[location] or "One-Hand",
+        subtype=subtype or "Sword", icon=icon, r=r, g=g, b=b}
+end
+
+local function showCruelIcon(tooltip, texture)
+    local frame = tooltip.skillfulCruelIcon
+    if not frame then
+        frame = CreateFrame("Frame", nil, tooltip)
+        frame:SetWidth(64); frame:SetHeight(64)
+        frame:SetPoint("TOPRIGHT", tooltip, "TOPLEFT", -5, 0)
+        frame:SetFrameLevel(tooltip:GetFrameLevel() + 1)
+        frame:EnableMouse(false)
+        frame:SetBackdrop({bgFile="Interface\\Tooltips\\UI-Tooltip-Background",
+            edgeFile="Interface\\Tooltips\\UI-Tooltip-Border", tile=true, tileSize=16,
+            edgeSize=16, insets={left=4,right=4,top=4,bottom=4}})
+        frame:SetBackdropColor(0.025,0.03,0.09,1)
+        frame:SetBackdropBorderColor(0.6,0.6,0.66,1)
+        frame.texture = frame:CreateTexture(nil,"ARTWORK")
+        frame.texture:SetPoint("TOPLEFT",frame,"TOPLEFT",8,-8)
+        frame.texture:SetPoint("BOTTOMRIGHT",frame,"BOTTOMRIGHT",-8,8)
+        tooltip.skillfulCruelIcon = frame
+    end
+    frame.texture:SetTexture(texture)
+    frame:Show()
+end
+
+local function renderCruel(tooltip, link, definition, balance)
+    if not definition or not balance or balance.family ~= 1 then return false end
+    local data = tooltip.skillfulCruelData or cruelSnapshot(tooltip, link)
+    if not data then return false end -- Leave the native tooltip usable while item data loads.
+    if not tooltip.skillfulCruelBackdrop then
+        tooltip.skillfulCruelBackdrop = {tooltip:GetBackdropColor()}
+        tooltip.skillfulCruelBorder = {tooltip:GetBackdropBorderColor()}
+    end
+    tooltip.skillfulCruelRendering = true
+    tooltip:ClearLines()
+    tooltip.skillfulCruelData = data
+    tooltip.skillfulEquipmentAdded = true
+    tooltip:AddLine(data.name,data.r,data.g,data.b)
+    if data.binding then tooltip:AddLine(data.binding,1,1,1) end
+    tooltip:AddDoubleLine(data.slot,data.subtype,1,1,1,1,1,1)
+    tooltip:AddLine(string.format("+%.2f Melee Accuracy",balance.accuracy),1,1,1)
+    tooltip:AddLine(string.format("+%.2f Melee Power",balance.power),1,1,1)
+    -- B|1 contract order is Stab / Slash / Crush / Ranged / Magic.
+    for _, style in ipairs({{3,"Crush"},{2,"Slash"},{1,"Pierce"},{4,"Ranged"},{5,"Magic"}}) do
+        tooltip:AddLine(string.format("+%.2f %s Defense",balance.defence[style[1]],style[2]),1,1,1)
+    end
+    for _, requirement in ipairs(definition.requirements) do
+        local trained = PS.state.skills[requirement[1]]
+        local r,g,b = 1,1,1
+        if not trained then r,g,b = 0.6,0.6,0.6
+        elseif trained.level < requirement[2] then r,g,b = 1,0.125,0.125 end
+        tooltip:AddLine("Requires " .. skillNames[requirement[1]] .. " (" .. requirement[2] .. ")",r,g,b)
+    end
+    tooltip:AddLine(" ")
+    tooltip:AddLine("Northshire combat bonuses",0.6,0.6,0.6)
+    if balanceLoadout and not balanceLoadout.active then
+        tooltip:AddLine("Inactive with your current equipment",1,0.65,0.2)
+    end
+    tooltip:AddLine("Dropped by: Edwin VanCleef",1,1,1)
+    tooltip:SetBackdropColor(0.025,0.03,0.09,1)
+    tooltip:SetBackdropBorderColor(0.6,0.6,0.66,1)
+    showCruelIcon(tooltip,data.icon)
+    tooltip:Show()
+    tooltip.skillfulCruelRendering = nil
+    return true
+end
+
 PS.RenderEquipmentTooltip = function(tooltip)
+    if tooltip.skillfulCruelRendering then return end
     local _, link = tooltip:GetItem()
+    link = link or (tooltip.skillfulCruelData and tooltip.skillfulCruelData.link)
     local id = link and tonumber(string.match(link, "item:(%d+):"))
     local definition = id and catalog[id]
     local balance = id and balanceCatalog[id]
     if (not definition and not balance) or tooltip.skillfulEquipmentAdded then return end
+    if id == 5191 and renderCruel(tooltip,link,definition,balance) then return end
     tooltip.skillfulEquipmentAdded = true
     if definition then
     tooltip:AddLine("Tier " .. definition.tier .. " • " .. steps[definition.step + 1], 1, 0.82, 0)
@@ -130,9 +226,14 @@ PS.RefreshEquipmentTooltips = function()
     for _, tooltip in ipairs({GameTooltip, ItemRefTooltip, ShoppingTooltip1, ShoppingTooltip2}) do
         if tooltip and tooltip:IsShown() then
             local _, link = tooltip:GetItem()
+            local data = tooltip.skillfulCruelData
+            link = link or (data and data.link)
             if link then
                 tooltip.skillfulEquipmentAdded = nil
-                tooltip:SetHyperlink(link)
+                local id = tonumber(string.match(link,"item:(%d+):"))
+                if not (data and id == 5191 and renderCruel(tooltip,link,catalog[id],balanceCatalog[id])) then
+                    tooltip:SetHyperlink(link)
+                end
             end
         end
     end
@@ -140,7 +241,12 @@ PS.RefreshEquipmentTooltips = function()
 end
 for _, tooltip in ipairs({GameTooltip, ItemRefTooltip, ShoppingTooltip1, ShoppingTooltip2}) do
     if tooltip then
-        tooltip:HookScript("OnTooltipCleared", function(self) self.skillfulEquipmentAdded = nil end)
+        tooltip:HookScript("OnTooltipCleared", function(self)
+            if self.skillfulCruelRendering then return end
+            self.skillfulEquipmentAdded = nil
+            clearCruelPresentation(self)
+        end)
+        tooltip:HookScript("OnHide", clearCruelPresentation)
         tooltip:HookScript("OnTooltipSetItem", PS.RenderEquipmentTooltip)
     end
 end
