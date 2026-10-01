@@ -1,6 +1,6 @@
 # Project Skillful addon
 
-WoW 3.3.5a progression display for Project Skillful (addon v0.11.3). Copy this directory under a legal
+WoW 3.3.5a progression display for Project Skillful (addon v0.11.4). Copy this directory under a legal
 client's `Interface\AddOns` directory, enable it at character selection, and enter `/skillful` or use
 the Skills button on the menu bar (between Talents and Achievements).
 
@@ -86,3 +86,12 @@ The server now repairs missing base profession and action spells on login even w
 skill row already exists. Profession ranks continue to mirror Skillful experience at 1–100.
 Mining opens Smelting; gathering professions provide their native gathering action.
 Secure profession buttons explicitly use a left-button release. Relog after this server update.
+
+## First item-balance slice
+
+Supported equipment shows Northshire bonus previews for accuracy, power and five defence styles.
+The first batch contains 164 static items, including starter equipment and Cruel Barb.
+These bonuses apply against the existing Northshire test creatures. Other world combat keeps its current rules.
+If your equipment has an unsupported item, random affix, special effect or enchant, your whole loadout keeps the existing rules; the tooltip reports that state.
+The 26 held first-batch entries still need mappings. Native item text is retained for wider-world use.
+Weapon skills are unchanged.

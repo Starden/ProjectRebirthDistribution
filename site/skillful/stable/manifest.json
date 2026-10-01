@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "product": "Project Skillful",
   "channel": "stable",
-  "contentVersion": "0.11.3",
+  "contentVersion": "0.11.4",
   "contentEpoch": 0,
-  "publishedAtUtc": "2026-09-30T23:35:22.0867205Z",
-  "expiresAtUtc": "2026-10-30T23:35:22.0867205Z",
+  "publishedAtUtc": "2026-10-01T01:10:30.5064361Z",
+  "expiresAtUtc": "2026-10-31T01:10:30.5064361Z",
   "minimumLauncherVersion": "2.2.0",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
@@ -17,8 +17,8 @@
     "worldPort": 8085
   },
   "release": {
-    "headline": "Skillful is ready to play",
-    "summary": "Choose Skillful and prepare your separate clean client. Quest rewards now show your Bottle of Experience before turn-in.",
+    "headline": "Northshire equipment bonuses",
+    "summary": "Starter equipment and Cruel Barb now provide reviewed Northshire combat bonuses. Tooltips show accuracy, power and defence previews. Profession repairs and visible quest vials are retained.",
     "updateKind": "content",
     "requiresClientUpdate": true
   },
@@ -26,20 +26,20 @@
     {
       "path": "Interface/AddOns/ProjectSkillful/Equipment.lua",
       "url": "payload/Interface/AddOns/ProjectSkillful/Equipment.lua",
-      "size": 4339,
-      "sha256": "87E914C44C45EDA2FEF842D4DC0FF3B95C6E31434C481416AAA9673B0E70820C"
+      "size": 8348,
+      "sha256": "7E546F75A7C447C35838B56D0D626CEDDF02117A4CE6BC84BA8B6B733351EA01"
     },
     {
       "path": "Interface/AddOns/ProjectSkillful/ProjectSkillful.lua",
       "url": "payload/Interface/AddOns/ProjectSkillful/ProjectSkillful.lua",
       "size": 68522,
-      "sha256": "FD6C07A932AF0C024AE2E140C79899FE54DA963C92169FBC72E58F1DDF55B2C0"
+      "sha256": "4A01C3D1AFDEF9FB2682C127079F8350DF0D7F570CB29FEE50FAAF98AA696230"
     },
     {
       "path": "Interface/AddOns/ProjectSkillful/ProjectSkillful.toc",
       "url": "payload/Interface/AddOns/ProjectSkillful/ProjectSkillful.toc",
       "size": 257,
-      "sha256": "6AB1009E887E53CEAA9A2B7B9F40914E14B0B990955C4296921BD1D8959AC64E"
+      "sha256": "3F23F62AA5B9531F3BB949EEA29DE6B70AD0A9542C1E46241AB834807EACA8C0"
     },
     {
       "path": "Interface/AddOns/ProjectSkillful/QuestRewards.lua",
@@ -50,8 +50,8 @@
     {
       "path": "Interface/AddOns/ProjectSkillful/README.md",
       "url": "payload/Interface/AddOns/ProjectSkillful/README.md",
-      "size": 6183,
-      "sha256": "1DB42FFA97BD4D6811F673F8AE63601FD2219562E0EB4785E46E94B3380F1A9A"
+      "size": 6811,
+      "sha256": "22B722B67C3255C3F8F261BEE012EF532AD8A089B319A9F21FF5BD13B7C4B301"
     }
   ]
 }

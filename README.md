@@ -8,7 +8,7 @@ Choose **Rebirth** or **Skillful** in the launcher before opening WoW. Each game
 
 - Launcher **2.2.0**, required for the new Skillful feed.
 - Rebirth content **0.1.34**; its existing payloads and preparation remain unchanged.
-- Skillful addon **0.11.3**, with visible Bottle of Experience quest rewards and locally prepared Hero/ranged data and vial art.
+- Skillful addon **0.11.4**, with Northshire equipment bonus previews, visible Bottle of Experience quest rewards and locally prepared Hero/ranged data and vial art.
 
 Existing player accounts now have Skillful access. Rebirth accounts newly copied to Skillful use the same password; accounts that already existed on Skillful retain their Skillful password. No password reset is required for this update.
 
@@ -24,7 +24,7 @@ See the [2.2.0 release notes](docs/RELEASE-NOTES-launcher-v2.2.0.md). Both games
 
 Preparation creates the required data from your own client and verifies the result. Original game archives and character settings are preserved. Unknown custom patches or incompatible source data are refused. Do not share one prepared client folder between the two games or edit `realmlist.wtf` manually.
 
-Rebirth retains all fourteen non-Monarch Heritage definitions, four-tree talent previews, current-level and level-80 Heirloom comparisons, the Currency tab, gear upgrades and Wardrobe. Both Heirloom tooltips remain visible at level 80. Existing item-cache preparation stays valid unless the launcher asks you to refresh it. Skillful retains its current profession repair and equipment requirements; this release does not apply the pending item balance draft.
+Rebirth retains all fourteen non-Monarch Heritage definitions, four-tree talent previews, current-level and level-80 Heirloom comparisons, the Currency tab, gear upgrades and Wardrobe. Both Heirloom tooltips remain visible at level 80. Existing item-cache preparation stays valid unless the launcher asks you to refresh it. Skillful retains its profession repair and equipment requirements. Its approved first item pass now uses 164 supported static item definitions against the Northshire test creatures. Unsupported equipment and enchants retain the existing combat rules; wider-world conversion and weapon-skill changes are pending.
 
 New players can use **Start Here** to request an account and **Test Connection**. The owner reviews access before world entry. The [tester onboarding guide](docs/TESTER-ONBOARDING.md) contains further Rebirth guidance.
 

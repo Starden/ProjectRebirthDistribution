@@ -2,7 +2,7 @@
 ## Title: Project Skillful
 ## Notes: Skills, combat training, and Hero resources for Project Skillful
 ## Author: Project Skillful
-## Version: 0.11.3
+## Version: 0.11.4
 ## SavedVariables: ProjectSkillfulDB
 ProjectSkillful.lua
 Equipment.lua
