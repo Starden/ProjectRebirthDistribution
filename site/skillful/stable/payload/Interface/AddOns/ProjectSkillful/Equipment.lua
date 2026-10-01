@@ -246,6 +246,7 @@ end
 local refreshing = false
 PS.RefreshEquipmentTooltips = function()
     if refreshing then return end
+    if PS.RefreshEquipmentBonuses then PS.RefreshEquipmentBonuses() end
     refreshing = true
     for _, tooltip in ipairs({GameTooltip, ItemRefTooltip, ShoppingTooltip1, ShoppingTooltip2}) do
         if tooltip and tooltip:IsShown() then

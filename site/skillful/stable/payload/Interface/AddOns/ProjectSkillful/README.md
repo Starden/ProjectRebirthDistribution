@@ -1,6 +1,6 @@
 # Project Skillful addon
 
-WoW 3.3.5a progression display for Project Skillful (addon v0.11.7). Copy this directory under a legal
+WoW 3.3.5a progression display for Project Skillful (addon v0.11.8). Copy this directory under a legal
 client's `Interface\AddOns` directory, enable it at character selection, and enter `/skillful` or use
 the Skills button on the menu bar (between Talents and Achievements).
 
@@ -29,6 +29,17 @@ the stock interface rather than an addon:
   headed *Combat Skills* and *Hero*: Attack, Strength, Defence, Ranged, Magic, and Devotion; Vitality,
   maximum Health, Mana, Rage, Energy, and Style. The level line reads "Level N Race Hero" using combat
   level.
+- **Equipment bonuses.** Opening the character equipment tab also shows an attached pane with
+  Accuracy, Power, and Pierce/Slash/Crush/Ranged/Magic defense totals. These are the effective
+  whole-point loadout totals supplied by the server, after aggregation, caps and rounding.
+  Hover each row for its effect and related skill; hover the status for scope and readiness.
+  Active, inactive and waiting states are distinct. Missing or inactive totals show a dash,
+  while a confirmed zero shows `+0`. Bonuses apply only against configured Northshire test
+  creatures; the current melee enemies do not exercise Ranged or Magic defense. Existing
+  combat-skill/resource columns remain intact, with extra skill explanations on hover.
+  The pane follows equipment, style and protocol changes, closes with the character sheet,
+  and is hidden on other character tabs. The client never reconstructs combat totals from
+  item previews or native WoW ratings, and no combat formula is changed.
 - **Quest rewards.** Quest details, turn-in, quest log and map reward panels show one Bottle of
   Experience with the vial icon and normal item tooltip after the server confirms its reward policy.
   The addon keeps native rewards and choice buttons intact, including quests with no native rewards.

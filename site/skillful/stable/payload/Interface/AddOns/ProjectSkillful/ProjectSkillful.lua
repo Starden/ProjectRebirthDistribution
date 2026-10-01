@@ -1,7 +1,7 @@
 local addonName, PS = ...
 PS = PS or {}
 ProjectSkillful = PS
-PS.version = "0.11.7"
+PS.version = "0.11.8"
 PS.protocolVersion = 3
 PS.debug = false
 PS.state = PS.state or { skills = {} }
@@ -543,6 +543,142 @@ local HERO_STAT_ROWS = {
     },
 }
 
+local COMBAT_SKILL_HELP = {
+    [1] = "Attack works with equipment Accuracy to improve your melee hit chance.",
+    [2] = "Strength works with equipment Power to increase your melee damage potential.",
+    [3] = "Defence works with the matching equipment defense bonus to make enemy attacks less likely to hit. It does not subtract damage from a successful hit.",
+    [5] = "Ranged works with equipment Accuracy and Power for ranged hit chance and damage potential.",
+}
+
+local EQUIPMENT_BONUS_ROWS = {
+    {key="accuracy",label="Accuracy",top=99,
+        help="Improves hit chance for your equipped combat style. These are bonus points, not a hit percentage."},
+    {key="power",label="Power",top=121,
+        help="Increases damage potential with Strength for melee or Ranged for ranged attacks. These points are not damage added to each hit."},
+    {index=1,label="Pierce",top=175,
+        help="Works with Defence to make piercing attacks less likely to hit. Northshire wolves and mine spiders use this style."},
+    {index=2,label="Slash",top=197,
+        help="Works with Defence to make slashing attacks less likely to hit. Defias Thugs and Garrick Padfoot use this style."},
+    {index=3,label="Crush",top=219,
+        help="Works with Defence to make crushing attacks less likely to hit. Northshire kobolds use this style."},
+    {index=4,label="Ranged",top=241,
+        help="Defense bonus for ranged attacks. The current Northshire test enemies use melee, so this bonus has no effect against them."},
+    {index=5,label="Magic",top=263,
+        help="Defense bonus for magic attacks. The current Northshire test enemies use melee; this does not provide general WoW spell resistance."},
+}
+
+local function BonusScopeTooltip()
+    GameTooltip:AddLine("Northshire test creatures only.",GOLD[1],GOLD[2],GOLD[3],true)
+    local loadout = PS.ItemBalanceLoadout and PS.ItemBalanceLoadout()
+    if not loadout then
+        GameTooltip:AddLine("Waiting for confirmed equipment totals from the server.",0.7,0.7,0.7,true)
+    elseif not loadout.active then
+        GameTooltip:AddLine("This loadout cannot use the Northshire item rebalance. Unsupported equipment, enchants or combat styles can cause this. Existing combat rules apply.",1,0.65,0.2,true)
+    else
+        GameTooltip:AddLine("Equipped bonuses are added, capped and rounded by the server. These are the effective whole-point totals; an item's small decimal bonus may not change a total on its own.",1,1,1,true)
+    end
+end
+
+PS.RefreshEquipmentBonuses = function()
+    local panel = PS.equipmentBonusPanel
+    if not panel then return end
+    local loadout = PS.ItemBalanceLoadout and PS.ItemBalanceLoadout()
+    local style = PS.state.equippedStyle or "melee"
+    local styleName = ({melee="Melee",ranged="Ranged",magic="Magic"})[style] or "Current style"
+    panel.offense:SetText(styleName .. " offense")
+    if not loadout then
+        panel.status:SetText("Waiting for server")
+        panel.status:SetTextColor(0.7,0.7,0.7)
+    elseif not loadout.active then
+        panel.status:SetText("Inactive for this loadout")
+        panel.status:SetTextColor(1,0.65,0.2)
+    else
+        panel.status:SetText("Active: " .. styleName)
+        panel.status:SetTextColor(0.2,1,0.2)
+    end
+    for index, definition in ipairs(EQUIPMENT_BONUS_ROWS) do
+        local amount = loadout and loadout.active and
+            (definition.key and loadout[definition.key] or loadout.defence[definition.index])
+        panel.rows[index].value:SetText(amount and ("+" .. amount) or "—")
+    end
+end
+
+local function CreateEquipmentBonusPanel()
+    if PS.equipmentBonusPanel or not CharacterFrame then return end
+    local parent = PaperDollFrame or CharacterFrame
+    local panel = CreateFrame("Frame","ProjectSkillfulEquipmentBonuses",parent)
+    panel:SetWidth(256); panel:SetHeight(340)
+    panel:SetPoint("TOPLEFT",CharacterFrame,"TOPRIGHT",8,-36)
+    panel:SetFrameLevel(parent:GetFrameLevel()+1)
+    panel:SetBackdrop({edgeFile="Interface\\Tooltips\\UI-Tooltip-Border",edgeSize=16,
+        insets={left=4,right=4,top=4,bottom=4}})
+    panel:SetBackdropBorderColor(0.6,0.6,0.66,1)
+    local fill = panel:CreateTexture(nil,"BACKGROUND")
+    fill:SetPoint("TOPLEFT",panel,"TOPLEFT",4,-4)
+    fill:SetPoint("BOTTOMRIGHT",panel,"BOTTOMRIGHT",-4,4)
+    fill:SetTexture(0.025,0.03,0.09,1)
+    local function Text(name,template,x,y,text)
+        local font = panel:CreateFontString(name,"OVERLAY",template)
+        font:SetPoint("TOPLEFT",panel,"TOPLEFT",x,y)
+        font:SetText(text); return font
+    end
+    Text(nil,"GameFontNormal",14,-14,"Equipment Bonuses")
+    panel.status = Text("ProjectSkillfulEquipmentBonusStatus","GameFontHighlightSmall",14,-36,"")
+    Text(nil,"GameFontDisableSmall",14,-54,"Northshire test creatures only")
+    panel.offense = Text(nil,"GameFontNormalSmall",14,-79,"")
+    Text(nil,"GameFontNormalSmall",14,-155,"Defense bonuses")
+    local summary = CreateFrame("Frame",nil,panel)
+    summary:SetPoint("TOPLEFT",panel,"TOPLEFT",10,-32)
+    summary:SetWidth(236); summary:SetHeight(36); summary:EnableMouse(true)
+    summary:SetScript("OnEnter",function(self)
+        GameTooltip:SetOwner(self,"ANCHOR_RIGHT")
+        GameTooltip:SetText("Equipment bonuses",1,1,1)
+        BonusScopeTooltip(); GameTooltip:Show()
+    end)
+    summary:SetScript("OnLeave",function() GameTooltip:Hide() end)
+    summary:Show()
+    panel.rows = {}
+    for index, definition in ipairs(EQUIPMENT_BONUS_ROWS) do
+        local row = CreateFrame("Frame","ProjectSkillfulEquipmentBonus" .. definition.label,panel)
+        row:SetPoint("TOPLEFT",panel,"TOPLEFT",14,-definition.top)
+        row:SetWidth(228); row:SetHeight(18); row:EnableMouse(true)
+        row.label = row:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+        row.label:SetPoint("LEFT",row,"LEFT",0,0); row.label:SetText(definition.label)
+        row.value = row:CreateFontString(nil,"OVERLAY","GameFontHighlightSmall")
+        row.value:SetPoint("RIGHT",row,"RIGHT",0,0)
+        row:SetScript("OnEnter",function(self)
+            GameTooltip:SetOwner(self,"ANCHOR_RIGHT")
+            GameTooltip:SetText(definition.label .. (definition.index and " Defense" or ""),1,1,1)
+            GameTooltip:AddLine(definition.help,1,1,1,true)
+            if definition.index then
+                GameTooltip:AddLine("Defense changes hit chance, not damage taken per successful hit.",1,1,1,true)
+            elseif PS.state.equippedStyle == "magic" then
+                GameTooltip:AddLine("Magic equipment totals are not supported in this slice.",0.7,0.7,0.7,true)
+            else
+                local skillId = PS.state.equippedStyle == "ranged" and 5 or (definition.key == "accuracy" and 1 or 2)
+                local skill = PS.state.skills[skillId]
+                GameTooltip:AddLine("Uses " .. SkillName(skillId) .. " level " ..
+                    (skill and skill.level or "—"),GOLD[1],GOLD[2],GOLD[3])
+            end
+            BonusScopeTooltip(); GameTooltip:Show()
+        end)
+        row:SetScript("OnLeave",function() GameTooltip:Hide() end)
+        row:Show()
+        panel.rows[index] = row
+    end
+    local footer = panel:CreateFontString(nil,"OVERLAY","GameFontDisableSmall")
+    footer:SetPoint("BOTTOMLEFT",panel,"BOTTOMLEFT",14,15)
+    footer:SetWidth(228); footer:SetHeight(36); footer:SetJustifyH("LEFT")
+    footer:SetText("Rounded equipment points.\nHover a stat to learn its effect.")
+    PS.equipmentBonusPanel = panel
+    panel:SetScript("OnHide",function()
+        local owner = GameTooltip:GetOwner()
+        if owner and owner:GetParent() == panel then GameTooltip:Hide() end
+    end)
+    parent:HookScript("OnShow",PS.RefreshEquipmentBonuses)
+    PS.RefreshEquipmentBonuses(); panel:Show()
+end
+
 local function HeroStatTooltip(self)
     local row = self.projectSkillfulRow
     if not row then return end
@@ -550,6 +686,9 @@ local function HeroStatTooltip(self)
     if row.skill then
         GameTooltip:SetText(SkillName(row.skill), 1, 1, 1)
         SkillTooltipLines(GameTooltip, row.skill)
+        if COMBAT_SKILL_HELP[row.skill] then
+            GameTooltip:AddLine(COMBAT_SKILL_HELP[row.skill],1,1,1,true)
+        end
     else
         GameTooltip:SetText(row.tooltip or row.label, 1, 1, 1)
         if row.label == "Style" then
@@ -585,6 +724,7 @@ local function FillHeroStatColumn(prefix, rows)
 end
 
 local function ApplyHeroCharacterSheet()
+    PS.RefreshEquipmentBonuses()
     if not PlayerStatFrameLeft1 then return end
     FillHeroStatColumn("PlayerStatFrameLeft", HERO_STAT_ROWS.left)
     FillHeroStatColumn("PlayerStatFrameRight", HERO_STAT_ROWS.right)
@@ -597,12 +737,14 @@ local function ApplyHeroCharacterSheet()
 end
 
 local function RefreshHeroPaperDoll()
+    PS.RefreshEquipmentBonuses()
     if CharacterFrame and CharacterFrame:IsShown() then ApplyHeroCharacterSheet() end
 end
 
 local function CustomizeHeroPaperDoll()
     if PS.paperDollCustomized or not CharacterAttributesFrame then return end
     PS.paperDollCustomized = true
+    CreateEquipmentBonusPanel()
 
     -- The stat-category dropdowns choose between class stat pages a Hero does not have. Each
     -- column gets a fixed heading in the dropdown's place instead.

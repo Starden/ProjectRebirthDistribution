@@ -2,10 +2,10 @@
   "schemaVersion": 1,
   "product": "Project Skillful",
   "channel": "stable",
-  "contentVersion": "0.11.7",
+  "contentVersion": "0.11.8",
   "contentEpoch": 0,
-  "publishedAtUtc": "2026-10-01T16:20:38.0977488Z",
-  "expiresAtUtc": "2026-10-31T16:20:38.0977488Z",
+  "publishedAtUtc": "2026-10-01T16:41:22.3292550Z",
+  "expiresAtUtc": "2026-10-31T16:41:22.3292550Z",
   "minimumLauncherVersion": "2.2.0",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
@@ -17,8 +17,8 @@
     "worldPort": 8085
   },
   "release": {
-    "headline": "Skillful - Cruel Barb tier label",
-    "summary": "Cruel Barb now displays its tier and step directly beneath One-Hand. Its current classification is Tier 3 - Entry. Combat values are unchanged.",
+    "headline": "Skillful - Character equipment bonuses",
+    "summary": "The character equipment tab now shows effective Accuracy, Power and five defense totals beside the character sheet, with hover explanations and Northshire loadout status. Combat rules are unchanged.",
     "updateKind": "hotfix",
     "requiresClientUpdate": true
   },
@@ -26,20 +26,20 @@
     {
       "path": "Interface/AddOns/ProjectSkillful/Equipment.lua",
       "url": "payload/Interface/AddOns/ProjectSkillful/Equipment.lua",
-      "size": 14832,
-      "sha256": "6B3927213D9A0E1630E64A129A7485C469C6E2097946DC3CC21F9B643BF79896"
+      "size": 14904,
+      "sha256": "700A5974F2F36DF62F31CE418CE5026F20B74396EAEF6713EE8FB06A02792041"
     },
     {
       "path": "Interface/AddOns/ProjectSkillful/ProjectSkillful.lua",
       "url": "payload/Interface/AddOns/ProjectSkillful/ProjectSkillful.lua",
-      "size": 68522,
-      "sha256": "D5E36970AE661810C32A9D639C01EC2E09349D4F39B46130FF9145EB9AD49290"
+      "size": 76502,
+      "sha256": "7EE1A3541423446BDCDE32B1B2C71E7022ECA8B6E313F646F039F8C32F5E7848"
     },
     {
       "path": "Interface/AddOns/ProjectSkillful/ProjectSkillful.toc",
       "url": "payload/Interface/AddOns/ProjectSkillful/ProjectSkillful.toc",
       "size": 257,
-      "sha256": "79972EFD47629CEB07E116E1F4994CE70DEAFCAD4FBDE8473E52110A750131D7"
+      "sha256": "8F1DFF7267B5F970D2F22667EB87214E557C68EC7D48FB99195FAB4F7BD4E2A1"
     },
     {
       "path": "Interface/AddOns/ProjectSkillful/QuestRewards.lua",
@@ -50,8 +50,8 @@
     {
       "path": "Interface/AddOns/ProjectSkillful/README.md",
       "url": "payload/Interface/AddOns/ProjectSkillful/README.md",
-      "size": 9129,
-      "sha256": "CB745F18DF69AC85EF6613CE570B4D5C7F5C4D10C704BEE1AF5F93BAB2CBF532"
+      "size": 10115,
+      "sha256": "D42346F6B506AE0558B6702E751066E9C44440FEBA893E04880AAE4D541B14EA"
     }
   ]
 }
