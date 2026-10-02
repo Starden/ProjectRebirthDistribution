@@ -1,18 +1,20 @@
 # Project Reverie — Rebirth and Skillful
 
-Download the latest **Project-Reverie-Launcher-2.2.0-win-x64.zip** from the [Releases page](https://github.com/Starden/ProjectRebirthDistribution/releases/latest), extract it into its own writable folder outside WoW, and run `ProjectReverie.Launcher.exe`.
+Download the latest **Project-Reverie-Launcher-2.3.0-win-x64.zip** from the [Releases page](https://github.com/Starden/ProjectRebirthDistribution/releases/latest), extract it into its own writable folder outside WoW, and run `ProjectReverie.Launcher.exe`.
 
 Choose **Rebirth** or **Skillful** in the launcher before opening WoW. Each game uses a separate client folder. You need your own lawful, clean English enUS ChromieCraft WoW 3.3.5a client, build 12340, and an approved game account. Players need no VPN or separate patcher. The launcher does not include or download a game client or Blizzard archives.
 
 ## Current release
 
-- Launcher **2.2.0**, required for the new Skillful feed.
+- Launcher **2.3.0**, with Goldleaf, Follow Realm and owner-painted game emblems. The Skillful feed requires launcher 2.2.0 or newer.
 - Rebirth content **0.1.34**; its existing payloads and preparation remain unchanged.
 - Skillful addon **0.12.1**, with compact Skills tiles, stacked levels, new Strength/Vitality/Devotion icons, and totals for level, combat level and completed quests. The accepted Northshire item tooltips, 167 physical affix variants and equipment-bonuses pane remain available.
 
+Choose **Settings → Appearance → Follow Realm** for Void on Rebirth and Goldleaf on Skillful; the palette follows the selected game. Follow Windows, Void, Moonstone and Goldleaf can also be selected directly. Your existing preference is retained.
+
 Existing player accounts now have Skillful access. Rebirth accounts newly copied to Skillful use the same password; accounts that already existed on Skillful retain their Skillful password. No password reset is required for this update.
 
-See the [2.2.0 release notes](docs/RELEASE-NOTES-launcher-v2.2.0.md). Both games remain in testing; availability is controlled by the server operator.
+See the [2.3.0 release notes](docs/RELEASE-NOTES-launcher-v2.3.0.md). Both games remain in testing; availability is controlled by the server operator.
 
 ## Play
 
@@ -30,13 +32,13 @@ New players can use **Start Here** to request an account and **Test Connection**
 
 ## Launcher updates
 
-The launcher checks a separately signed release feed and offers a verified update to 2.2.0. Accept **Restart to update** when ready. Your selected client folders and preferences carry over. Keep the launcher in its own regular writable folder outside WoW; a desktop shortcut can point to it.
+The launcher checks a separately signed release feed and offers a verified update to 2.3.0. Accept **Restart to update** when ready. Your selected client folders and preferences carry over. Keep the launcher in its own regular writable folder outside WoW; a desktop shortcut can point to it.
 
 If an older launcher cannot start or update, close it and extract the complete latest ZIP into a fresh folder. Versions 1.6.2 and older require this manual upgrade once. The dedicated updater is embedded in newer packages, so no separate updater installation is needed. Windows may show **Unknown publisher** because the package is not yet Authenticode-signed.
 
 Launcher updates replace only the four package files. Verified backups are retained under `.reverie-update-*`; failed replacements restore the previous files where safe. Do not bypass signature or hash errors.
 
-The signed launcher feed is valid through October 30, 2026; the Skillful feed is valid through October 31, 2026. Rebirth's existing signed content renewal is preserved. Feed renewal is an operator task, even when content has not changed.
+The signed launcher feed is valid through November 1, 2026; the Skillful feed is valid through October 31, 2026. Rebirth's existing signed content renewal is preserved. Feed renewal is an operator task, even when content has not changed.
 
 ## Public endpoints
 
