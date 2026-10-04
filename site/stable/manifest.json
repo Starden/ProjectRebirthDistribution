@@ -2,11 +2,12 @@
   "schemaVersion": 1,
   "product": "Project Reverie",
   "channel": "stable",
-  "contentVersion": "0.1.34",
+  "contentVersion": "0.1.35",
   "contentEpoch": 1,
-  "publishedAtUtc": "2026-09-30T20:35:51.8491127Z",
-  "expiresAtUtc": "2026-10-30T20:35:51.8491127Z",
-  "minimumLauncherVersion": "2.0.3",
+  "skillfulNativeDataRevision": 0,
+  "publishedAtUtc": "2026-10-04T19:31:56.9083625Z",
+  "expiresAtUtc": "2026-11-03T19:31:56.9083625Z",
+  "minimumLauncherVersion": "2.3.1",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
   "signatureAlgorithm": "ECDSA_P256_SHA256_P1363",
@@ -17,12 +18,18 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "The full non-Monarch Heritage roster",
-    "summary": "Adds the remaining ten Heritage choices with complete native effects, full descriptions, and Dragon and Element choices. Everyone eligible receives one free Heritage reselection without Rebirth; earned Heritage progress is preserved. Update the launcher and prepare client data before playing.",
+    "headline": "Project Reverie - Rebirth progression update",
+    "summary": "The Reverie panel has been rebuilt, Human Bloodline progresses separately from Life Heritage, companion controls use bag upgrades and paid vendor repair, and Wardrobe has been removed.",
     "updateKind": "content",
     "requiresClientUpdate": true
   },
   "files": [
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/BloodlineDesignData.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/BloodlineDesignData.lua",
+      "size": 7263,
+      "sha256": "D3A63C7900F03658BD04DF8982BABB5D0E34B9BFC5DC135F3DE9B55D454E89A5"
+    },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/BugReports.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/BugReports.lua",
@@ -80,8 +87,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/FourthSpecData.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/FourthSpecData.lua",
-      "size": 315586,
-      "sha256": "6F566E90E74520CA30C46FD2CAB2AE6ABD0A16E81CEA1786DB08B7CB236EC471"
+      "size": 318260,
+      "sha256": "6B128B734FC27C48A610E685ED03A3C9396DB1F8CCCDBD5318884CE554463A63"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/FourthSpecPolicy.lua",
@@ -98,14 +105,14 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Glossary.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Glossary.lua",
-      "size": 17785,
-      "sha256": "C1FD5B259F02978C5C8C63D4B4B6E06346A5E556BB4E37642697B158B00D3654"
+      "size": 18191,
+      "sha256": "A60CBC22A98020D07AB766C4D608BEB438E089E1DEC4704D555D5E0EE6363A50"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/GlossaryData.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/GlossaryData.lua",
-      "size": 618901,
-      "sha256": "312865ABE9CC9F96B3EF1497503DEFAD1ACDC169A8191B7EE8CECCF2546F18FA"
+      "size": 723514,
+      "sha256": "3C148921D107EF1A6A7D2B522E3DB9348DF9E80A2DFD562E576661FB8B11881A"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/HeirloomTooltips.lua",
@@ -182,20 +189,26 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/MicroMenu.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/MicroMenu.lua",
-      "size": 4576,
-      "sha256": "C2C1C3D969623D0433B4DE780FCBB583407C44385DE9730A3203CE4AC42D1EE5"
+      "size": 5454,
+      "sha256": "91C4010E86F9F9E6519DFFC37612FF3CA83D63ED3436F5385C1F98F1810DE05E"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/PanelProtocol.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/PanelProtocol.lua",
+      "size": 9882,
+      "sha256": "E45E74B0BF2BED6E8C5CCB612AAF2CE3253B53E62062A3DAE8C3AA6AE52A8F02"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Progress.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Progress.lua",
-      "size": 13517,
-      "sha256": "73E41FB730ED12CFAA56E044E76F27975D403D84BC1ECFE15441CE97EF05CE00"
+      "size": 16444,
+      "sha256": "B089ECDF1AF4ED35BD0E8D73F881B469DF45B4EA968EC90289DB8B3282531B94"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
-      "size": 936,
-      "sha256": "6B4C260CF573DCC3D392F57031BBB87190EE0A9B16FEEF0C3E7F03BE01460B37"
+      "size": 945,
+      "sha256": "1C41CC9D80847CB5CDA3304AF54B255F8AB18AF376D30F39F2F7561015CA3C2C"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/RankData.lua",
@@ -204,10 +217,16 @@
       "sha256": "60CE03D8F4435DCBA3E2E3919510EDBC71D91692EE67803CFD5127EACBF47FCA"
     },
     {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/ReveriePanel.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ReveriePanel.lua",
+      "size": 51023,
+      "sha256": "C3D45AEBBE677F13A74A56AFCEA9EFCABA286EAFDDCA13D5F0372769432C1475"
+    },
+    {
       "path": "Interface/AddOns/ProjectRebirthTooltips/SkillData.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/SkillData.lua",
-      "size": 460028,
-      "sha256": "009987DB049F927E37ECD0DF88F1121F9FC8D1FCCC064273D0F78CF42460685C"
+      "size": 461249,
+      "sha256": "F5778D7DFA90F6EB9D64D3C94D201F195BF16577BA32A900C0B91A6A7CB0D5A3"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/SkillPresentation.lua",
@@ -218,20 +237,20 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
-      "size": 102732,
-      "sha256": "1898985C64C1C12D2AF99C619B412319957DB159D9DE92E6B4E45F58CC86B3A3"
+      "size": 111558,
+      "sha256": "A774AE4E8FD9D3762E625673C2A39F2391A4988A1E749523F8153E179B77FE97"
     },
     {
-      "path": "Interface/AddOns/RebirthWardrobe/RebirthWardrobe.toc",
-      "url": "payload/Interface/AddOns/RebirthWardrobe/RebirthWardrobe.toc",
-      "size": 341,
-      "sha256": "FAFE6667D71A67F2E0A45B92E4FAD40026AE2B599056034753BE4E00BAA2FB67"
+      "path": "Interface/AddOns/RebirthBotManager/BotManager.lua",
+      "url": "payload/Interface/AddOns/RebirthBotManager/BotManager.lua",
+      "size": 46238,
+      "sha256": "4350E111A12F63EED13956879EB9D19E88653782046776848523B9161443546B"
     },
     {
-      "path": "Interface/AddOns/RebirthWardrobe/Wardrobe.lua",
-      "url": "payload/Interface/AddOns/RebirthWardrobe/Wardrobe.lua",
-      "size": 21834,
-      "sha256": "B7B6ACE48F73A668E42044C52EE8969F94CB032D85A9C892D5FA37DDA859B397"
+      "path": "Interface/AddOns/RebirthBotManager/RebirthBotManager.toc",
+      "url": "payload/Interface/AddOns/RebirthBotManager/RebirthBotManager.toc",
+      "size": 321,
+      "sha256": "6B1C82DB752B3938579A76374CA30680B01B7E25B36ACC7DBC10274D340F633A"
     }
   ]
 }

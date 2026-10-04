@@ -102,6 +102,7 @@ end
 G.Detail = detail
 
 function G.Refresh()
+    if G.VisualFrame then G.VisualFrame:Refresh();return end
     if not frame or not frame:IsShown() then return end
     local snapshot = G.Snapshot()
     local data = ProjectRebirthGlossaryData or {}
@@ -123,7 +124,7 @@ function G.Refresh()
             local group = G.Group(entry, options.group, snapshot)
             local owned, live = G.Ownership(entry, snapshot)
             local card = ProjectRebirthSkillData and ProjectRebirthSkillData[entry.id]
-            row.icon:SetTexture(card and card.icon or "Interface\\Icons\\INV_Misc_Book_09")
+            row.icon:SetTexture(card and card.icon or entry.icon or "Interface\\Icons\\INV_Misc_Book_09")
             row.title:SetText(entry.name)
             local c = colors[entry.rarity] or {.65,.65,.65}
             row.title:SetTextColor(c[1],c[2],c[3])
@@ -345,6 +346,10 @@ end
 -- The menu owns tab visibility. Attach never opens a second window or requests data.
 function G.Attach(parent)
     if not parent or (GetRealmName and GetRealmName() ~= "Rebirth") then return nil end
+    if ProjectRebirthPanel then
+        if not G.VisualFrame then G.VisualFrame=ProjectRebirthPanel.CreateGlossary(parent);G.Frame=G.VisualFrame end
+        return G.VisualFrame
+    end
     if not frame then create() end
     attachedParent = parent
     frame:Hide()
@@ -369,6 +374,9 @@ function G.Toggle()
     if GetRealmName and GetRealmName() ~= "Rebirth" then
         if frame then frame:Hide() end
         return
+    end
+    if ProjectRebirthPanel and type(ProjectRebirth_OpenSkillGlossary)=="function" then
+        ProjectRebirth_OpenSkillGlossary();return
     end
     if not frame then create(); frame:Show(); G.Refresh()
     elseif frame:IsShown() then frame:Hide()

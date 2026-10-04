@@ -76,11 +76,12 @@ local skillButtons = {}
 local heritageButtons = {}
 local heritagePrompt = { shown = false, ready = false }
 local selectedSkillId
-local selectedHeritageId = 1101
+local selectedHeritageId = nil
 local selectedChoiceOrdinal
 local selectedChoiceOpportunityId
 local panelWanted = false
 local actionPending = false
+local confirmIntent = {}
 local offerAssembly
 local reopenChoiceAfterSnapshot = false
 local deferredOfferReveal = false
@@ -586,8 +587,9 @@ local function RenderSkillTab()
     for index, skill in ipairs(filteredSkills) do
         local button = AcquireSkillButton(index)
         local rarity = Rarity(skill.rarityId)
-        local column = (index - 1) % 9
-        local row = math.floor((index - 1) / 9)
+        local columns = ProjectRebirthPanel and 3 or 9
+        local column = (index - 1) % columns
+        local row = math.floor((index - 1) / columns)
         button:ClearAllPoints()
         button:SetPoint("TOPLEFT", skillGridChild, "TOPLEFT", column * 54, -(row * 54))
         button.icon:SetTexture(skill.icon or SKILL_ICON)
@@ -605,7 +607,7 @@ local function RenderSkillTab()
         end
         button:Show()
     end
-    skillGridChild:SetHeight(math.max(5, math.ceil(math.max(#filteredSkills, 1) / 9)) * 54)
+    skillGridChild:SetHeight(math.max(5, math.ceil(math.max(#filteredSkills, 1) / (ProjectRebirthPanel and 3 or 9))) * 54)
 
     local skill = selectedSkillId and FindSkill(selectedSkillId) or nil
     if not skill then
@@ -626,7 +628,7 @@ local function RenderSkillTab()
     skillDetailName:SetText(ProjectRebirthSkillPresentation.Name(skill.id, skill.name))
     skillDetailName:SetTextColor(rarity.color[1], rarity.color[2], rarity.color[3])
     skillDetailMeta:SetText(ProjectRebirthSkillPresentation.Meta(rarity.name, skill.tier) ..
-        string.format("\nRank %d  •  %d XP", skill.rank, skill.xp))
+        string.format("\nRank %d  •  %s XP", skill.rank, ProjectRebirthProgress.Format(skill.xpExact or tostring(skill.xp))))
     local cardText = SkillCardText(skill.id, skill.rank)
     skillDetailSummary:SetText(cardText .. (not skill.effects and "\n\nCurrently inactive." or ""))
     skillDetailChild:SetHeight(math.max(1, skillDetailSummary:GetStringHeight() + 12))
@@ -663,9 +665,9 @@ local function RenderHeritageAspect(heritage)
                 local current = FindHeritage(heritage.id)
                 if actionPending or state.inspectedName or not current or not current.selected or
                     not current.eligible or not current.effects or selectedHeritageId ~= heritage.id then return end
-                actionPending = true
-                SendRequest("HERITAGE_ASPECT\t" .. heritage.id .. "\t" .. ordinal)
-                Render()
+                confirmIntent.aspect = {id=heritage.id,ordinal=ordinal,life=state.lifeId,previous=chosen}
+                StaticPopup_Show("PROJECT_REBIRTH_CONFIRM_ASPECT", name)
+
             end
             UIDropDownMenu_AddButton(info)
         end
@@ -677,16 +679,35 @@ local function RenderHeritageTab()
     if #heritages == 0 and state.heritage then
         heritages = { state.heritage }
     end
+    -- Panel v2: retired Heritages (Paragon) leave the grid unless this character still holds
+    -- one, and Bloodlines get their own row instead of a grid slot.
+    local panelRoles = ProjectRebirthPanel and ProjectRebirthPanel.RETIRED
+    local function InGrid(entry)
+        if not panelRoles then return true end
+        if ProjectRebirthPanel.BLOODLINE[tonumber(entry.id)] then return false end
+        return not ProjectRebirthPanel.RETIRED[tonumber(entry.id)] or entry.selected == true
+    end
+    local function Viewable(entry)
+        return entry and (InGrid(entry) or (panelRoles and ProjectRebirthPanel.BLOODLINE[tonumber(entry.id)] ~= nil))
+    end
+    local grid = {}
+    for _, entry in ipairs(heritages) do if InGrid(entry) then grid[#grid + 1] = entry end end
     local heritage = FindHeritage(selectedHeritageId)
+    if not Viewable(heritage) then heritage = nil end
     if not heritage then
-        for _, entry in ipairs(heritages) do
+        for _, entry in ipairs(grid) do
             if entry.selected then
                 heritage = entry
                 break
             end
         end
     end
-    heritage = heritage or heritages[1] or state.heritage or {}
+    if not heritage and panelRoles then
+        for _, entry in ipairs(heritages) do
+            if ProjectRebirthPanel.BLOODLINE[tonumber(entry.id)] and entry.eligible ~= false then heritage = entry; break end
+        end
+    end
+    heritage = heritage or grid[1] or heritages[1] or state.heritage or {}
     heritage.id = tonumber(heritage.id) or 1101
     heritage.rank = tonumber(heritage.rank) or 0
     heritage.xp = tonumber(heritage.xp) or 0
@@ -705,15 +726,17 @@ local function RenderHeritageTab()
     heritage.summary = heritage.summary ~= "" and heritage.summary or
         "Gain 10% of source experience as Heritage XP. Each Rank grants +0.1% to all primary stats."
     selectedHeritageId = heritage.id
+    ProjectRebirthProgress.SetViewedHeritage(heritage.id)
     heritageCountLabel:SetText(string.format("Heritages (%d available)", #heritages))
 
     HideGridButtons(heritageButtons)
-    for index, entry in ipairs(heritages) do
+    for index, entry in ipairs(grid) do
         local button = AcquireHeritageButton(index)
         local column = (index - 1) % 4
         local row = math.floor((index - 1) / 4)
         button:ClearAllPoints()
-        button:SetPoint("TOPLEFT", heritageGridChild, "TOPLEFT", column * 68, -(row * 62))
+        button:SetPoint("TOPLEFT", heritageGridChild, "TOPLEFT", column * (ProjectRebirthPanel and 40 or 68), -(row * (ProjectRebirthPanel and 44 or 62)))
+        if ProjectRebirthPanel then button:SetWidth(36);button:SetHeight(36) end
         button.icon:SetTexture(HeritageIcon(entry.id))
         button.entryId = entry.id or 1101
         button.rank:SetText((tonumber(entry.rank) or 0) > 0 and entry.rank or "")
@@ -747,7 +770,7 @@ local function RenderHeritageTab()
         end
         button:Show()
     end
-    heritageGridChild:SetHeight(math.max(3, math.ceil(#heritages / 4)) * 62)
+    heritageGridChild:SetHeight(math.max(3, math.ceil(#grid / 4)) * (ProjectRebirthPanel and 44 or 62))
 
     heritageDetailIcon:SetTexture(HeritageIcon(heritage.id))
     heritageDetailName:SetText(heritage.name or "Paragon")
@@ -778,7 +801,9 @@ local function RenderHeritageTab()
         racialDetails = racialDetails .. "\n|cff73e6ffRacial haste:|r " ..
             FormatMilliValue(heritage.hasteBonusMilli, "percent") .. " for 40 seconds — " .. hasteState
     end
-    heritageDetailSummary:SetText((heritage.summary or "") ..
+    local completeSummary = (heritage.id == 1101 or heritage.id == 1102) and
+        state.heritageDetails[heritage.id] or heritage.summary
+    heritageDetailSummary:SetText((completeSummary or "") ..
         "\n\n|cff73e6ffEligibility:|r " .. eligibilityText ..
         "\n|cff73e6ffProgression:|r " .. scopeText ..
         "\n" .. effectColor .. "Current all-stat bonus: " .. FormatMilliValue(heritage.bonusMilli, "percent") .. "|r" ..
@@ -813,7 +838,7 @@ local function RenderHeritageTab()
         heritageDetailSummary:SetText(description ..
             "\n\nGrows with Heritage experience. Level and experience are retained through Rebirth; choose a Heritage for each new Life.")
     end
-    if state.heritageDetails[heritage.id] then
+    if IsCombatHeritage(heritage.id) and state.heritageDetails[heritage.id] then
         heritageDetailSummary:SetText(state.heritageDetails[heritage.id])
     elseif heritage.id >= 1105 and heritage.id <= 1114 then
         heritageDetailSummary:SetText("Retrieving Heritage effects...")
@@ -853,7 +878,7 @@ local function RenderHeritageTab()
         if not heritage.eligible then
             heritageWarning:SetText(eligibilityText)
         elseif offensive then
-            heritageWarning:SetText("Selected for this Life; level and experience persist through Rebirth.")
+            heritageWarning:SetText("Choose for this Life; level and experience persist through Rebirth.")
         elseif heritage.progressionScope == "character" then
             heritageWarning:SetText("Selection is permanent; Rank and XP persist across Rebirth.")
         else
@@ -1180,6 +1205,8 @@ Render = function()
     elseif activeTab == "glossary" and ProjectRebirthGlossary then
         ProjectRebirthGlossary.Refresh()
     end
+    if ProjectRebirthPanel then ProjectRebirthPanel.Render(state,activeTab,
+        selectedSkillId and FindSkill(selectedSkillId),FindHeritage(selectedHeritageId)) end
 end
 
 local function SelectTab(name)
@@ -1192,7 +1219,10 @@ end
 local function ConfirmHeritageSelection()
     local heritage = FindHeritage(selectedHeritageId)
     heritage = heritage or state.heritage or {}
-    if actionPending or heritage.selected or not heritage.canSelect then
+    local intent=confirmIntent.heritage
+    confirmIntent.heritage=nil
+    if not intent or intent.id~=heritage.id or intent.life~=state.lifeId or state.inspectedName or
+        heritage.eligible==false or actionPending or heritage.selected or not heritage.canSelect then
         return
     end
 
@@ -1207,6 +1237,7 @@ StaticPopupDialogs.PROJECT_REBIRTH_CONFIRM_HERITAGE = {
     button1 = "Select Heritage",
     button2 = CANCEL,
     OnAccept = ConfirmHeritageSelection,
+    OnCancel = function() confirmIntent.heritage=nil end,
     timeout = 0,
     whileDead = true,
     hideOnEscape = true,
@@ -1214,7 +1245,10 @@ StaticPopupDialogs.PROJECT_REBIRTH_CONFIRM_HERITAGE = {
 }
 
 local function ConfirmManifestationDecline()
-    if actionPending or not state.offer then return end
+    local intent=confirmIntent.decline
+    confirmIntent.decline=nil
+    if not intent or actionPending or state.inspectedName or not state.offer or intent.id~=state.offer.opportunityId or
+        intent.version~=state.offer.rowVersion then return end
     local opportunityId = state.offer.opportunityId
     actionPending = true
     state.notice = "Waiting for the server to decline every choice…"
@@ -1228,6 +1262,7 @@ StaticPopupDialogs.PROJECT_REBIRTH_CONFIRM_MANIFESTATION_DECLINE = {
     button1 = "Decline All",
     button2 = CANCEL,
     OnAccept = ConfirmManifestationDecline,
+    OnCancel = function() confirmIntent.decline=nil end,
     timeout = 0,
     whileDead = true,
     hideOnEscape = true,
@@ -1236,7 +1271,10 @@ StaticPopupDialogs.PROJECT_REBIRTH_CONFIRM_MANIFESTATION_DECLINE = {
 
 local function ConfirmRebirthExecution()
     local rebirth = state.rebirth
-    if actionPending or rebirth.status ~= "preview_ready" or not rebirth.transaction or not rebirth.token then
+    local intent=confirmIntent.rebirth
+    confirmIntent.rebirth=nil
+    if not intent or intent.transaction~=rebirth.transaction or intent.token~=rebirth.token or
+        intent.life~=state.lifeId or actionPending or state.inspectedName or rebirth.status ~= "preview_ready" or not rebirth.transaction or not rebirth.token then
         return
     end
     actionPending = true
@@ -1250,10 +1288,39 @@ StaticPopupDialogs.PROJECT_REBIRTH_CONFIRM_EXECUTION = {
     button1 = "Begin Next Life",
     button2 = CANCEL,
     OnAccept = ConfirmRebirthExecution,
+    OnCancel = function() confirmIntent.rebirth=nil end,
     timeout = 0,
     whileDead = false,
     hideOnEscape = true,
     preferredIndex = 3,
+}
+
+StaticPopupDialogs.PROJECT_REBIRTH_CONFIRM_ASPECT = {
+    text="Choose %s?\n\nThis changes your active Heritage choice.",button1="Confirm choice",button2=CANCEL,
+    OnAccept=function()
+        local intent=confirmIntent.aspect;confirmIntent.aspect=nil
+        local current=intent and FindHeritage(intent.id)
+        if not current or actionPending or state.inspectedName or not current.selected or not current.eligible or
+            not current.effects or selectedHeritageId~=intent.id or state.lifeId~=intent.life or
+            state.heritageAspects[intent.id]~=intent.previous then return end
+        actionPending=true
+        SendRequest("HERITAGE_ASPECT\t"..intent.id.."\t"..intent.ordinal)
+        Render()
+    end,
+    OnCancel=function() confirmIntent.aspect=nil end,timeout=0,whileDead=true,hideOnEscape=true,preferredIndex=3,
+}
+StaticPopupDialogs.PROJECT_REBIRTH_CONFIRM_SKILL = {
+    text="Claim %s?\n\nThis resolves your current Manifestation offer.",button1="Claim Skill",button2=CANCEL,
+    OnAccept=function()
+        local intent=confirmIntent.claim;confirmIntent.claim=nil
+        local offer=state.offer;local choice=offer and intent and offer.choices[intent.ordinal]
+        if actionPending or not intent or not offer or not choice or offer.opportunityId~=intent.id or
+            offer.rowVersion~=intent.version or choice.skillId~=intent.skill or state.inspectedName then return end
+        actionPending=true;state.notice="Waiting for server acceptance…"
+        SendRequest("ACCEPT\t"..intent.id.."\t"..intent.ordinal)
+        RenderChoiceFrame();if Render then Render() end
+    end,
+    OnCancel=function() confirmIntent.claim=nil end,timeout=0,whileDead=true,hideOnEscape=true,preferredIndex=3,
 }
 
 local function CreateManifestationChoiceInterface()
@@ -1326,11 +1393,8 @@ local function CreateManifestationChoiceInterface()
         local offer = state.offer
         local choice = offer and selectedChoiceOrdinal and offer.choices[selectedChoiceOrdinal]
         if actionPending or not offer or not choice then return end
-        actionPending = true
-        state.notice = "Waiting for server acceptance…"
-        SendRequest("ACCEPT\t" .. tostring(offer.opportunityId) .. "\t" .. tostring(choice.ordinal))
-        RenderChoiceFrame()
-        if Render then Render() end
+        confirmIntent.claim={id=offer.opportunityId,version=offer.rowVersion,ordinal=choice.ordinal,skill=choice.skillId}
+        StaticPopup_Show("PROJECT_REBIRTH_CONFIRM_SKILL", choice.name or "this Skill")
     end)
 
     declineAllButton = CreateFrame("Button", nil, choiceFrame, "UIPanelButtonTemplate")
@@ -1340,6 +1404,7 @@ local function CreateManifestationChoiceInterface()
     declineAllButton:SetText("Decline All")
     declineAllButton:SetScript("OnClick", function()
         if not state.offer or actionPending then return end
+        confirmIntent.decline={id=state.offer.opportunityId,version=state.offer.rowVersion}
         StaticPopup_Show("PROJECT_REBIRTH_CONFIRM_MANIFESTATION_DECLINE", state.offer.count)
     end)
 
@@ -1439,6 +1504,34 @@ local function CreateHeritageDetailContent()
     heritageAspectDropdown:Hide()
 end
 
+local function DetailContext(c)
+    c.skillCount=skillCountLabel;c.search=searchBox;c.skillGrid=skillGridFrame;c.skillGridChild=skillGridChild
+    c.skillWell=skillDetailFrame;c.skillIcon=skillDetailIcon;c.skillName=skillDetailName;c.skillMeta=skillDetailMeta
+    c.skillScroll=skillDetailScroll;c.skillChild=skillDetailChild;c.skillSummary=skillDetailSummary;c.inspect=inspectButton
+    c.heritageCount=heritageCountLabel;c.heritageGrid=heritageGridFrame;c.heritageGridChild=heritageGridChild
+    c.heritageWell=heritageDetailFrame;c.heritageIcon=heritageDetailIcon;c.heritageName=heritageDetailName
+    c.heritageMeta=heritageDetailMeta;c.heritageScroll=heritageDetailScroll;c.heritageChild=heritageDetailChild
+    c.heritageSummary=heritageDetailSummary;c.aspect=heritageAspectDropdown;c.heritageWarning=heritageWarning
+    c.heritageButton=heritageButton
+    return c
+end
+local function AttachRedesign(c)
+    CreateManifestationChoiceInterface()
+    CreateRebirthMicroButton()
+    if not ProjectRebirthPanel then return end
+    c.panel=panel;c.tabs=tabFrames;c.status=statusText;c.footnote=footnote;c.capacity=capacityText
+    c.slots=loadoutSlots;c.pending=pendingChoicesButton;c.rebirthLife=rebirthLifeText;c.rebirthLevel=rebirthLevelText
+    c.rebirthCapacity=rebirthCapacityText;c.rebirthHeritage=rebirthHeritageText;c.rebirthEligibility=rebirthEligibilityText
+    c.rebirthNext=rebirthNextText;c.rebirthPreview=rebirthPreviewButton;c.rebirthConfirm=rebirthConfirmButton
+    c.state=function() return state end
+    c.openGlossary=function(category) SelectTab("glossary");if ProjectRebirthGlossary.VisualFrame then
+        ProjectRebirthGlossary.VisualFrame:SetCategory(category) end end
+    c.selectHeritage=function(id) selectedHeritageId=id;state.presentationPreview=nil;SelectTab("heritages") end
+    c.previewHeritage=function(level) if not state.inspectedName and ProjectRebirthPanelProtocol then
+        ProjectRebirthPanelProtocol.RequestPreview(selectedHeritageId,level) end end
+    ProjectRebirthPanel.Attach(DetailContext(c))
+end
+
 local function CreateInterface()
     if panel then
         return
@@ -1515,6 +1608,7 @@ local function CreateInterface()
         SendRequest("STATE")
         Render()
     end)
+    panel.refreshButton = refresh
 
     local function CreateTabButton(name, label, index)
         local button = CreateFrame("Button", "ProjectRebirthSkillsPanelTab" .. index, panel, "CharacterFrameTabButtonTemplate")
@@ -1707,6 +1801,7 @@ local function CreateInterface()
         if heritage.id >= 1103 and heritage.id <= 1114 then
             scopeWarning = "Selected for this Life; level and experience persist through Rebirth."
         end
+        confirmIntent.heritage={id=heritage.id,life=state.lifeId}
         StaticPopup_Show("PROJECT_REBIRTH_CONFIRM_HERITAGE", heritage.name or "this Heritage", scopeWarning)
     end)
 
@@ -1723,8 +1818,6 @@ local function CreateInterface()
             ShowManifestationChoices(false)
         end
     end)
-
-    CreateManifestationChoiceInterface()
 
     tabFrames.rebirth = CreateFrame("Frame", nil, panel)
     tabFrames.rebirth:SetPoint("TOPLEFT", panel, "TOPLEFT", 16, -88)
@@ -1783,7 +1876,10 @@ local function CreateInterface()
     rebirthConfirmButton:SetPoint("BOTTOMRIGHT", eligibilityCard, "BOTTOMRIGHT", -24, 24)
     rebirthConfirmButton:SetText("Begin Next Life")
     rebirthConfirmButton:SetScript("OnClick", function()
-        if not actionPending then StaticPopup_Show("PROJECT_REBIRTH_CONFIRM_EXECUTION") end
+        if not actionPending and state.rebirth.status=="preview_ready" then
+            confirmIntent.rebirth={transaction=state.rebirth.transaction,token=state.rebirth.token,life=state.lifeId}
+            StaticPopup_Show("PROJECT_REBIRTH_CONFIRM_EXECUTION")
+        end
     end)
     rebirthConfirmButton:Hide()
 
@@ -1808,8 +1904,8 @@ local function CreateInterface()
     footnote:SetJustifyH("LEFT")
     footnote:SetText("Select a progression tab to inspect server-authoritative details.")
 
-    CreateRebirthMicroButton()
-
+    AttachRedesign({backing=backing,interior=interior,brand=brand,subtitle=subtitle,title=title,
+        searchLabel=searchLabel,lifeCard=lifeCard,eligibilityCard=eligibilityCard})
     UpdateActivation()
     Render()
 end
@@ -1850,6 +1946,9 @@ local function HandleAddonMessage(prefix, message, channel, sender)
     end
 
     local fields = SplitTabs(message)
+    if fields[1]=="4" and ProjectRebirthPanelProtocol then
+        ProjectRebirthPanelProtocol.Receive(fields);return
+    end
     if fields[1] ~= PROTOCOL then
         state.glossaryReady = false
         state.glossaryReceiving = false
@@ -1864,7 +1963,13 @@ local function HandleAddonMessage(prefix, message, channel, sender)
     end
 
     local messageType = fields[2]
-    if messageType == "STATE" then
+    if messageType=="PANEL_CAPABILITIES" then
+        if ProjectRebirthPanelProtocol then ProjectRebirthPanelProtocol.Available=fields[3]=="4" end
+        return
+    elseif messageType == "STATE" then
+        confirmIntent={}
+        state.presentation=nil;state.presentationPreview=nil;state.presentationAvailable=false
+        if ProjectRebirthPanelProtocol then ProjectRebirthPanelProtocol.Cancel() end
         state.glossaryReady = false
         state.glossaryReceiving = true
         state.complete = false
@@ -1884,6 +1989,9 @@ local function HandleAddonMessage(prefix, message, channel, sender)
         state.heritage.canSelect = false
         UpdatePendingIndicator()
     elseif messageType == "INSPECT_BEGIN" then
+        confirmIntent={}
+        state.presentation=nil;state.presentationPreview=nil;state.presentationAvailable=false
+        if ProjectRebirthPanelProtocol then ProjectRebirthPanelProtocol.Cancel() end
         state.glossaryReady = false
         state.glossaryReceiving = false
         state.inspectedName = DecodeField(fields[3])
@@ -1905,6 +2013,7 @@ local function HandleAddonMessage(prefix, message, channel, sender)
             rarityId = tonumber(fields[4]) or 0,
             rank = tonumber(fields[5]) or 0,
             xp = tonumber(fields[6]) or 0,
+            xpExact = fields[6],
             effects = fields[7] == "1",
             name = DecodeField(fields[8]),
             summary = DecodeField(fields[9]),
@@ -2241,7 +2350,28 @@ local function HandleAddonMessage(prefix, message, channel, sender)
         actionPending = false
         Render()
         PromptHeritageSelection()
+        if ProjectRebirthPanelProtocol then ProjectRebirthPanelProtocol.RequestState() end
     end
+end
+
+if ProjectRebirthPanelProtocol then
+    ProjectRebirthPanelProtocol.Attach(function(packet)
+        if active and not state.inspectedName then SendAddonMessage(PREFIX,packet,"WHISPER",UnitName("player")) end
+    end,function(snapshot)
+        if state.inspectedName then return end
+        state.presentationError=nil
+        if snapshot.mode=="preview" then
+            if selectedHeritageId~=snapshot.id then return end
+            state.presentationPreview=snapshot.heritages[snapshot.id]
+        else state.presentation=snapshot;state.presentationPreview=nil;state.presentationAvailable=true end
+        if Render then Render() end
+    end,function(reason)
+        -- Optional presentation failure cannot expose implementation prose or leave
+        -- stale optional controls active. Version-3 notices/commit state stay intact.
+        state.presentationError=reason
+        state.presentation=nil;state.presentationPreview=nil;state.presentationAvailable=false
+        if Render then Render() end
+    end)
 end
 
 local eventFrame = CreateFrame("Frame")
@@ -2250,6 +2380,9 @@ eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("PLAYER_REGEN_ENABLED")
 eventFrame:RegisterEvent("PLAYER_LOGOUT")
 eventFrame:RegisterEvent("CHAT_MSG_ADDON")
+eventFrame:SetScript("OnUpdate",function()
+    if ProjectRebirthPanelProtocol then ProjectRebirthPanelProtocol.CheckTimeout() end
+end)
 eventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "PLAYER_LOGIN" then
         heritagePrompt.shown = false

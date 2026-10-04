@@ -13,12 +13,16 @@ param(
     [Parameter(Mandatory)]
     [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+(?:[-+][0-9A-Za-z.-]+)?$')]
     [string]$ContentVersion,
+    [ValidateRange(0, 1)]
+    [int]$ContentEpoch = 0,
     [Parameter(Mandatory)]
     [ValidatePattern('^[0-9]+\.[0-9]+\.[0-9]+$')]
     [string]$LauncherVersion,
     [ValidateRange(1, 90)]
     [int]$ManifestValidityDays = 30,
     [string]$DotNetPath = 'dotnet',
+    [string]$ReleaseHeadline = 'Project Reverie - Rebirth progression update',
+    [string]$ReleaseSummary = 'The Reverie panel has been rebuilt, companion controls use bag upgrades and paid vendor repair, and Wardrobe has been removed. Launcher cards have rounded corners and Client Location is in Settings.',
     [switch]$Force
 )
 
@@ -33,6 +37,9 @@ if (-not (Test-Path -LiteralPath $settingsPath -PathType Leaf)) {
     throw "Distribution settings were not found: $settingsPath"
 }
 $settings = [System.IO.File]::ReadAllText($settingsPath) | ConvertFrom-Json
+. (Join-Path $PSScriptRoot 'ProjectReverie.PreparationVersions.ps1')
+$versionPlan = Get-ReveriePreparationVersions $settings $ContentVersion $LauncherVersion $ContentEpoch $PSBoundParameters.ContainsKey('ContentEpoch')
+$ContentEpoch = $versionPlan.contentEpoch
 if ($settings.pagesBaseUri -notmatch '^https://[^/]+/.+/$') {
     throw 'pagesBaseUri must be an absolute HTTPS project-site URI ending in a slash.'
 }
@@ -46,7 +53,7 @@ $builder = Join-Path $LauncherRoot 'tools\Build-ProjectRebirthPublicLauncher.ps1
 $trustSource = Join-Path $LauncherRoot 'src\ProjectRebirth.Launcher\UpdateTrust.cs'
 $addonSources = @(
     (Join-Path $ProjectRoot 'client-addon\ProjectRebirthTooltips'),
-    (Join-Path $ProjectRoot 'client-addon\RebirthWardrobe')
+    (Join-Path $ProjectRoot 'client-addon\RebirthBotManager')
 )
 foreach ($required in @($publisher, $builder, $trustSource) + $addonSources) {
     if (-not (Test-Path -LiteralPath $required)) {
@@ -71,13 +78,14 @@ if (-not $PSCmdlet.ShouldProcess($DistributionRoot, "Create signed public conten
     -FeedRoot $siteRoot `
     -Channel ([string]$settings.channel) `
     -ContentVersion $ContentVersion `
+    -ContentEpoch $ContentEpoch `
     -MinimumLauncherVersion $LauncherVersion `
     -AuthAddress ([string]$settings.authAddress) `
     -AuthPort ([int]$settings.authPort) `
     -WorldPort ([int]$settings.worldPort) `
-    -ReleaseHeadline 'Project Reverie — Rebirth security update' `
-    -ReleaseSummary 'Hardens Rebirth realm isolation, authenticated addon responses, and permanent Heritage confirmation while retaining the independent Rebirth Wardrobe.' `
-    -UpdateKind hotfix `
+    -ReleaseHeadline $ReleaseHeadline `
+    -ReleaseSummary $ReleaseSummary `
+    -UpdateKind content `
     -RequiresClientUpdate $true `
     -ManifestValidityDays $ManifestValidityDays `
     -CertificateThumbprint $CertificateThumbprint `
@@ -102,6 +110,8 @@ $bootstrapJson = $bootstrap | ConvertTo-Json -Depth 5
 
 $settings.contentVersion = $ContentVersion
 $settings.launcherVersion = $LauncherVersion
+if ($settings.PSObject.Properties['contentEpoch']) { $settings.contentEpoch = $ContentEpoch }
+else { $settings | Add-Member -NotePropertyName contentEpoch -NotePropertyValue $ContentEpoch }
 [System.IO.File]::WriteAllText(
     $settingsPath,
     ($settings | ConvertTo-Json -Depth 5) + [Environment]::NewLine,

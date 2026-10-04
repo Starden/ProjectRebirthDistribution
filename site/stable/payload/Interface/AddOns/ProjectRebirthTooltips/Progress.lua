@@ -2,7 +2,8 @@
 -- Save only per-character display preferences, never progression state.
 ProjectRebirthProgress = {}
 local P = ProjectRebirthProgress
-local rebirth, heritage, lifeWidget, heritageWidget, tracking, hud, lockButton
+local rebirth, heritage, lifeWidget, heritageWidget, tracking, hud, lockButton, resetButton
+local viewedHeritageId
 local active = false
 local UINT64_MAX = "18446744073709551615"
 
@@ -33,6 +34,17 @@ function P.Format(value)
     local s = tostring(value or "0")
     if not Unsigned(s) then return "—" end
     return (s:reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", ""))
+end
+
+function P.RankFraction(row)
+    if not row or not Unsigned(row.earnedXp) or not Unsigned(row.nextXp) or
+        not Unsigned(row.remainingXp) then return nil end
+    if row.atCap==true then
+        return row.nextXp=="0" and row.remainingXp=="0" and 1 or nil
+    end
+    if row.atCap~=false or row.nextXp=="0" or row.remainingXp=="0" or
+        Add(row.earnedXp,row.remainingXp)~=row.nextXp then return nil end
+    return math.min(1,tonumber(row.earnedXp)/tonumber(row.nextXp))
 end
 
 -- Full, self-contained records. Keep uint64 values as decimal strings; Lua 5.1
@@ -182,9 +194,19 @@ local function Render()
     if heritageWidget then
         Fill(heritageWidget, heritage, heritage and
             ("Tracked Heritage: " .. heritage.name .. " — " .. heritage.level .. "/" .. heritage.maximum), "rank")
+        local visible = heritage and heritage.id == viewedHeritageId
+        if visible then heritageWidget:Show() else heritageWidget:Hide() end
+        for _, widget in ipairs({tracking, lockButton, resetButton}) do
+            if visible and not P.CompactPanel then widget:Show() else widget:Hide() end
+        end
     end
     if tracking then tracking:SetChecked(Settings().trackHeritage == true) end
     P.UpdateHUD()
+end
+
+function P.SetViewedHeritage(id)
+    viewedHeritageId = id and tostring(id) or nil
+    Render()
 end
 
 function P.Receive(fields)
@@ -230,6 +252,41 @@ function P.CreateRebirth(parent)
     Render()
 end
 
+function P.LayoutPanel(heritageParent, rebirthParent)
+    P.CompactPanel=true
+    if heritageWidget then
+        heritageWidget:ClearAllPoints()
+        heritageWidget:SetPoint("TOPLEFT",heritageParent,"TOPLEFT",84,-66)
+        heritageWidget:SetWidth(286);heritageWidget:SetHeight(16)
+        heritageWidget.title:Hide();heritageWidget.detail:Hide()
+        heritageWidget.bar:ClearAllPoints()
+        heritageWidget.bar:SetPoint("TOPLEFT",heritageWidget,"TOPLEFT",0,0)
+        heritageWidget.bar:SetWidth(286);heritageWidget.bar:SetHeight(16)
+        heritageWidget.bar:EnableMouse(true)
+        heritageWidget.bar:SetScript("OnMouseUp",function(_,button)
+            if button~="RightButton" or not heritage or heritage.id~=viewedHeritageId then return end
+            if not P.SettingsMenu then P.SettingsMenu=CreateFrame("Frame","ProjectRebirthXPSettingsMenu",UIParent,"UIDropDownMenuTemplate") end
+            UIDropDownMenu_Initialize(P.SettingsMenu,function()
+                local choices={{"Show independent XP bar",function() Settings().trackHeritage=not Settings().trackHeritage;P.UpdateHUD() end},
+                    {"Lock or unlock XP bar",function() P.SetLocked(Settings().locked==false) end},
+                    {"Reset XP bar position",P.ResetHUD}}
+                for _,choice in ipairs(choices) do
+                    local info=UIDropDownMenu_CreateInfo();info.text=choice[1];info.func=choice[2]
+                    UIDropDownMenu_AddButton(info)
+                end
+            end,"MENU")
+            ToggleDropDownMenu(1,nil,P.SettingsMenu,"cursor",0,0)
+        end)
+    end
+    if lifeWidget then
+        lifeWidget:SetParent(rebirthParent);lifeWidget:ClearAllPoints()
+        lifeWidget:SetPoint("TOPLEFT",rebirthParent,"TOPLEFT",12,-260)
+        lifeWidget:SetWidth(174);lifeWidget:SetHeight(86)
+        for _,label in ipairs({lifeWidget.title,lifeWidget.detail}) do label:SetTextColor(.17,.12,.07) end
+    end
+    Render()
+end
+
 function P.CreateHeritage(parent)
     if heritageWidget then return end
     heritageWidget = Widget(parent, "ProjectRebirthHeritageProgress")
@@ -259,12 +316,12 @@ function P.CreateHeritage(parent)
     lockButton:SetHeight(20)
     lockButton:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 14, 54)
     lockButton:SetScript("OnClick", function() P.SetLocked(Settings().locked == false) end)
-    local reset = CreateFrame("Button", "ProjectRebirthHeritageBarReset", parent, "UIPanelButtonTemplate")
-    reset:SetWidth(118)
-    reset:SetHeight(20)
-    reset:SetPoint("LEFT", lockButton, "RIGHT", 8, 0)
-    reset:SetText("Reset XP bar")
-    reset:SetScript("OnClick", P.ResetHUD)
+    resetButton = CreateFrame("Button", "ProjectRebirthHeritageBarReset", parent, "UIPanelButtonTemplate")
+    resetButton:SetWidth(118)
+    resetButton:SetHeight(20)
+    resetButton:SetPoint("LEFT", lockButton, "RIGHT", 8, 0)
+    resetButton:SetText("Reset XP bar")
+    resetButton:SetScript("OnClick", P.ResetHUD)
     P.SetLocked(Settings().locked ~= false)
     Render()
 end

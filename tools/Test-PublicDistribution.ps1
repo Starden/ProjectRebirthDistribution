@@ -9,6 +9,14 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+function Test-RebirthBotManagerManagedSet([string[]]$Paths) {
+    $botPaths = @($Paths | Where-Object { $_.StartsWith('Interface/AddOns/RebirthBotManager/', [StringComparison]::OrdinalIgnoreCase) })
+    return ($botPaths.Count -eq 0 -or ($botPaths.Count -eq 2 -and
+        $botPaths -ccontains 'Interface/AddOns/RebirthBotManager/BotManager.lua' -and
+        $botPaths -ccontains 'Interface/AddOns/RebirthBotManager/RebirthBotManager.toc'))
+}
+
 $script:Failures = [System.Collections.Generic.List[string]]::new()
 $script:Passes = 0
 $script:PendingReleaseValid = $false
@@ -379,12 +387,16 @@ if ($null -ne $manifest) {
         Add-Pass "Manifest remains valid until $($expiresAt.ToString('u'))"
     }
 
+    if (-not (Test-RebirthBotManagerManagedSet @($manifest.files | ForEach-Object { [string]$_.path }))) {
+        Add-Failure 'RebirthBotManager manifest must contain both approved runtime files with no extra files.'
+    }
+
     $seen = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
     foreach ($entry in @($manifest.files)) {
         $managedPath = [string]$entry.path
         $url = [string]$entry.url
         $approvedManagedPath = $managedPath.StartsWith('Interface/AddOns/ProjectRebirthTooltips/', [System.StringComparison]::OrdinalIgnoreCase) -or
-            $managedPath.StartsWith('Interface/AddOns/RebirthWardrobe/', [System.StringComparison]::OrdinalIgnoreCase)
+            @('Interface/AddOns/RebirthBotManager/BotManager.lua', 'Interface/AddOns/RebirthBotManager/RebirthBotManager.toc') -ccontains $managedPath
         if (-not $approvedManagedPath -or
             $managedPath.Contains('\') -or $managedPath.Contains('..') -or $managedPath.Contains(':') -or
             -not $seen.Add($managedPath)) {

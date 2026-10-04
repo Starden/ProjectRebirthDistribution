@@ -2,7 +2,7 @@
 ## Title: Project Reverie — Rebirth
 ## Notes: Realm-gated Rebirth progression interface and all-class rank tooltips.
 ## Author: Project Reverie
-## Version: 0.1.34
+## Version: 1.25.0
 ## SavedVariablesPerCharacter: ProjectRebirthProgressSettings
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
@@ -12,13 +12,16 @@
 ## X-Rebirth-TrackedSpellCount: 2164
 ## X-Rebirth-VirtualRankCount: 116
 ## X-Rebirth-AddonProtocolVersion: 3
-## X-Rebirth-Package-SHA256: 234D898B1E9C41DBD35EE46A7D179853810E775604A1C2AF5E222528110ADBF1
+## X-Rebirth-Package-SHA256: Staged-Unpackaged
 
 Data.lua
 RankData.lua
 SkillData.lua
 GlossaryData.lua
 SkillPresentation.lua
+BloodlineDesignData.lua
+ReveriePanel.lua
+PanelProtocol.lua
 ChatLinks.lua
 Glossary.lua
 Completion.lua

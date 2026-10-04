@@ -1,0 +1,11 @@
+## Interface: 30300
+## Title: Rebirth Bot Manager
+## Notes: PlayerBot party presets, roles, orders, carried upgrades and vendor repairs.
+## Author: Project Rebirth
+## Version: 0.3.0
+## DefaultState: Enabled
+## LoadOnDemand: 0
+## SavedVariablesPerCharacter: RebirthBotManagerDB
+## X-Rebirth-Realm: Rebirth
+
+BotManager.lua
