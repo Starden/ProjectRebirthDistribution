@@ -9,6 +9,10 @@ local INK2 = {0.23, 0.14, 0.05}
 local VALUE = {0, 0.36, 0}
 local WARN = {0.65, 0.14, 0}
 local GOLD = {1, 0.82, 0}
+-- Tab content starts just below the carved header (which reaches 39 px into the frame).
+local TOP = 30
+-- Content height. TOP + H + 26 = 500, the stock AchievementFrame height the mockups use.
+local H = 444
 local context
 local roman = {"I", "II", "III", "IV", "V"}
 
@@ -61,8 +65,11 @@ local function Category(parent, label, y)
     local bar = CreateFrame("Frame", nil, parent)
     Pin(bar, parent, 0, y, 198, 24)
     Texture(bar, ART .. "UI-Achievement-Category-Background", 0, 0, 198, 24, {0,.6641,0,1})
-    bar.label = Text(bar, label, 10, 5, 178, "GameFontNormalSmall", GOLD)
+    bar.label = Text(bar, label, 10, 5, 140, "GameFontNormal", {1, 1, 1})
     bar.label:SetShadowOffset(1, -1)
+    bar.count = Text(bar, "", 98, 5, 90, "GameFontNormal", GOLD)
+    bar.count:SetJustifyH("RIGHT")
+    bar.count:SetShadowOffset(1, -1)
     return bar
 end
 
@@ -121,8 +128,8 @@ local function Criterion(parent, width)
     row.dot:SetVertexColor(INK2[1], INK2[2], INK2[3], .7)
     row.band = Texture(row, "Interface\\Buttons\\WHITE8X8", -4, -2, width + 4, 18, nil, "BACKGROUND")
     row.band:SetVertexColor(1, .82, 0, .18)
-    row.rank = Text(row, "", 24, 2, 64)
-    row.text = Text(row, "", 90, 2, width - 160)
+    row.rank = Text(row, "", 24, 2, 60)
+    row.text = Text(row, "", 84, 2, width - 88)
     row.note = Text(row, "", width - 72, 2, 72, "GameFontHighlightSmall", WARN)
     row.note:SetJustifyH("RIGHT")
     return row
@@ -137,7 +144,8 @@ local function SetCriterion(row, met, rank, text, next, note)
     row.text:SetText(text or "")
     row.text:SetTextColor(unpack(met and VALUE or INK2))
     row.note:SetText(note or "")
-    if rank then Pin(row.text, row, 90, 2, row:GetWidth() - 160) else Pin(row.text, row, 24, 2, row:GetWidth() - 28) end
+    local x = rank and 84 or 24
+    Pin(row.text, row, x, 2, row:GetWidth() - x - (note and 84 or 4))
     row:SetHeight(math.max(18, row.text:GetStringHeight() + 4))
     row:Show()
 end
@@ -189,7 +197,10 @@ function V.RankTable(texts)
                     local piece = parts[rank][part]:gsub(" percentage points", " pts"):gsub(" percent", "%%")
                     if part > 1 then
                         local word, number = piece:match("^(%a[%a ]-)%s+([%d%.%%]+%S*)$")
-                        if word then row.label = word:sub(1,1):upper() .. word:sub(2); piece = number end
+                        if word then
+                            row.label = word:sub(1,1):upper() .. word:sub(2); piece = number
+                            if row.label == "Max" then row.label = "Maximum" end
+                        end
                     end
                     row.values[rank] = piece
                 end
@@ -207,12 +218,12 @@ end
 function V.Attach(c)
     context = c
     c.panel:SetWidth(768)
-    c.panel:SetHeight(500)
+    c.panel:SetHeight(TOP + H + 26)
     c.panel:SetBackdrop({edgeFile=ART .. "UI-Achievement-WoodBorder", edgeSize=64, tileSize=32, tile=true,
         insets={left=16,right=16,top=16,bottom=16}})
     c.panel:SetScript("OnShow", function(self)
         self:SetScale(math.min(1, math.max(.25, (UIParent:GetWidth()-24)/768),
-            math.max(.25, (UIParent:GetHeight()-120)/560)))
+            math.max(.25, (UIParent:GetHeight()-120)/(TOP + H + 86))))
     end)
     c.backing:SetTexture(.08,.06,.04,1)
     c.interior:Hide()
@@ -235,49 +246,50 @@ function V.Attach(c)
     Pin(c.plaque, header, 343, -2, 133, 14)
     c.plaque:SetJustifyH("CENTER")
     -- Server state is only shown when there is something to say (a notice or error).
-    Pin(c.status, c.panel, 24, 470, 720, 14)
-    Pin(c.footnote, c.panel, 242, 427, 340, 24)
+    Pin(c.status, c.panel, 24, TOP + H + 4, 720, 14)
+    Pin(c.footnote, c.panel, 242, TOP + H, 340, 24)
     c.footnote:Hide()
     for _, tab in ipairs({"skills","heritages","rebirth","glossary"}) do
         local frame = c.tabs[tab]
-        Pin(frame, c.panel, 20, 94, 728, 362)
-        Texture(frame, ART .. "UI-Achievement-Parchment", 0, 0, 198, 362)
-        Texture(frame, ART .. "UI-Achievement-AchievementBackground", 214, 0, 514, 362)
-        local mark = Texture(frame, ART .. "UI-Achievement-AchievementWatermark", 466, 106, 256, 256)
+        Pin(frame, c.panel, 20, TOP, 728, H)
+        Texture(frame, ART .. "UI-Achievement-Parchment", 0, 0, 198, H)
+        Texture(frame, ART .. "UI-Achievement-AchievementBackground", 214, 0, 514, H)
+        local mark = Texture(frame, ART .. "UI-Achievement-AchievementWatermark", 466, H - 256, 256, 256)
         mark:SetAlpha(.25)
         -- Metal frame around the detail well (left/right/top/bottom, as AchievementFrame).
-        Texture(frame, ART .. "UI-Achievement-MetalBorder-Left", 206, 0, 16, 362, {0,1,0,.87}, "BORDER")
-        Texture(frame, ART .. "UI-Achievement-MetalBorder-Left", 720, 0, 16, 362, {1,0,.87,0}, "BORDER")
+        Texture(frame, ART .. "UI-Achievement-MetalBorder-Left", 206, 0, 16, H, {0,1,0,.87}, "BORDER")
+        Texture(frame, ART .. "UI-Achievement-MetalBorder-Left", 720, 0, 16, H, {1,0,.87,0}, "BORDER")
         Texture(frame, ART .. "UI-Achievement-MetalBorder-Top", 214, -8, 514, 16, {.87,0,0,1}, "BORDER")
-        Texture(frame, ART .. "UI-Achievement-MetalBorder-Top", 214, 354, 514, 16, {0,.87,1,0}, "BORDER")
+        Texture(frame, ART .. "UI-Achievement-MetalBorder-Top", 214, H - 8, 514, 16, {0,.87,1,0}, "BORDER")
         frame.left = CreateFrame("Frame", nil, frame)
-        Pin(frame.left, frame, 0, 0, 198, 362)
+        Pin(frame.left, frame, 0, 0, 198, H)
         frame.right = CreateFrame("Frame", nil, frame)
-        Pin(frame.right, frame, 214, 0, 514, 362)
+        Pin(frame.right, frame, 214, 0, 514, H)
         -- Dark action strip along the bottom of the well.
-        local strip = Texture(frame.right, "Interface\\Buttons\\WHITE8X8", 6, 320, 502, 38, nil, "BORDER")
+        local strip = Texture(frame.right, "Interface\\Buttons\\WHITE8X8", 6, H - 42, 502, 38, nil, "BORDER")
         strip:SetVertexColor(0, 0, 0, .35)
     end
 
     -- Skills ────────────────────────────────────────────────────────────────
     local s = c.tabs.skills
-    Category(s.left, "Life slots", 0)
-    Pin(c.capacity, s.left, 10, 28, 178, 18)
-    c.capacity:SetTextColor(unpack(INK))
+    c.slotsBar = Category(s.left, "Life slots", 0)
+    c.capacity:Hide()
     for index, slot in ipairs(c.slots) do
-        Pin(slot, s.left, 18 + ((index-1)%3)*56, 50 + math.floor((index-1)/3)*48, 40, 40)
+        Pin(slot, s.left, 18 + ((index-1)%3)*56, 38 + math.floor((index-1)/3)*52, 40, 40)
         slot.lock:SetTexture("Interface\\LFGFrame\\UI-LFG-ICON-LOCK")
     end
-    Category(s.left, "Skill choices", 150)
-    Pin(c.pending, s.left, 12, 178, 174, 22)
-    Category(s.left, "Library", 208)
-    Pin(c.skillCount, s.left, 10, 236, 178, 16)
-    c.skillCount:SetTextColor(unpack(INK))
-    Pin(c.search, s.left, 18, 254, 160, 20)
+    c.slotsNote = Text(s.left, "Locked slots open later.", 12, 146, 178, "GameFontHighlightSmall", INK2)
+    c.choicesBar = Category(s.left, "Skill choices", 174)
+    Pin(c.pending, s.left, 12, 206, 174, 22)
+    c.choicesNone = Text(s.left, "No choices waiting.", 12, 210, 178, "GameFontHighlightSmall", INK2)
+    c.libraryBar = Category(s.left, "Library", 244)
+    c.skillCount:Hide()
+    c.search:Hide()
     c.searchLabel:Hide()
-    Pin(c.skillGrid, s.left, 12, 282, 158, 74)
+    Pin(c.skillGrid, s.left, 12, 278, 172, H - 278 - 34)
+    c.libraryNote = Text(s.left, "Skills you own this Life.", 12, H - 26, 178, "GameFontHighlightSmall", INK2)
     c.skillGridChild:SetWidth(156)
-    Pin(c.skillWell, s.right, 0, 0, 514, 362)
+    Pin(c.skillWell, s.right, 0, 0, 514, H)
     c.skillWell:SetBackdrop(nil)
     Pin(c.skillIcon, c.skillWell, 16, 14, 52, 52)
     Texture(c.skillWell, ART .. "UI-Achievement-IconFrame", 10, 8, 64, 64, {0,.5625,0,.5625}, "OVERLAY")
@@ -287,22 +299,32 @@ function V.Attach(c)
     c.skillPlaque = Texture(c.skillWell, ART .. "UI-Achievement-Header", 372, 18, 133, 39, {.4199,.6797,.4141,.5664}, "ARTWORK")
     c.skillRank = Text(c.skillWell, "", 372, 30, 133, "GameFontHighlight", {1,1,1})
     c.skillRank:SetJustifyH("CENTER")
+    c.skillRankSub = Text(c.skillWell, "of 5", 372, 60, 133, "GameFontHighlightSmall", INK2)
+    c.skillRankSub:SetJustifyH("CENTER")
     c.skillXP = Bar(c.skillWell, 14, 80, 486)
     c.skillXPText = Text(c.skillWell, "", 14, 86, 486, "GameFontHighlightSmall", INK2)
     c.skillXPText:SetJustifyH("CENTER")
-    c.rankTitle = Section(c.skillWell, "Rank by rank", 108, 500)
-    Pin(c.skillScroll, c.skillWell, 10, 134, 494, 180)
+    Pin(c.skillScroll, c.skillWell, 10, 112, 494, H - 160)
+    c.nowTitle = Section(c.skillChild, "At rank", 0, 466)
+    c.nowRows = {}
+    for index = 1, 6 do
+        c.nowRows[index] = {label = Text(c.skillChild, "", 8, 0, 300, "GameFontHighlight", INK),
+            value = Text(c.skillChild, "", 260, 0, 198, "GameFontHighlight", VALUE)}
+        c.nowRows[index].value:SetJustifyH("RIGHT")
+    end
+    c.rankTitle = Section(c.skillChild, "Rank by rank", 0, 466)
+    c.rankHeadLabel = Text(c.skillChild, "Rank", 8, 0, 150, "GameFontHighlight", INK2)
     c.skillChild:SetWidth(470)
     c.skillSummary:SetWidth(466)
     c.skillSummary:SetTextColor(unpack(INK))
-    c.rankCommon = Text(c.skillChild, "", 4, 0, 462, "GameFontHighlightSmall", INK)
+    c.rankCommon = Text(c.skillChild, "", 8, 0, 450, "GameFontHighlight", INK)
     c.rankBand = Texture(c.skillChild, "Interface\\Buttons\\WHITE8X8", 0, 0, 60, 10, nil, "BACKGROUND")
     c.rankBand:SetVertexColor(0, .36, 0, .16)
     c.rankHead = {}
     for rank = 1, 5 do c.rankHead[rank] = Text(c.skillChild, roman[rank], 0, 0, 58, "GameFontNormal", INK) end
     c.rankLines = {}
     for line = 1, 4 do
-        local row = {label = Text(c.skillChild, "", 4, 0, 150, "GameFontHighlightSmall", INK2), cells = {}}
+        local row = {label = Text(c.skillChild, "", 4, 0, 150, "GameFontHighlight", INK), cells = {}}
         for rank = 1, 5 do
             row.cells[rank] = Text(c.skillChild, "", 0, 0, 58, "GameFontHighlight", INK)
             row.cells[rank]:SetJustifyH("CENTER")
@@ -317,15 +339,15 @@ function V.Attach(c)
         row.body = Text(row, "", 40, 2, 420, "GameFontHighlightSmall", INK)
         c.rankRows[rank] = row
     end
-    c.skillStatus = Text(c.skillWell, "", 16, 330, 320, "GameFontHighlightSmall", {1,.5,.25})
+    c.skillStatus = Text(c.skillWell, "", 16, H - 32, 320, "GameFontHighlightSmall", {1,.5,.25})
     c.skillStatus:SetShadowOffset(1, -1)
-    Pin(c.inspect, c.skillWell, 360, 328, 140, 22)
+    Pin(c.inspect, c.skillWell, 360, H - 34, 140, 22)
 
     -- Heritages ─────────────────────────────────────────────────────────────
     local h = c.tabs.heritages
     Category(h.left, "Bloodline", 0)
     c.bloodline = CreateFrame("Button", nil, h.left)
-    Pin(c.bloodline, h.left, 6, 30, 186, 52)
+    Pin(c.bloodline, h.left, 6, 32, 186, 56)
     c.bloodline:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight", "ADD")
     c.bloodlineIcon = Texture(c.bloodline, "Interface\\Icons\\INV_Misc_QuestionMark", 6, 6, 34, 34, {.07,.93,.07,.93}, "ARTWORK")
     Texture(c.bloodline, ART .. "UI-Achievement-IconFrame", 2, 2, 42, 42, {0,.5625,0,.5625}, "OVERLAY")
@@ -334,7 +356,7 @@ function V.Attach(c)
     c.bloodlineName = Text(c.bloodline, "", 50, 6, 134, "GameFontNormalSmall", INK)
     c.bloodlineRank = Text(c.bloodline, "", 50, 20, 134, "GameFontHighlightSmall", INK2)
     c.bloodlineBar = CreateFrame("StatusBar", nil, c.bloodline)
-    Pin(c.bloodlineBar, c.bloodline, 50, 36, 128, 6)
+    Pin(c.bloodlineBar, c.bloodline, 50, 38, 128, 6)
     c.bloodlineBar:SetStatusBarTexture("Interface\\TargetingFrame\\UI-StatusBar")
     c.bloodlineBar:SetStatusBarColor(0, .6, 0)
     c.bloodlineBar:SetMinMaxValues(0, 1)
@@ -343,14 +365,13 @@ function V.Attach(c)
     back:SetTexture(0, 0, 0, .8)
     c.bloodline:SetScript("OnClick", function() if c.bloodlineId then c.selectHeritage(c.bloodlineId) end end)
     c.bloodlineNone = Text(h.left, "Your race's Bloodline has not been revealed yet.", 12, 36, 174, "GameFontHighlightSmall", INK2)
-    c.bloodlineBrowse = Button(h.left, "Bloodlines of Azeroth", 12, 88, 174, function() c.openGlossary("bloodlines") end)
-    Category(h.left, "Life Heritage", 120)
-    Pin(c.heritageCount, h.left, 10, 148, 178, 16)
+    Category(h.left, "Life Heritage", 104)
+    Pin(c.heritageCount, h.left, 10, 134, 178, 16)
     c.heritageCount:SetTextColor(unpack(INK2))
-    Pin(c.heritageGrid, h.left, 14, 170, 172, 150)
+    Pin(c.heritageGrid, h.left, 14, 156, 172, H - 156 - 40)
     c.heritageGridChild:SetWidth(170)
-    c.heritageLegend = Text(h.left, "Number = your level in it", 12, 330, 174, "GameFontHighlightSmall", INK2)
-    Pin(c.heritageWell, h.right, 0, 0, 514, 362)
+    c.heritageLegend = Text(h.left, "Number = your level in it", 12, H - 26, 174, "GameFontHighlightSmall", INK2)
+    Pin(c.heritageWell, h.right, 0, 0, 514, H)
     c.heritageWell:SetBackdrop(nil)
     Pin(c.heritageIcon, c.heritageWell, 16, 14, 52, 52)
     Texture(c.heritageWell, ART .. "UI-Achievement-IconFrame", 10, 8, 64, 64, {0,.5625,0,.5625}, "OVERLAY")
@@ -363,42 +384,51 @@ function V.Attach(c)
     c.heritageRankSub:SetJustifyH("CENTER")
     c.heritageAvailability = Text(c.heritageWell, "", 84, 66, 286, "GameFontHighlightSmall", VALUE)
     c.heritageAvailability:Hide()
+    c.heritageXP = Bar(c.heritageWell, 14, 80, 486)
+    c.heritageXP:SetFrameLevel(c.heritageWell:GetFrameLevel() + 4)
     -- The Progress module's per-Heritage bar is the progress row (its right-click menu holds
     -- the XP-bar settings, spec section 2).
-    if ProjectRebirthProgress.LayoutPanel then ProjectRebirthProgress.LayoutPanel(c.heritageWell, c.tabs.rebirth.left) end
-    c.previewLabel = Text(c.heritageWell, "Preview at level", 16, 96, 120, "GameFontHighlight", INK)
+    if ProjectRebirthProgress.LayoutPanel then ProjectRebirthProgress.LayoutPanel(c.heritageWell, c.eligibilityCard) end
+    c.previewLabel = Text(c.heritageWell, "Preview at level", 16, 110, 120, "GameFontHighlight", INK)
     c.previewButtons = {}
     for index, level in ipairs({1,10,50,100}) do
         local previewLevel = level
-        c.previewButtons[index] = Button(c.heritageWell, tostring(level), 136+(index-1)*50, 92, 46,
+        c.previewButtons[index] = Button(c.heritageWell, tostring(level), 136+(index-1)*50, 106, 46,
             function() c.previewHeritage(previewLevel) end)
     end
-    Pin(c.heritageScroll, c.heritageWell, 10, 112, 494, 202)
+    Pin(c.heritageScroll, c.heritageWell, 10, 112, 494, H - 160)
     c.heritageChild:SetWidth(470)
     c.heritageSummary:SetWidth(462)
     c.heritageSummary:SetTextColor(unpack(INK))
     c.bonusTitle = Section(c.heritageChild, "Your bonuses now", 0, 466)
     c.bonusRows = {}
-    for index = 1, 4 do
+    for index = 1, 6 do
         c.bonusRows[index] = {label = Text(c.heritageChild, "", 8, 0, 300, "GameFontHighlight", INK),
             value = Text(c.heritageChild, "", 300, 0, 158, "GameFontHighlight", VALUE)}
         c.bonusRows[index].value:SetJustifyH("RIGHT")
     end
+    c.signatureBand = Texture(c.heritageChild, ART .. "UI-Achievement-Reward-Background", 0, 0, 466, 24, {0,.69,0,.75}, "BACKGROUND")
+    c.signatureTitle = Text(c.heritageChild, "", 0, 0, 466, "GameFontNormal", GOLD)
+    c.signatureTitle:SetJustifyH("CENTER")
+    c.signatureTitle:SetShadowOffset(1, -1)
+    c.signatureText = Text(c.heritageChild, "", 8, 0, 450, "GameFontHighlight", INK)
+    c.growthTitle = Section(c.heritageChild, "How it grows", 0, 466)
+    c.growthText = Text(c.heritageChild, "", 8, 0, 450, "GameFontHighlightSmall", INK2)
     c.milestoneTitle = Section(c.heritageChild, "Milestones", 0, 466)
     c.milestones = {}
     for index = 1, 8 do c.milestones[index] = Criterion(c.heritageChild, 462) end
     c.milestoneNote = Text(c.heritageChild, "Haste from Every Man for Himself does not stack with Bloodlust or Heroism; the stronger one applies.",
         8, 0, 450, "GameFontHighlightSmall", INK2)
-    Pin(c.aspect, c.heritageWell, 280, 296, 210, 22)
+    Pin(c.aspect, c.heritageWell, 280, H - 66, 210, 22)
     UIDropDownMenu_SetWidth(c.aspect, 174)
-    Pin(c.heritageWarning, c.heritageWell, 16, 328, 330, 24)
+    Pin(c.heritageWarning, c.heritageWell, 16, H - 34, 330, 24)
     c.heritageWarning:SetShadowOffset(1, -1)
-    Pin(c.heritageButton, c.heritageWell, 360, 328, 140, 22)
+    Pin(c.heritageButton, c.heritageWell, 360, H - 34, 140, 22)
 
     -- Rebirth ───────────────────────────────────────────────────────────────
     local r = c.tabs.rebirth
     c.lifeCard:SetBackdrop(nil)
-    Pin(c.lifeCard, r.left, 0, 0, 198, 362)
+    Pin(c.lifeCard, r.left, 0, 0, 198, H)
     Category(c.lifeCard, "This Life", 0)
     c.lifeRows = {}
     for index = 1, 5 do
@@ -407,9 +437,15 @@ function V.Attach(c)
         c.lifeRows[index].value:SetJustifyH("RIGHT")
     end
     for _, value in ipairs({c.rebirthLife,c.rebirthLevel,c.rebirthCapacity,c.rebirthHeritage}) do value:Hide() end
-    Category(c.lifeCard, "Permanent", 232)
+    Category(c.lifeCard, "Permanent", 136)
+    c.permRows = {}
+    for index = 1, 2 do
+        c.permRows[index] = {label = Text(c.lifeCard, "", 12, 166 + (index-1)*20, 100, "GameFontHighlightSmall", INK2),
+            value = Text(c.lifeCard, "", 88, 166 + (index-1)*20, 100, "GameFontHighlightSmall", INK)}
+        c.permRows[index].value:SetJustifyH("RIGHT")
+    end
     c.eligibilityCard:SetBackdrop(nil)
-    Pin(c.eligibilityCard, r.right, 0, 0, 514, 362)
+    Pin(c.eligibilityCard, r.right, 0, 0, 514, H)
     Texture(c.eligibilityCard, "Interface\\Icons\\Spell_Holy_Resurrection", 16, 14, 52, 52, nil, "ARTWORK")
     Texture(c.eligibilityCard, ART .. "UI-Achievement-IconFrame", 10, 8, 64, 64, {0,.5625,0,.5625}, "OVERLAY")
     c.rebirthHeading = Text(c.eligibilityCard, "Rebirth", 84, 16, 286, "GameFontNormalLarge", GOLD)
@@ -421,12 +457,12 @@ function V.Attach(c)
     c.rebirthRank:SetJustifyH("CENTER")
     c.rebirthRankSub = Text(c.eligibilityCard, "Rebirth Level", 372, 60, 133, "GameFontHighlightSmall", INK2)
     c.rebirthRankSub:SetJustifyH("CENTER")
-    c.rebirthScroll, c.rebirthChild = Scroll(c.eligibilityCard, "ProjectRebirthV2RebirthScroll", 10, 80, 514, 234)
+    c.rebirthScroll, c.rebirthChild = Scroll(c.eligibilityCard, "ProjectRebirthV2RebirthScroll", 10, 112, 514, H - 160)
     c.rebirthNext:Hide()
     c.whereTitle = Section(c.rebirthChild, "Where you can be reborn", 0, 470)
-    c.whereIntro = Text(c.rebirthChild, "Any character level. The server checks these when you preview:", 8, 26, 450, "GameFontHighlightSmall", INK2)
+    c.whereIntro = Text(c.rebirthChild, "Any character level. Checked when you preview:", 8, 26, 450, "GameFontHighlightSmall", INK2)
     c.criteria = {}
-    for index = 1, 6 do c.criteria[index] = Criterion(c.rebirthChild, 458) end
+    for index = 1, 8 do c.criteria[index] = Criterion(c.rebirthChild, 226) end
     c.happensTitle = Section(c.rebirthChild, "What happens", 0, 470)
     c.resetsHead = Text(c.rebirthChild, "Resets", 8, 0, 220, "GameFontNormal", GOLD)
     c.resetsHead:SetShadowOffset(1, -1)
@@ -435,10 +471,10 @@ function V.Attach(c)
     c.resets = Text(c.rebirthChild, "Level, talents, quests, this Life's Skills, and your Life Heritage.", 8, 0, 222)
     c.keeps = Text(c.rebirthChild, "Items, equipment, money, collections, professions, reputation, class abilities, and Bloodline rank.", 242, 0, 222)
     c.previewResult = Text(c.rebirthChild, "", 8, 0, 450, "GameFontHighlight", INK)
-    c.rebirthNote = Text(c.eligibilityCard, "", 16, 328, 330, "GameFontHighlightSmall", {1,.5,.25})
+    c.rebirthNote = Text(c.eligibilityCard, "", 16, H - 32, 330, "GameFontHighlightSmall", {1,.5,.25})
     c.rebirthNote:SetShadowOffset(1, -1)
-    Pin(c.rebirthPreview, c.eligibilityCard, 360, 328, 140, 22)
-    Pin(c.rebirthConfirm, c.eligibilityCard, 360, 328, 140, 22)
+    Pin(c.rebirthPreview, c.eligibilityCard, 360, H - 34, 140, 22)
+    Pin(c.rebirthConfirm, c.eligibilityCard, 360, H - 34, 140, 22)
     V.Context = c
 end
 
@@ -446,12 +482,29 @@ local function Format(value)
     return ProjectRebirthProgress.Format(value == nil and "0" or tostring(value))
 end
 
+local glossaryIndex
+function V.GlossaryEntry(id)
+    if not glossaryIndex then
+        glossaryIndex = {}
+        for _, entry in ipairs(ProjectRebirthGlossaryData or {}) do glossaryIndex[entry.id] = entry end
+    end
+    return glossaryIndex[id]
+end
+
 local function RenderSkills(c, state, skill)
     c.skillCount:SetText(state.complete and ("Owned: " .. state.total) or "Loading your Skills...")
     c.skillSummary:Hide()
     local catalog = skill and ProjectRebirthSkillData and ProjectRebirthSkillData[skill.id]
     local live = state.presentation and state.presentation.skills[skill and skill.id or 0]
-    c.skillRank:SetText(skill and ("Rank " .. (roman[skill.rank] or skill.rank)) or "")
+    c.skillRank:SetText(skill and ("Rank " .. skill.rank) or "")
+    ShowIf(c.skillRankSub, skill ~= nil)
+    local entry = skill and V.GlossaryEntry(skill.id)
+    if entry then c.skillMeta:SetText(entry.rarity .. "  ·  Tier " .. entry.tier .. "  ·  " .. entry.category) end
+    c.slotsBar.count:SetText(state.owned .. " / " .. state.capacity)
+    c.libraryBar.count:SetText(state.complete and tostring(state.total) or "")
+    local choices = (state.offer and not state.offer.expired) or state.inspectedName ~= nil
+    ShowIf(c.pending, choices)
+    ShowIf(c.choicesNone, not choices)
     c.skillMeta:SetTextColor(unpack(INK2))
     -- Progress: a bar only when the server sends the next-rank target; otherwise the total.
     local fraction = ProjectRebirthProgress.RankFraction(live)
@@ -475,14 +528,33 @@ local function RenderSkills(c, state, skill)
     for _, row in ipairs(c.rankRows) do row:Hide() end
     for _, line in ipairs(c.rankLines) do line.label:Hide(); for _, cell in ipairs(line.cells) do cell:Hide() end end
     for _, head in ipairs(c.rankHead) do head:Hide() end
-    c.rankBand:Hide(); c.rankCommon:Hide()
+    for _, row in ipairs(c.nowRows) do row.label:Hide(); row.value:Hide() end
+    c.rankBand:Hide(); c.rankCommon:Hide(); c.nowTitle:Hide(); c.rankTitle:Hide(); c.rankHeadLabel:Hide()
     local offset = 0
+    local hasRank = current >= 1 and current <= 5
     if tableData then
-        c.rankCommon:SetText(table.concat(tableData.common, "\n"))
-        Pin(c.rankCommon, c.skillChild, 4, 0, 462)
-        c.rankCommon:Show()
-        offset = (#tableData.common > 0 and c.rankCommon:GetStringHeight() + 10) or 0
-        local x0, width = 170, 58
+        -- At rank N (now): the unchanging rules once, then this rank's values as rows.
+        if hasRank then
+            c.nowTitle.label:SetText("At rank " .. current .. " (now)")
+            Pin(c.nowTitle, c.skillChild, 0, offset, 466); c.nowTitle:Show(); offset = offset + 26
+        end
+        if #tableData.common > 0 then
+            c.rankCommon:SetText(table.concat(tableData.common, "\n"))
+            Pin(c.rankCommon, c.skillChild, 8, offset, 450); c.rankCommon:Show()
+            offset = offset + c.rankCommon:GetStringHeight() + 4
+        end
+        if hasRank then
+            for index, row in ipairs(tableData.rows) do
+                local now = c.nowRows[index]
+                Pin(now.label, c.skillChild, 8, offset, 300); Pin(now.value, c.skillChild, 260, offset, 198)
+                now.label:SetText(row.label); now.value:SetText(row.values[current] or "")
+                now.label:Show(); now.value:Show(); offset = offset + 20
+            end
+        end
+        offset = offset + 18
+        Pin(c.rankTitle, c.skillChild, 0, offset, 466); c.rankTitle:Show(); offset = offset + 28
+        local x0, width = 180, 56
+        Pin(c.rankHeadLabel, c.skillChild, 8, offset + 2, 150); c.rankHeadLabel:Show()
         for rank = 1, 5 do
             Pin(c.rankHead[rank], c.skillChild, x0 + (rank-1)*width, offset, width)
             c.rankHead[rank]:SetJustifyH("CENTER")
@@ -490,9 +562,9 @@ local function RenderSkills(c, state, skill)
             c.rankHead[rank]:Show()
         end
         for index, row in ipairs(tableData.rows) do
-            local line, y = c.rankLines[index], offset + 18 + (index-1)*20
-            Pin(line.label, c.skillChild, 4, y + 2, 164)
-            line.label:SetText(row.label); line.label:Show()
+            local line, y = c.rankLines[index], offset + 22 + (index-1)*22
+            Pin(line.label, c.skillChild, 8, y + 2, 170)
+            line.label:SetText(row.label); line.label:SetTextColor(unpack(INK2)); line.label:Show()
             for rank = 1, 5 do
                 Pin(line.cells[rank], c.skillChild, x0 + (rank-1)*width, y, width)
                 line.cells[rank]:SetText(row.values[rank] or "")
@@ -500,12 +572,13 @@ local function RenderSkills(c, state, skill)
                 line.cells[rank]:Show()
             end
         end
-        if current >= 1 and current <= 5 then
-            Pin(c.rankBand, c.skillChild, x0 + (current-1)*width + 2, offset - 2, width - 4, 22 + #tableData.rows*20)
+        if hasRank then
+            Pin(c.rankBand, c.skillChild, x0 + (current-1)*width + 2, offset - 2, width - 4, 26 + #tableData.rows*22)
             c.rankBand:Show()
         end
-        offset = offset + 24 + #tableData.rows*20
+        offset = offset + 28 + #tableData.rows*22
     elseif #texts > 0 then
+        Pin(c.rankTitle, c.skillChild, 0, offset, 466); c.rankTitle:Show(); offset = offset + 26
         for rank, row in ipairs(c.rankRows) do
             if texts[rank] then
                 row.body:SetText(texts[rank])
@@ -522,7 +595,6 @@ local function RenderSkills(c, state, skill)
         c.skillSummary:SetText(skill and (skill.summary or "") or "Choose a Skill in the Library to see what it does at every rank.")
         offset = c.skillSummary:GetStringHeight() + 12
     end
-    c.rankTitle.label:SetText("Rank by rank")
     c.skillChild:SetHeight(math.max(1, offset))
     c.skillScroll:UpdateScrollChildRect()
     c.skillStatus:SetText(live and live.status or "")
@@ -532,18 +604,36 @@ local function HeritageFor(state, id)
     for _, entry in ipairs(state.heritages or {}) do if entry.id == id then return entry end end
 end
 
+function V.Portrait(info)
+    local gender = UnitSex and UnitSex("player") == 3 and "_Female" or "_Male"
+    return "Interface\\Icons\\" .. info.portrait .. gender
+end
+
+-- Shared progress bar: earned / next (remaining to the next rank), or hidden.
+local function FillBar(bar, live, rank, noun)
+    local fraction = live and ProjectRebirthProgress.RankFraction(live)
+    if not fraction then bar:Hide(); return false end
+    bar:SetValue(fraction)
+    bar.label:SetText(live.atCap == true and ("Maximum " .. noun .. " reached") or
+        (Format(live.earnedXp) .. " / " .. Format(live.nextXp) .. "  (" .. Format(live.remainingXp) ..
+        " to " .. noun .. " " .. ((tonumber(rank) or 0) + 1) .. ")"))
+    bar:Show()
+    return true
+end
+
 local function RenderBloodlineRow(c, state, viewed)
     c.bloodlineId = nil
     for id, info in pairs(V.BLOODLINE) do
         local entry = HeritageFor(state, id)
         if entry and entry.eligible ~= false then
             c.bloodlineId = id
-            local gender = UnitSex and UnitSex("player") == 3 and "_Female" or "_Male"
-            c.bloodlineIcon:SetTexture("Interface\\Icons\\" .. info.portrait .. gender)
+            c.bloodlineIcon:SetTexture(V.Portrait(info))
             c.bloodlineName:SetText(info.race .. " Bloodline")
-            c.bloodlineRank:SetText("Rank " .. (tonumber(entry.rank) or 0) .. " of " .. (tonumber(entry.maxRank) or 100))
             local live = state.presentation and state.presentation.heritages[id]
             local fraction = live and ProjectRebirthProgress.RankFraction(live)
+            c.bloodlineRank:SetText("Rank " .. (tonumber(entry.rank) or 0) .. (fraction and live.atCap ~= true and
+                ("  ·  " .. Format(live.earnedXp) .. " / " .. Format(live.nextXp)) or
+                (" of " .. (tonumber(entry.maxRank) or 100))))
             c.bloodlineBar:SetValue(fraction or 0)
             ShowIf(c.bloodlineBar, fraction ~= nil)
             ShowIf(c.bloodlineSel, viewed and viewed.id == id)
@@ -563,9 +653,11 @@ local function RenderBloodlineDetail(c, heritage, record)
     local rank = tonumber(heritage.rank) or 0
     c.heritageName:SetText(info.race .. " Bloodline")
     c.heritageMeta:SetText("Bloodline · " .. info.race)
+    c.heritageIcon:SetTexture(V.Portrait(info))
     c.heritageRank:SetText("Rank " .. rank)
     c.heritageRankSub:SetText("of " .. (tonumber(heritage.maxRank) or 100))
     c.heritageSummary:Hide()
+    for _, w in ipairs({c.signatureBand, c.signatureTitle, c.signatureText, c.growthTitle, c.growthText}) do w:Hide() end
     local y = 0
     local rows = record and record.rows and #record.rows > 0 and record.rows or {
         {label = "All primary stats", value = "+" .. Milli(heritage.bonusMilli)},
@@ -573,13 +665,14 @@ local function RenderBloodlineDetail(c, heritage, record)
         {label = "Every Man for Himself cooldown", value = (tonumber(heritage.cooldownSeconds) or 0) .. " sec"},
         {label = "Every Man for Himself haste", value = (tonumber(heritage.hasteBonusMilli) or 0) > 0 and Milli(heritage.hasteBonusMilli) or "from rank 50"},
     }
+    c.bonusTitle.label:SetText("At rank " .. rank)
     Pin(c.bonusTitle, c.heritageChild, 0, y, 466); c.bonusTitle:Show(); y = y + 26
     for index, row in ipairs(c.bonusRows) do
         local data = rows[index]
         if data then
             Pin(row.label, c.heritageChild, 8, y, 300); Pin(row.value, c.heritageChild, 300, y, 158)
             row.label:SetText(data.label); row.value:SetText(data.value)
-            row.label:Show(); row.value:Show(); y = y + 18
+            row.label:Show(); row.value:Show(); y = y + 20
         else row.label:Hide(); row.value:Hide() end
     end
     y = y + 8
@@ -614,22 +707,52 @@ local function RenderBloodlineDetail(c, heritage, record)
 end
 
 local function RenderLifeDetail(c, heritage, record)
-    for _, widget in ipairs({c.bonusTitle, c.milestoneTitle, c.milestoneNote}) do widget:Hide() end
-    for _, row in ipairs(c.bonusRows) do row.label:Hide(); row.value:Hide() end
+    for _, widget in ipairs({c.milestoneTitle, c.milestoneNote}) do widget:Hide() end
     for _, row in ipairs(c.milestones) do row:Hide() end
-    c.heritageSummary:Show()
-    if record then
-        local lines = {}
-        for _, row in ipairs(record.rows or {}) do lines[#lines + 1] = row.label .. ": |cff005c00" .. row.value .. "|r" end
-        if record.signature then
-            lines[#lines + 1] = "\n|cff8a5a00Level " .. record.signature.unlockLevel .. ": " .. record.signature.name ..
-                (record.signature.active == true and "  (Active)" or "") .. "|r\n" .. record.signature.text
-        end
-        if record.growth then lines[#lines + 1] = "\n" .. record.growth end
-        c.heritageSummary:SetText(table.concat(lines, "\n"))
+    c.heritageSummary:Hide()
+    local y = 0
+    local rows = record and record.rows or {}
+    local level = record and tonumber(record.previewLevel) or 0
+    if level <= 0 then level = tonumber(heritage.rank) or 0 end
+    c.bonusTitle.label:SetText(level > 0 and ("At level " .. level) or "Bonuses")
+    ShowIf(c.bonusTitle, #rows > 0)
+    if #rows > 0 then Pin(c.bonusTitle, c.heritageChild, 0, y, 466); y = y + 26 end
+    for index, row in ipairs(c.bonusRows) do
+        local data = rows[index]
+        if data then
+            Pin(row.label, c.heritageChild, 8, y, 300); Pin(row.value, c.heritageChild, 300, y, 158)
+            row.label:SetText(data.label); row.value:SetText(data.value)
+            row.label:Show(); row.value:Show(); y = y + 20
+        else row.label:Hide(); row.value:Hide() end
     end
-    Pin(c.heritageSummary, c.heritageChild, 4, 0, 462)
-    c.heritageChild:SetHeight(math.max(1, c.heritageSummary:GetStringHeight() + 12))
+    local sig = record and record.signature
+    ShowIf(c.signatureBand, sig ~= nil); ShowIf(c.signatureTitle, sig ~= nil); ShowIf(c.signatureText, sig ~= nil)
+    if sig then
+        y = y + 10
+        Pin(c.signatureBand, c.heritageChild, 0, y, 466, 24)
+        Pin(c.signatureTitle, c.heritageChild, 0, y + 6, 466)
+        c.signatureTitle:SetText("Level " .. sig.unlockLevel .. ":  " .. sig.name .. (sig.active == true and "  (Active)" or ""))
+        y = y + 30
+        Pin(c.signatureText, c.heritageChild, 8, y, 450)
+        c.signatureText:SetText(sig.text or "")
+        y = y + c.signatureText:GetStringHeight() + 6
+    end
+    local growth = record and record.growth
+    ShowIf(c.growthTitle, growth ~= nil); ShowIf(c.growthText, growth ~= nil)
+    if growth then
+        y = y + 8
+        Pin(c.growthTitle, c.heritageChild, 0, y, 466); y = y + 26
+        Pin(c.growthText, c.heritageChild, 8, y, 450)
+        c.growthText:SetText(growth)
+        y = y + c.growthText:GetStringHeight() + 6
+    end
+    if not record then
+        -- Older servers: show the server's own summary rather than nothing.
+        c.heritageSummary:Show()
+        Pin(c.heritageSummary, c.heritageChild, 4, 0, 462)
+        y = c.heritageSummary:GetStringHeight() + 12
+    end
+    c.heritageChild:SetHeight(math.max(1, y))
     local level = record and tonumber(record.previewLevel) or 0
     if level <= 0 then level = tonumber(heritage.rank) or 0 end
     c.heritageMeta:SetText(heritage.selected and "Life Heritage · chosen for this Life" or "Life Heritage · not chosen this Life")
@@ -654,7 +777,8 @@ local function RenderLifeDetail(c, heritage, record)
 end
 
 local function RenderHeritages(c, state, heritage)
-    local record = state.presentation and state.presentation.heritages[heritage and heritage.id or 0]
+    local live = state.presentation and state.presentation.heritages[heritage and heritage.id or 0]
+    local record = live
     local preview = state.presentationPreview
     if preview and heritage and preview.id == heritage.id then record = preview end
     RenderBloodlineRow(c, state, heritage)
@@ -662,9 +786,11 @@ local function RenderHeritages(c, state, heritage)
     for _, entry in ipairs(state.heritages or {}) do
         if not V.RETIRED[entry.id] and not V.BLOODLINE[entry.id] then life = life + 1 end
     end
-    c.heritageCount:SetText("Choose one each Life · " .. life .. " to choose from")
+    c.heritageCount:SetText("Choose one each Life")
     c.heritageWarning:Show()
     if not heritage then return end
+    -- The tracked-Heritage widget sits under this bar; the bar wins whenever the record has progress.
+    FillBar(c.heritageXP, live, heritage.rank, V.BLOODLINE[heritage.id] and "rank" or "level")
     if V.BLOODLINE[heritage.id] then
         RenderBloodlineDetail(c, heritage, record)
     else
@@ -675,7 +801,7 @@ local function RenderHeritages(c, state, heritage)
         not V.BLOODLINE[heritage.id] and not state.inspectedName
     ShowIf(c.previewLabel, previews)
     for _, button in ipairs(c.previewButtons) do ShowIf(button, previews) end
-    Pin(c.heritageScroll, c.heritageWell, 10, previews and 120 or 94, 494, previews and 196 or 222)
+    Pin(c.heritageScroll, c.heritageWell, 10, previews and 136 or 112, 494, H - (previews and 184 or 160))
     c.heritageScroll:UpdateScrollChildRect()
 end
 
@@ -694,6 +820,10 @@ local function RenderRebirth(c, state)
     for index, row in ipairs(c.lifeRows) do
         row.label:SetText(rows[index][1]); row.value:SetText(rows[index][2])
     end
+    local perm = {{"Rebirth Level", tostring(r.rebirthLevel or 0)}, {"Total RXP", Format(r.rxpTotalExact or r.rxpTotal)}}
+    for index, row in ipairs(c.permRows) do
+        row.label:SetText(perm[index][1]); row.value:SetText(perm[index][2])
+    end
     c.rebirthRank:SetText("Level " .. (r.rebirthLevel or 0))
     c.rebirthHeading:SetText(ready and ("Begin Life " .. r.lifeAfter) or "Rebirth")
     c.rebirthEligibility:SetText(ready and "Preview ready. Confirm before it expires." or
@@ -706,19 +836,23 @@ local function RenderRebirth(c, state)
         criteria = {{label = "In an inn, rested area, city, or capital"}, {label = "Standing still and out of combat"},
             {label = "Not in an instance, queue, taxi, or transport"}, {label = "Not in a duel or a trade"}}
     end
+    local half = math.ceil(#criteria / 2)
+    local columnY = {y, y}
     for index, row in ipairs(c.criteria) do
         local data = criteria[index]
         if data then
-            Pin(row, c.rebirthChild, 8, y)
-            SetCriterion(row, data.met, nil, data.label, false, data.met == false and "Not met" or nil)
-            y = y + row:GetHeight() + 2
+            local column = index <= half and 1 or 2
+            Pin(row, c.rebirthChild, column == 1 and 8 or 242, columnY[column])
+            SetCriterion(row, data.met, nil, data.label, false, nil)
+            columnY[column] = columnY[column] + row:GetHeight() + 2
         else row:Hide() end
     end
-    y = y + 10
+    y = math.max(columnY[1], columnY[2])
+    y = y + 14
     Pin(c.happensTitle, c.rebirthChild, 0, y, 470); y = y + 26
     Pin(c.resetsHead, c.rebirthChild, 8, y, 220); Pin(c.keepsHead, c.rebirthChild, 242, y, 220); y = y + 18
     Pin(c.resets, c.rebirthChild, 8, y, 222); Pin(c.keeps, c.rebirthChild, 242, y, 222)
-    y = y + math.max(c.resets:GetStringHeight(), c.keeps:GetStringHeight()) + 12
+    y = y + math.max(c.resets:GetStringHeight(), c.keeps:GetStringHeight()) + 14
     if ready then
         c.previewResult:SetText("RXP awarded: |cff005c00" .. Format(r.awardRxpExact) .. "|r\nNew total: " ..
             Format(r.totalRxpAfterExact) .. "\nNew Rebirth Level: " .. r.levelAfter ..
@@ -743,7 +877,8 @@ function V.Render(state, activeTab, skill, heritage)
     local race = UnitRace and UnitRace("player") or ""
     c.plaque:SetText(activeTab == "skills" and ("Life " .. life .. " · " .. state.owned .. "/" .. state.capacity) or
         activeTab == "rebirth" and ("Life " .. life) or
-        activeTab == "heritages" and ("Life " .. life .. " · " .. race) or "Library")
+        activeTab == "heritages" and ("Life " .. life .. " · " .. race) or
+        (V.Thousands(#(ProjectRebirthGlossaryData or {})) .. " Skills"))
     ShowIf(c.status, state.notice ~= nil)
     if activeTab == "skills" then RenderSkills(c, state, skill)
     elseif activeTab == "heritages" then RenderHeritages(c, state, heritage)
@@ -752,22 +887,38 @@ end
 
 -- The redesigned Glossary uses its existing pure ownership/filter functions.
 -- Category navigation replaces the competing tier/ownership dropdowns.
+function V.Thousands(n)
+    local text = tostring(n)
+    while true do
+        local done
+        text, done = text:gsub("^(%d+)(%d%d%d)", "%1,%2")
+        if done == 0 then return text end
+    end
+end
+
 function V.CreateGlossary(parent)
     local frame = CreateFrame("Frame", "ProjectRebirthSkillGlossary", parent)
-    Pin(frame, parent, 0, 0, 728, 362)
+    Pin(frame, parent, 0, 0, 728, H)
     local filter = {search="",tier={},rarity={},ownership={},group="Alphabetical"}
     local category, page, selected = "all", 1, nil
     frame.rows, frame.categories = {}, {}
     local function refresh() if frame:IsShown() then frame:Refresh() end end
-    local categories = {{"all","All Skills"},{"tier1","Tier 1"},{"tier2","Tier 2"},
-        {"owned","Owned this Life"},{"heritages","Heritages"},{"bloodlines","Bloodlines of Azeroth"},{"rebirth","Rebirth"}}
+    -- Every Skill is reachable from All Skills; tiers are a sort order, not separate pages.
+    local categories = {{"all","All Skills"},{"owned","Owned this Life"},{"heritages","Heritages"},
+        {"bloodlines","Bloodlines of Azeroth"},{"rebirth","Rebirth"}}
     for index, entry in ipairs(categories) do
         local key = entry[1]
         local button = CreateFrame("Button", nil, frame)
-        Pin(button, frame, 0, (index-1)*36, 198, 32)
-        Texture(button, ART .. "UI-Achievement-Category-Background", 0, 0, 198, 32, {0,.6641,0,1})
+        Pin(button, frame, 0, 2 + (index-1)*36, 198, 30)
+        Texture(button, ART .. "UI-Achievement-Category-Background", 0, 0, 198, 30, {0,.6641,0,1})
         button:SetHighlightTexture(ART .. "UI-Achievement-Category-Highlight")
-        button.label = Text(button, entry[2], 10, 8, 178, "GameFontNormalSmall", {1,.82,0})
+        button.selected = Texture(button, ART .. "UI-Achievement-Category-Highlight", 0, 0, 198, 30, {0,.6641,0,1}, "ARTWORK")
+        button.selected:SetBlendMode("ADD")
+        button.label = Text(button, entry[2], 12, 8, 140, "GameFontNormal", {1,1,1})
+        button.label:SetShadowOffset(1, -1)
+        button.count = Text(button, "", 108, 8, 80, "GameFontNormal", GOLD)
+        button.count:SetJustifyH("RIGHT")
+        button.count:SetShadowOffset(1, -1)
         button:SetScript("OnClick", function() category=key; page=1; selected=nil; refresh() end)
         frame.categories[key] = button
     end
@@ -785,20 +936,20 @@ function V.CreateGlossary(parent)
     Pin(frame.rarity, frame, 494, 4, 110, 26)
     UIDropDownMenu_SetWidth(frame.rarity, 88)
     local rarity = "All"
-    UIDropDownMenu_SetText(frame.rarity, "All rarities")
+    UIDropDownMenu_SetText(frame.rarity, "Rarity: All")
     UIDropDownMenu_Initialize(frame.rarity, function()
         for _, value in ipairs({"All","Common","Uncommon","Rare","Epic","Legendary","Mythic"}) do
             local choice = value
             local info = UIDropDownMenu_CreateInfo()
             info.text, info.checked = choice, rarity==choice
-            info.func = function() rarity=choice; filter.rarity=choice; page=1; UIDropDownMenu_SetText(frame.rarity,choice); refresh() end
+            info.func = function() rarity=choice; filter.rarity=choice; page=1; UIDropDownMenu_SetText(frame.rarity,"Rarity: "..choice); refresh() end
             UIDropDownMenu_AddButton(info)
         end
     end)
     frame.sort = CreateFrame("Frame", "ProjectRebirthV2GlossarySort", frame, "UIDropDownMenuTemplate")
     Pin(frame.sort, frame, 612, 4, 110, 26)
     UIDropDownMenu_SetWidth(frame.sort, 86)
-    UIDropDownMenu_SetText(frame.sort, "Name")
+    UIDropDownMenu_SetText(frame.sort, "Sort: Name")
     UIDropDownMenu_Initialize(frame.sort, function()
         for _, value in ipairs({"Alphabetical","Tier","Rarity","Category","Mastery"}) do
             local choice=value
@@ -810,16 +961,19 @@ function V.CreateGlossary(parent)
     end)
     frame.count = Text(frame,"",232,40,470,"GameFontHighlightSmall",INK2)
     local quality = {Common={1,1,1},Uncommon={.12,1,.12},Rare={0,.44,.87},Epic={.64,.21,.93},Legendary={1,.5,0},Mythic={.35,.9,1}}
-    for index=1,9 do
+    local ROWS = 9
+    for index=1,ROWS do
         local row=CreateFrame("Button",nil,frame)
-        Pin(row,frame,228,58+(index-1)*29,476,28)
+        Pin(row,frame,228,60+(index-1)*38,476,36)
         row:SetHighlightTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
-        row.icon=Texture(row,"Interface\\Icons\\INV_Misc_Book_11",0,1,24,24,nil,"ARTWORK")
-        row.name=Text(row,"",32,1,434,"GameFontNormalSmall")
+        row.icon=Texture(row,"Interface\\Icons\\INV_Misc_Book_11",2,2,32,32,nil,"ARTWORK")
+        row.name=Text(row,"",42,4,330,"GameFontNormal")
         row.name:SetShadowOffset(1,-1)
-        row.name:SetHeight(12)
-        row.meta=Text(row,"",32,15,434,"GameFontHighlightSmall",INK2)
+        row.name:SetHeight(14)
+        row.meta=Text(row,"",42,20,330,"GameFontHighlightSmall",INK2)
         row.meta:SetHeight(12)
+        row.owned=Text(row,"",370,12,100,"GameFontHighlightSmall",INK2)
+        row.owned:SetJustifyH("RIGHT")
         row:SetScript("OnEnter",function(self)
             if not self.entry then return end
             local entry=self.entry
@@ -845,16 +999,33 @@ function V.CreateGlossary(parent)
         end)
         row:SetScript("OnLeave",function() GameTooltip:Hide() end)
         row:SetScript("OnClick",function(self)
-            if self.entry and self.entry.heritageId and context then context.selectHeritage(self.entry.heritageId) end
+            local entry = self.entry
+            if not entry then return end
+            if entry.heritageId and context then context.selectHeritage(entry.heritageId); return end
+            if entry.id and ProjectRebirthChatLinks and ProjectRebirthChatLinks.Try("Skill", entry.id, 0) then return end
+            if entry.id then selected = entry.id; frame.detailScroll:SetVerticalScroll(0); refresh() end
         end)
         frame.rows[index]=row
     end
-    frame.previous=Button(frame,"<",230,326,30,function() page=page-1; refresh() end)
-    frame.next=Button(frame,">",674,326,30,function() page=page+1; refresh() end)
+    frame.previous=Button(frame,"<",230,H-36,30,function() page=page-1; refresh() end)
+    frame.next=Button(frame,">",674,H-36,30,function() page=page+1; refresh() end)
     frame.previous:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-PrevPage-Up")
     frame.next:SetNormalTexture("Interface\\Buttons\\UI-SpellbookIcon-NextPage-Up")
-    frame.pageText=Text(frame,"",310,332,300,"GameFontHighlightSmall")
-    frame.notice=Text(frame,"",12,272,174,"GameFontHighlightSmall",INK2)
+    frame.pageText=Text(frame,"",310,H-30,300,"GameFontHighlightSmall")
+    frame.pageText:SetJustifyH("CENTER")
+    frame.notice=Text(frame,"",232,40,470,"GameFontHighlightSmall",INK2)
+    -- The original Glossary's detail page, inside the well: click a Skill, Back returns to the list.
+    frame.detail=CreateFrame("Frame",nil,frame)
+    Pin(frame.detail,frame,214,0,514,H)
+    frame.detail.icon=Texture(frame.detail,"Interface\\Icons\\INV_Misc_Book_11",16,14,52,52,nil,"ARTWORK")
+    Texture(frame.detail,ART.."UI-Achievement-IconFrame",10,8,64,64,{0,.5625,0,.5625},"OVERLAY")
+    frame.detail.name=Text(frame.detail,"",84,16,410,"GameFontNormalLarge",GOLD)
+    frame.detail.name:SetShadowOffset(1,-1)
+    frame.detail.meta=Text(frame.detail,"",84,42,410,"GameFontHighlightSmall",INK2)
+    frame.detailScroll,frame.detailChild=Scroll(frame.detail,"ProjectRebirthV2GlossaryDetailScroll",10,80,514,H-128)
+    frame.detail.text=Text(frame.detailChild,"",6,0,460,"GameFontHighlight",INK)
+    frame.detail.back=Button(frame.detail,BACK or "Back",360,H-34,140,function() selected=nil; refresh() end)
+    frame.detail:Hide()
     frame.portraits={}
     for index=1,10 do
         local portrait=CreateFrame("Button",nil,frame)
@@ -890,17 +1061,24 @@ function V.CreateGlossary(parent)
             results={{name="Begin a new Life",information=true,designText="Preview exact server results before confirming. Level, talents, quests and current-Life choices reset; permanent possessions and progression remain."}}
             self.notice:SetText("Rebirth commits are available only in the Rebirth tab.")
         else
-            filter.tier=category=="tier1" and 1 or category=="tier2" and 2 or {}
+            filter.tier=tonumber((category:match("^tier(%d)$"))) or {}
             filter.ownership=category=="owned" and "Owned" or {}
             results=ProjectRebirthGlossary.Filter(ProjectRebirthGlossaryData or {},filter,snapshot)
             self.notice:SetText(snapshot.available and "" or "")
         end
-        local pages=math.max(1,math.ceil(#results/9))
+        local current
+        for _, entry in ipairs(results) do if selected and entry.id == selected then current = entry; break end end
+        if not current then selected = nil end
+        for key, button in pairs(self.categories) do
+            ShowIf(button.selected, key == category)
+            button.count:SetText(key == category and V.Thousands(#results) or "")
+        end
+        local pages=math.max(1,math.ceil(#results/ROWS))
         page=math.min(math.max(page,1),pages)
         self.count:SetText(#results.." entries")
         self.pageText:SetText("Page "..page.." of "..pages)
         for index,row in ipairs(self.rows) do
-            local entry=results[(page-1)*9+index]
+            local entry=results[(page-1)*ROWS+index]
             row.entry=entry
             if entry then
                 row.name:SetText(entry.name)
@@ -908,7 +1086,10 @@ function V.CreateGlossary(parent)
                 local card=entry.id and ProjectRebirthSkillData and ProjectRebirthSkillData[entry.id]
                 row.icon:SetTexture(entry.icon or card and card.icon or "Interface\\Icons\\INV_Misc_Book_11")
                 if entry.designText then row.meta:SetText(entry.heritageId and "Inspect native Heritage" or entry.information and "Read-only information" or "Design preview · not live bonuses")
-                else row.meta:SetText("Tier "..entry.tier.." · "..entry.category.." · "..ProjectRebirthGlossary.Ownership(entry,snapshot)) end
+                else row.meta:SetText(entry.rarity.." · Tier "..entry.tier.." · "..entry.category) end
+                local owned=not entry.designText and ProjectRebirthGlossary.Ownership(entry,snapshot) or ""
+                row.owned:SetText(owned)
+                row.owned:SetTextColor(unpack(owned=="Not owned" and INK2 or VALUE))
                 if category=="bloodlines" then row:Hide() else row:Show() end
             else row:Hide() end
         end
@@ -925,7 +1106,25 @@ function V.CreateGlossary(parent)
         if page>1 then self.previous:Enable() else self.previous:Disable() end
         if page<pages then self.next:Enable() else self.next:Disable() end
         for _, widget in ipairs({self.search,self.searchHint,self.rarity,self.sort}) do
-            if category=="all" or category=="tier1" or category=="tier2" or category=="owned" then widget:Show() else widget:Hide() end
+            if not current and (category=="all" or category:match("^tier") or category=="owned") then widget:Show() else widget:Hide() end
+        end
+        -- Detail page replaces the list while a Skill is selected.
+        ShowIf(self.detail, current ~= nil)
+        if current then
+            for _, row in ipairs(self.rows) do row:Hide() end
+            self.previous:Hide(); self.next:Hide(); self.pageText:Hide(); self.count:Hide(); self.notice:Hide()
+            local card=ProjectRebirthSkillData and ProjectRebirthSkillData[current.id]
+            self.detail.icon:SetTexture(current.icon or card and card.icon or "Interface\\Icons\\INV_Misc_Book_11")
+            self.detail.name:SetText(current.name)
+            self.detail.name:SetTextColor(unpack(quality[current.rarity] or GOLD))
+            self.detail.meta:SetText("Tier "..current.tier.." · "..current.rarity.." · "..current.category)
+            local _, body = ProjectRebirthGlossary.Detail(current, snapshot)
+            self.detail.text:SetText(body or "")
+            self.detailChild:SetHeight(math.max(1, self.detail.text:GetStringHeight() + 12))
+            self.detailScroll:UpdateScrollChildRect()
+        else
+            self.pageText:Show(); self.notice:Show()
+            ShowIf(self.count, (self.notice:GetText() or "") == "")
         end
     end
     frame:SetScript("OnShow",refresh)

@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "product": "Project Reverie",
   "channel": "stable",
-  "contentVersion": "0.1.35",
+  "contentVersion": "0.1.36",
   "contentEpoch": 1,
   "skillfulNativeDataRevision": 0,
-  "publishedAtUtc": "2026-10-04T19:31:56.9083625Z",
-  "expiresAtUtc": "2026-11-03T19:31:56.9083625Z",
+  "publishedAtUtc": "2026-10-04T22:47:23.3918190Z",
+  "expiresAtUtc": "2026-11-03T22:47:23.3918190Z",
   "minimumLauncherVersion": "2.3.1",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
@@ -18,9 +18,9 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "Project Reverie - Rebirth progression update",
-    "summary": "The Reverie panel has been rebuilt, Human Bloodline progresses separately from Life Heritage, companion controls use bag upgrades and paid vendor repair, and Wardrobe has been removed.",
-    "updateKind": "content",
+    "headline": "Project Reverie - Heritage progress and panel update",
+    "summary": "Heritage progress refreshes while the panel is open. The taller Reverie panel improves progress bars, Bloodline portraits, descriptions and Glossary rows.",
+    "updateKind": "hotfix",
     "requiresClientUpdate": true
   },
   "files": [
@@ -189,8 +189,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/MicroMenu.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/MicroMenu.lua",
-      "size": 5454,
-      "sha256": "91C4010E86F9F9E6519DFFC37612FF3CA83D63ED3436F5385C1F98F1810DE05E"
+      "size": 5722,
+      "sha256": "E5B8DB284A875E78622673C93B87DC05D92193701FA1B86318F3839285668EFA"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/PanelProtocol.lua",
@@ -201,8 +201,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Progress.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Progress.lua",
-      "size": 16444,
-      "sha256": "B089ECDF1AF4ED35BD0E8D73F881B469DF45B4EA968EC90289DB8B3282531B94"
+      "size": 16660,
+      "sha256": "2A529BA723B10939B1D560BEDB950EE3A34FCF0B9FDE25407D9A64390869F23B"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
@@ -219,8 +219,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/ReveriePanel.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ReveriePanel.lua",
-      "size": 51023,
-      "sha256": "C3D45AEBBE677F13A74A56AFCEA9EFCABA286EAFDDCA13D5F0372769432C1475"
+      "size": 61903,
+      "sha256": "E68C8518948F93F4FC4E0FADC442400FB2B789ECE2F8C51B05DE30AC2A5AAB48"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/SkillData.lua",
@@ -237,8 +237,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Skills.lua",
-      "size": 111558,
-      "sha256": "A774AE4E8FD9D3762E625673C2A39F2391A4988A1E749523F8153E179B77FE97"
+      "size": 113999,
+      "sha256": "2D497D890025279D234CC97A0F04858AD1A664436941BDB169D745504271273B"
     },
     {
       "path": "Interface/AddOns/RebirthBotManager/BotManager.lua",

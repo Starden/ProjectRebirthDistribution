@@ -90,6 +90,10 @@ local resolvedOpportunities = {}
 local offerVersions = {}
 local offerFingerprints = {}
 local lastOfferResyncAt = -10
+local presentationRefreshDue
+local presentationRefreshLastSent = -10
+local presentationRequestActive = false
+local presentationRequestKeepsPreview = false
 local Render
 local RenderChoiceFrame
 local ShowManifestationChoices
@@ -286,6 +290,44 @@ local function SendRequest(request)
         if ProjectRebirthGlossary then ProjectRebirthGlossary.Refresh() end
     end
     SendAddonMessage(PREFIX, PROTOCOL .. "\t" .. request, "WHISPER", UnitName("player"))
+end
+
+-- Coalesce confirmed progress into a read-only current snapshot. The separate
+-- Bloodline/Life records and rank bonuses stay server-authoritative.
+local function ResetPresentationRefresh()
+    presentationRefreshDue = nil
+    presentationRequestActive = false
+    presentationRequestKeepsPreview = false
+end
+
+local function RequestPresentationState(fromProgress)
+    if not ProjectRebirthPanelProtocol or not ProjectRebirthPanelProtocol.RequestState() then return false end
+    presentationRequestActive = true
+    presentationRequestKeepsPreview = fromProgress == true
+    presentationRefreshLastSent = GetTime()
+    return true
+end
+
+local function QueuePresentationRefresh()
+    if not active or not panel or not panel:IsShown() or state.inspectedName or not state.complete or
+        not ProjectRebirthPanelProtocol or not ProjectRebirthPanelProtocol.Available then return end
+    -- Keep the first deadline: a continuous stream must not postpone refresh forever.
+    if not presentationRefreshDue then
+        presentationRefreshDue = math.max(GetTime() + 1, presentationRefreshLastSent + 1)
+    end
+end
+
+local function FlushPresentationRefresh()
+    if not presentationRefreshDue then return end
+    if not active or not panel or not panel:IsShown() or state.inspectedName or not state.complete or
+        not ProjectRebirthPanelProtocol or not ProjectRebirthPanelProtocol.Available then
+        presentationRefreshDue = nil
+        return
+    end
+    if presentationRequestActive or GetTime() < presentationRefreshDue then return end
+    -- Consume this notification even on an unavailable response; no unbounded retry.
+    presentationRefreshDue = nil
+    RequestPresentationState(true)
 end
 
 function ProjectRebirth_GetGlossaryState()
@@ -1528,7 +1570,9 @@ local function AttachRedesign(c)
         ProjectRebirthGlossary.VisualFrame:SetCategory(category) end end
     c.selectHeritage=function(id) selectedHeritageId=id;state.presentationPreview=nil;SelectTab("heritages") end
     c.previewHeritage=function(level) if not state.inspectedName and ProjectRebirthPanelProtocol then
-        ProjectRebirthPanelProtocol.RequestPreview(selectedHeritageId,level) end end
+        if ProjectRebirthPanelProtocol.RequestPreview(selectedHeritageId,level) then
+            presentationRequestActive=true;presentationRequestKeepsPreview=false
+        end end end
     ProjectRebirthPanel.Attach(DetailContext(c))
 end
 
@@ -1967,6 +2011,7 @@ local function HandleAddonMessage(prefix, message, channel, sender)
         if ProjectRebirthPanelProtocol then ProjectRebirthPanelProtocol.Available=fields[3]=="4" end
         return
     elseif messageType == "STATE" then
+        ResetPresentationRefresh()
         confirmIntent={}
         state.presentation=nil;state.presentationPreview=nil;state.presentationAvailable=false
         if ProjectRebirthPanelProtocol then ProjectRebirthPanelProtocol.Cancel() end
@@ -1989,6 +2034,7 @@ local function HandleAddonMessage(prefix, message, channel, sender)
         state.heritage.canSelect = false
         UpdatePendingIndicator()
     elseif messageType == "INSPECT_BEGIN" then
+        ResetPresentationRefresh()
         confirmIntent={}
         state.presentation=nil;state.presentationPreview=nil;state.presentationAvailable=false
         if ProjectRebirthPanelProtocol then ProjectRebirthPanelProtocol.Cancel() end
@@ -2162,7 +2208,10 @@ local function HandleAddonMessage(prefix, message, channel, sender)
             end
             -- Rank-dependent bonuses need a new authoritative snapshot, not client math.
             if rankChanged then SendRequest("STATE")
-            elseif activeTab == "heritages" then Render() end
+            else
+                QueuePresentationRefresh()
+                if activeTab == "heritages" then Render() end
+            end
         end
     elseif messageType == "REBIRTH_PROFILE" then
         ProjectRebirthProgress.Clear("rebirth")
@@ -2350,7 +2399,7 @@ local function HandleAddonMessage(prefix, message, channel, sender)
         actionPending = false
         Render()
         PromptHeritageSelection()
-        if ProjectRebirthPanelProtocol then ProjectRebirthPanelProtocol.RequestState() end
+        RequestPresentationState(false)
     end
 end
 
@@ -2358,14 +2407,21 @@ if ProjectRebirthPanelProtocol then
     ProjectRebirthPanelProtocol.Attach(function(packet)
         if active and not state.inspectedName then SendAddonMessage(PREFIX,packet,"WHISPER",UnitName("player")) end
     end,function(snapshot)
+        local keepPreview = presentationRequestKeepsPreview
+        presentationRequestActive=false;presentationRequestKeepsPreview=false
         if state.inspectedName then return end
         state.presentationError=nil
         if snapshot.mode=="preview" then
             if selectedHeritageId~=snapshot.id then return end
             state.presentationPreview=snapshot.heritages[snapshot.id]
-        else state.presentation=snapshot;state.presentationPreview=nil;state.presentationAvailable=true end
+        else
+            state.presentation=snapshot
+            if not keepPreview then state.presentationPreview=nil end
+            state.presentationAvailable=true
+        end
         if Render then Render() end
     end,function(reason)
+        presentationRequestActive=false;presentationRequestKeepsPreview=false
         -- Optional presentation failure cannot expose implementation prose or leave
         -- stale optional controls active. Version-3 notices/commit state stay intact.
         state.presentationError=reason
@@ -2382,6 +2438,7 @@ eventFrame:RegisterEvent("PLAYER_LOGOUT")
 eventFrame:RegisterEvent("CHAT_MSG_ADDON")
 eventFrame:SetScript("OnUpdate",function()
     if ProjectRebirthPanelProtocol then ProjectRebirthPanelProtocol.CheckTimeout() end
+    FlushPresentationRefresh()
 end)
 eventFrame:SetScript("OnEvent", function(self, event, ...)
     if event == "PLAYER_LOGIN" then
@@ -2395,6 +2452,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             EnsureInterface()
         end
     elseif event == "PLAYER_ENTERING_WORLD" then
+        ResetPresentationRefresh()
         state.glossaryReady = false
         state.glossaryReceiving = false
         UpdateActivation()
@@ -2404,6 +2462,7 @@ eventFrame:SetScript("OnEvent", function(self, event, ...)
             SendRequest("STATE")
         end
     elseif event == "PLAYER_LOGOUT" then
+        ResetPresentationRefresh()
         state.glossaryReady = false
         state.glossaryReceiving = false
     elseif event == "PLAYER_REGEN_ENABLED" then

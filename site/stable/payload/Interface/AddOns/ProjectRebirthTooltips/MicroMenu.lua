@@ -73,15 +73,18 @@ function menu.Layout()
     -- Measure from the stock anchor, not the button's current spot, so centring
     -- never feeds back into the next layout pass.
     local left = parentLeft * parent:GetEffectiveScale() / scale + STOCK_FIRST_X
+    -- The slot ends at the riveted keyring plate, which is part of the bar art whether or not
+    -- the keyring button is shown. Measuring to the bags when the keyring is hidden pushed the
+    -- row right, with almost no gap before the plate.
     local boundary
-    for _, name in ipairs({ "KeyRingButton", "CharacterBag3Slot", "CharacterBag2Slot",
-        "CharacterBag1Slot", "CharacterBag0Slot", "MainMenuBarBackpackButton" }) do
-        local bag = _G[name]
-        if bag and bag:IsShown() and bag:GetLeft() then
-            local edge = bag:GetLeft() * bag:GetEffectiveScale() / scale
-            if edge > left and (not boundary or edge < boundary) then boundary = edge end
-        end
+    local keyring = KeyRingButton
+    if keyring and keyring:GetLeft() then
+        boundary = keyring:GetLeft() * keyring:GetEffectiveScale() / scale
+    elseif CharacterBag3Slot and CharacterBag3Slot:GetLeft() then
+        -- Stock keyring: 18 wide, anchored 5px left of the last bag slot.
+        boundary = CharacterBag3Slot:GetLeft() * CharacterBag3Slot:GetEffectiveScale() / scale - 23
     end
+    if boundary and boundary <= left then boundary = nil end
     local available = boundary and boundary - left - 3 or 278
     -- Leave third-party compressed bars alone rather than overlap bags or icons.
     if available < 28 + (#buttons - 1) * 22 then return end

@@ -256,12 +256,12 @@ function P.LayoutPanel(heritageParent, rebirthParent)
     P.CompactPanel=true
     if heritageWidget then
         heritageWidget:ClearAllPoints()
-        heritageWidget:SetPoint("TOPLEFT",heritageParent,"TOPLEFT",84,-66)
-        heritageWidget:SetWidth(286);heritageWidget:SetHeight(16)
+        heritageWidget:SetPoint("TOPLEFT",heritageParent,"TOPLEFT",18,-84)
+        heritageWidget:SetWidth(478);heritageWidget:SetHeight(12)
         heritageWidget.title:Hide();heritageWidget.detail:Hide()
         heritageWidget.bar:ClearAllPoints()
         heritageWidget.bar:SetPoint("TOPLEFT",heritageWidget,"TOPLEFT",0,0)
-        heritageWidget.bar:SetWidth(286);heritageWidget.bar:SetHeight(16)
+        heritageWidget.bar:SetWidth(478);heritageWidget.bar:SetHeight(12)
         heritageWidget.bar:EnableMouse(true)
         heritageWidget.bar:SetScript("OnMouseUp",function(_,button)
             if button~="RightButton" or not heritage or heritage.id~=viewedHeritageId then return end
@@ -280,9 +280,13 @@ function P.LayoutPanel(heritageParent, rebirthParent)
     end
     if lifeWidget then
         lifeWidget:SetParent(rebirthParent);lifeWidget:ClearAllPoints()
-        lifeWidget:SetPoint("TOPLEFT",rebirthParent,"TOPLEFT",12,-260)
-        lifeWidget:SetWidth(174);lifeWidget:SetHeight(86)
-        for _,label in ipairs({lifeWidget.title,lifeWidget.detail}) do label:SetTextColor(.17,.12,.07) end
+        -- Rebirth well: the RXP bar sits under the heading, full width, like the Skill bar.
+        lifeWidget:SetPoint("TOPLEFT",rebirthParent,"TOPLEFT",18,-84)
+        lifeWidget:SetWidth(478);lifeWidget:SetHeight(12)
+        lifeWidget.title:Hide();lifeWidget.detail:Hide()
+        lifeWidget.bar:ClearAllPoints()
+        lifeWidget.bar:SetPoint("TOPLEFT",lifeWidget,"TOPLEFT",0,0)
+        lifeWidget.bar:SetWidth(478);lifeWidget.bar:SetHeight(12)
     end
     Render()
 end
