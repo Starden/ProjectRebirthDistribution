@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "product": "Project Reverie",
   "channel": "stable",
-  "contentVersion": "0.1.37",
+  "contentVersion": "0.1.38",
   "contentEpoch": 1,
   "skillfulNativeDataRevision": 0,
-  "publishedAtUtc": "2026-10-05T17:56:31.176648Z",
-  "expiresAtUtc": "2026-11-04T17:56:31.176648Z",
+  "publishedAtUtc": "2026-10-06T22:11:46.5206846Z",
+  "expiresAtUtc": "2026-11-05T22:11:46.5206846Z",
   "minimumLauncherVersion": "2.3.3",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
@@ -18,12 +18,18 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "Project Reverie — Holy Archer and nameplate update",
-    "summary": "Adds reviewed nameplates, Holy Archer range support and a private local icon-library selector for both clients. Update the launcher, close WoW and use Prepare Client when prompted.",
+    "headline": "Nameplate settings and in-game AddOns",
+    "summary": "Use /splates for plate and text sizes. Esc > AddOns changes addon selections with Reload UI. Includes the combat-glow correction.",
     "updateKind": "content",
     "requiresClientUpdate": true
   },
   "files": [
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/AddonOptions.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/AddonOptions.lua",
+      "size": 11618,
+      "sha256": "EBC43E962D93991C45443E6F1D04446F2884867F729A4589E0158700BCD1DFC9"
+    },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/BloodlineDesignData.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/BloodlineDesignData.lua",
@@ -255,8 +261,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Nameplates.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Nameplates.lua",
-      "size": 17659,
-      "sha256": "84EF1B8EB3866E6B3B847B3052287EDDB86F6D086314BBEA6E1B4395C393247F"
+      "size": 24166,
+      "sha256": "62C03BAB489A95A037EC34DFC36905EA7A9FC570D0F3D0C43D8DCB598FF0AC1F"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/PanelProtocol.lua",
@@ -273,8 +279,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
-      "size": 1029,
-      "sha256": "D198B5044ACE4878311E055F84C4DADB01C2732915E7F2D4DB2E2D91845716FC"
+      "size": 1046,
+      "sha256": "87F0B36601C4CDDBE8126AD2E13BC38D98032555B3F15F3168C772C49868116C"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/RankData.lua",

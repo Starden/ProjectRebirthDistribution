@@ -30,9 +30,19 @@ local CAST_BAR_X, CAST_BAR_Y, CAST_BAR_H = 14, 33.5, 7
 local ICON_X, ICON_D, ICON_SIZE = 8, 15, 9.5
 local RING, RING_X = 26, -4
 local LEVEL_SIZE, NAME_SIZE = 8.5, 12.8
+-- Threat: a halo of the frame's own shape behind it, this many units larger on every side.
+local HALO = 1.6
 
 P.DEFAULT_SCALE, P.MIN_SCALE, P.MAX_SCALE = 1.5, .75, 2.5
 P.scale = P.DEFAULT_SCALE
+P.OPTIONS = {
+    {key = "scale", label = "Overall scale", min = .75, max = 2.5, default = 1.5},
+    {key = "nameScale", label = "Name text size", min = .75, max = 1.5, default = 1},
+    {key = "levelScale", label = "Level text size", min = .75, max = 1.5, default = 1},
+    {key = "badgeScale", label = "Rank badge size", min = .75, max = 1.5, default = 1},
+}
+P.nameScale, P.levelScale, P.badgeScale = 1, 1, 1
+P.settingsRevision = 0
 
 local ART = {
     star = {file = "Star", bounds = {4, 5, 59, 57}},
@@ -95,7 +105,7 @@ local ROLE = {
 
 local function Role(region)
     local tex = region.GetTexture and region:GetTexture()
-    return tex and ROLE[string.lower(tex)]
+    return type(tex) == "string" and ROLE[string.lower(tex)] or nil
 end
 
 -- The plate's parts by role: textures by their art, the spell icon as the one unknown texture,
@@ -143,6 +153,9 @@ local function Tex(parent, layer, file, coords)
 end
 
 local LEFT, MIDDLE, RIGHT = {0, .25, 0, 1}, {.25, .75, 0, 1}, {.75, 1, 0, 1}
+-- Stock art replaced by ours. The client shows some of it again in combat (the threat glow
+-- above all, alpha included), so every refresh hides it again.
+P.STOCK_ART = {"border", "castBorder", "elite", "highlight", "threat", "shield"}
 
 function P.Skin(plate)
     local s = P.Parts(plate)
@@ -153,9 +166,16 @@ function P.Skin(plate)
     s.plate = plate
     -- Stock art replaced by ours: hidden through alpha so the client's own show/hide logic and
     -- addons reading IsShown() keep working.
-    for _, key in ipairs({"border", "castBorder", "elite", "highlight", "threat", "shield"}) do
+    for _, key in ipairs(P.STOCK_ART) do
         if s[key] then s[key]:SetAlpha(0) end
     end
+    -- The threat halo: the frame's pieces again, behind it, lit additively in the threat colour.
+    -- No join piece: the two middles meet under the join, so the halo runs unbroken round the waist.
+    s.halo = {
+        Tex(plate, "BACKGROUND", MEDIA .. "Frame", LEFT), Tex(plate, "BACKGROUND", MEDIA .. "Frame", MIDDLE),
+        Tex(plate, "BACKGROUND", MEDIA .. "Seat", MIDDLE), Tex(plate, "BACKGROUND", MEDIA .. "Seat", RIGHT),
+    }
+    for _, t in ipairs(s.halo) do t:SetBlendMode("ADD"); t:Hide() end
     s.frame = {
         Tex(plate, "ARTWORK", MEDIA .. "Frame", LEFT), Tex(plate, "ARTWORK", MEDIA .. "Frame", MIDDLE),
         Tex(plate, "ARTWORK", MEDIA .. "Join"), Tex(plate, "ARTWORK", MEDIA .. "Seat", MIDDLE),
@@ -216,17 +236,19 @@ function P.Refresh(s, force)
         end
     end
     local tier = row and row[1] or 0
-    if s.elite and s.elite:GetAlpha() > 0 then s.elite:SetAlpha(0) end
-    -- Threat and hover: the stock glows are shaped for the stock border, so ours tint and light.
-    local threat = s.threat and s.threat:IsShown()
+    for _, key in ipairs(P.STOCK_ART) do
+        local region = s[key]
+        if region and region:GetAlpha() > 0 then region:SetAlpha(0) end
+    end
+    -- Threat and hover: the stock glows are shaped for the stock border. Threat lights our halo in
+    -- its colour and leaves the gold frame gold; hover lights the bar.
+    local threat = s.threat and s.threat:IsShown() or false
     local r, g, b = 1, 1, 1
     if threat then r, g, b = s.threat:GetVertexColor() end
     if threat ~= s.threatShown or r ~= s.threatR or g ~= s.threatG or b ~= s.threatB then
         s.threatShown, s.threatR, s.threatG, s.threatB = threat, r, g, b
-        if threat then
-            Shade(s.frame, .5 + r / 2, .5 + g / 2, .5 + b / 2)
-        else
-            Shade(s.frame, 1, 1, 1)
+        for _, t in ipairs(s.halo) do
+            if threat then t:SetVertexColor(r, g, b); t:Show() else t:Hide() end
         end
     end
     local hover = s.highlight and s.highlight:IsShown() or false
@@ -240,7 +262,7 @@ function P.Refresh(s, force)
         end
     end
     -- The client re-anchors its regions when a plate is reused; take them back.
-    local sw = P.SeatWidth(number and string.len(tostring(number)) or 1)
+    local sw = math.max(23, P.SeatWidth(number and string.len(tostring(number)) or 1) * P.levelScale)
     if not Anchored(s.health, "TOPLEFT", plate, "CENTER", (BAR_X - 64) * u, -(BAR_Y - 16) * u) or
         not Anchored(s.level, "CENTER", plate, "CENTER", (SEAT_LEFT + sw / 2 + .3 - 64) * u, -(SEAT_Y + .3 - 16) * u) or
         not Anchored(s.cast, "TOPLEFT", plate, "CENTER", (CAST_BAR_X - 64) * u, -(CAST_BAR_Y - 16) * u) or
@@ -249,8 +271,9 @@ function P.Refresh(s, force)
         force = true
     end
     if not force and u == s.u and number == s.number and tier == s.tier and name == s.nameText and
-        playerLevel == s.playerLevel then return end
+        playerLevel == s.playerLevel and P.settingsRevision == s.settingsRevision then return end
     s.u, s.number, s.tier, s.nameText, s.playerLevel = u, number, tier, name, playerLevel
+    s.settingsRevision = P.settingsRevision
 
     local right = SEAT_LEFT + sw
     local joinRight = JOIN_X + JOIN_SIZE
@@ -260,10 +283,15 @@ function P.Refresh(s, force)
     Place(f[3], plate, u, JOIN_X, JOIN_Y, JOIN_SIZE, JOIN_SIZE)
     Place(f[4], plate, u, joinRight, SEAT_TOP, right - SEAT_CAP - joinRight, SEAT_H)
     Place(f[5], plate, u, right - SEAT_CAP, SEAT_TOP, SEAT_CAP, SEAT_H)
+    local h, d, waist = s.halo, HALO, JOIN_X + JOIN_SIZE / 2
+    Place(h[1], plate, u, -d, FRAME_TOP - d, FRAME_CAP + d, FRAME_H + 2 * d)
+    Place(h[2], plate, u, FRAME_CAP, FRAME_TOP - d, waist - FRAME_CAP, FRAME_H + 2 * d)
+    Place(h[3], plate, u, waist, SEAT_TOP - d, right - SEAT_CAP - waist, SEAT_H + 2 * d)
+    Place(h[4], plate, u, right - SEAT_CAP, SEAT_TOP - d, SEAT_CAP + d, SEAT_H + 2 * d)
     Place(s.health, plate, u, BAR_X, BAR_Y, BAR_W, BAR_H)
 
     if s.name then
-        s.name:SetFont(FONT, NAME_SIZE * u)
+        s.name:SetFont(FONT, NAME_SIZE * u * P.nameScale)
         s.name:ClearAllPoints()
         s.name:SetPoint("BOTTOM", plate, "CENTER", 0, (16 - (FRAME_TOP - 1)) * u)
     end
@@ -272,7 +300,7 @@ function P.Refresh(s, force)
         s.raid:SetPoint("BOTTOM", s.name or plate, "TOP", 0, 2 * u)
     end
     if s.level then
-        s.level:SetFont(FONT, LEVEL_SIZE * u)
+        s.level:SetFont(FONT, LEVEL_SIZE * u * P.levelScale)
         s.level:ClearAllPoints()
         s.level:SetPoint("CENTER", plate, "CENTER", (SEAT_LEFT + sw / 2 + .3 - 64) * u, -(SEAT_Y + .3 - 16) * u)
         if number then s.level:SetTextColor(P.Danger(playerLevel, number)) end
@@ -295,8 +323,9 @@ function P.Refresh(s, force)
 
     local layout = P.BADGES[tier]
     if layout then
-        Place(s.well, plate, u, RING_X - RING / 2, SEAT_Y - RING / 2, RING, RING)
-        Place(s.ring, plate, u, RING_X - RING / 2, SEAT_Y - RING / 2, RING, RING)
+        local ring = RING * P.badgeScale
+        Place(s.well, plate, u, RING_X - ring / 2, SEAT_Y - ring / 2, ring, ring)
+        Place(s.ring, plate, u, RING_X - ring / 2, SEAT_Y - ring / 2, ring, ring)
         s.well:Show(); s.ring:Show()
     else
         s.well:Hide(); s.ring:Hide()
@@ -305,7 +334,9 @@ function P.Refresh(s, force)
         local item, it = s.items[i], layout and layout[i]
         if it then
             item:SetTexture(MEDIA .. ART[it[1]].file)
-            Place(item, plate, u, RING_X + it[2] - it[4] / 2, SEAT_Y + it[3] - it[4] / 2, it[4], it[4])
+            local size = it[4] * P.badgeScale
+            Place(item, plate, u, RING_X + it[2] * P.badgeScale - size / 2,
+                SEAT_Y + it[3] * P.badgeScale - size / 2, size, size)
             item:Show()
         else
             item:Hide()
@@ -339,35 +370,117 @@ function P.Scan()
     end
 end
 
-function P.SetScale(value)
+function P.SetOption(key, value)
+    local option
+    for _, candidate in ipairs(P.OPTIONS) do if candidate.key == key then option = candidate; break end end
+    if not option then return false end
     value = tonumber(value)
     if not value or value ~= value or value == math.huge or value == -math.huge then return false end
-    P.scale = math.max(P.MIN_SCALE, math.min(P.MAX_SCALE, value))
+    P[key] = math.max(option.min, math.min(option.max, value))
     if type(ProjectRebirthNameplateSettings) ~= "table" then ProjectRebirthNameplateSettings = {} end
-    ProjectRebirthNameplateSettings.scale = P.scale
+    ProjectRebirthNameplateSettings[key] = P[key]
+    P.settingsRevision = P.settingsRevision + 1
     for _, s in ipairs(P.plates) do P.Refresh(s, true) end
+    if P.UpdateOptions then P.UpdateOptions() end
     return true
 end
 
+function P.SetScale(value) return P.SetOption("scale", value) end
+
+function P.ResetOptions()
+    for _, option in ipairs(P.OPTIONS) do P.SetOption(option.key, option.default) end
+end
+
 local function Active() return GetRealmName and GetRealmName() == "Rebirth" end
+
+-- A small stock-style dialog. Changes apply immediately; no reload or gameplay command.
+function P.UpdateOptions()
+    if not P.options then return end
+    P.options.syncing = true
+    for _, slider in ipairs(P.options.sliders) do
+        slider:SetValue(P[slider.option.key] * 100)
+        slider.valueText:SetText(string.format("%d%%", math.floor(P[slider.option.key] * 100 + .5)))
+    end
+    P.options.syncing = false
+end
+
+function P.OpenOptions()
+    if not Active() then return end
+    if not P.options then
+        local f = CreateFrame("Frame", "ProjectRebirthNameplateOptions", UIParent)
+        P.options = f
+        f:SetWidth(390); f:SetHeight(350)
+        f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+        f:SetFrameStrata("DIALOG"); f:SetToplevel(true)
+        f:EnableMouse(true); f:SetMovable(true); f:RegisterForDrag("LeftButton")
+        f:SetScript("OnDragStart", f.StartMoving)
+        f:SetScript("OnDragStop", f.StopMovingOrSizing)
+        f:SetBackdrop({bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+            edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border", tile = true, tileSize = 32,
+            edgeSize = 32, insets = {left = 11, right = 12, top = 12, bottom = 11}})
+        f.title = f:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
+        f.title:SetPoint("TOP", f, "TOP", 0, -22); f.title:SetText("Rebirth Nameplates")
+        f.note = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+        f.note:SetPoint("TOPLEFT", f, "TOPLEFT", 26, -53); f.note:SetWidth(338)
+        f.note:SetText("Changes apply immediately and save automatically.")
+        local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
+        close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -4, -4)
+        close:SetScript("OnClick", function() f:Hide() end)
+        f.sliders = {}
+        for i, option in ipairs(P.OPTIONS) do
+            local slider = CreateFrame("Slider", "ProjectRebirthPlateOption" .. i, f, "OptionsSliderTemplate")
+            slider.option = option
+            slider:SetWidth(275); slider:SetHeight(16)
+            slider:SetPoint("TOPLEFT", f, "TOPLEFT", 30, -100 - (i - 1) * 52)
+            slider:SetMinMaxValues(option.min * 100, option.max * 100); slider:SetValueStep(5)
+            _G[slider:GetName() .. "Text"]:SetText(option.label)
+            _G[slider:GetName() .. "Low"]:SetText(string.format("%d%%", option.min * 100))
+            _G[slider:GetName() .. "High"]:SetText(string.format("%d%%", option.max * 100))
+            slider.valueText = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+            slider.valueText:SetPoint("LEFT", slider, "RIGHT", 10, 0)
+            slider:SetScript("OnValueChanged", function(self, value)
+                if not f.syncing then P.SetOption(self.option.key, math.floor(value / 5 + .5) * .05) end
+            end)
+            f.sliders[i] = slider
+        end
+        local reset = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+        reset:SetWidth(145); reset:SetHeight(24); reset:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 26, 22)
+        reset:SetText("Reset defaults"); reset:SetScript("OnClick", P.ResetOptions)
+        local done = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+        done:SetWidth(100); done:SetHeight(24); done:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -26, 22)
+        done:SetText("Close"); done:SetScript("OnClick", function() f:Hide() end)
+        table.insert(UISpecialFrames, f:GetName())
+    end
+    P.UpdateOptions()
+    P.options:Show()
+end
 
 P.driver = CreateFrame("Frame", "ProjectRebirthNameplateDriver")
 P.driver:RegisterEvent("VARIABLES_LOADED")
 P.driver:RegisterEvent("PLAYER_ENTERING_WORLD")
 P.driver:SetScript("OnEvent", function(self, event)
-    if event == "VARIABLES_LOADED" and type(ProjectRebirthNameplateSettings) == "table" and
-        ProjectRebirthNameplateSettings.scale then
-        P.SetScale(ProjectRebirthNameplateSettings.scale)
+    if event == "VARIABLES_LOADED" and type(ProjectRebirthNameplateSettings) == "table" then
+        for _, option in ipairs(P.OPTIONS) do
+            local saved = ProjectRebirthNameplateSettings[option.key]
+            if saved ~= nil then P.SetOption(option.key, saved) end
+        end
     end
     -- Only on the Rebirth realm, as the rest of this addon.
-    if Active() then self:SetScript("OnUpdate", P.Scan) else self:SetScript("OnUpdate", nil) end
+    if Active() then self:SetScript("OnUpdate", P.Scan) else
+        self:SetScript("OnUpdate", nil)
+        if P.options then P.options:Hide() end
+    end
 end)
 
 local function Say(text) DEFAULT_CHAT_FRAME:AddMessage("Reverie nameplates: " .. text) end
 
 SLASH_PROJECTREBIRTHPLATES1 = "/rplates"
+SLASH_PROJECTREBIRTHPLATES2 = "/splates"
 SlashCmdList["PROJECTREBIRTHPLATES"] = function(msg)
-    msg = msg or ""
+    if not Active() then return end
+    msg = string.lower(string.match(msg or "", "^%s*(.-)%s*$"))
+    if msg == "" or msg == "options" then P.OpenOptions(); return end
+    if msg == "reset" then P.ResetOptions(); Say("default sizes restored."); return end
     local value = string.match(msg, "^scale%s*(.*)$")
     if value and value ~= "" and P.SetScale(value) then
         Say("plate size " .. P.scale .. "x the client's (" .. P.MIN_SCALE .. " to " .. P.MAX_SCALE .. ").")
@@ -386,6 +499,6 @@ SlashCmdList["PROJECTREBIRTHPLATES"] = function(msg)
         end
         Say("no plate is showing. Press V to show enemy nameplates.")
     else
-        Say("/rplates scale 1.5 sets the plate size; /rplates dump checks a plate's parts.")
+        Say("/splates opens settings; /splates scale 1.5 sets size; /splates reset restores defaults.")
     end
 end

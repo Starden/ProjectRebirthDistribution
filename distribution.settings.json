@@ -5,7 +5,7 @@
   "pagesBaseUri": "https://starden.github.io/ProjectRebirthDistribution/",
   "channel": "stable",
   "launcherVersion": "2.3.3",
-  "contentVersion": "0.1.37",
+  "contentVersion": "0.1.38",
   "authAddress": "134.122.124.150",
   "authPort": 3724,
   "worldPort": 8087,
