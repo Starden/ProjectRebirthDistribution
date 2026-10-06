@@ -4,6 +4,7 @@
 ## Author: Project Reverie
 ## Version: 1.25.0
 ## SavedVariablesPerCharacter: ProjectRebirthProgressSettings
+## SavedVariables: ProjectRebirthNameplateSettings
 ## DefaultState: Enabled
 ## LoadOnDemand: 0
 ## X-Rebirth-Realm: Rebirth
@@ -39,3 +40,5 @@ BugReports.lua
 Currency.lua
 HeirloomTooltipData.lua
 HeirloomTooltips.lua
+NameplateData.lua
+Nameplates.lua

@@ -2,12 +2,12 @@
   "schemaVersion": 1,
   "product": "Project Reverie",
   "channel": "stable",
-  "contentVersion": "0.1.36",
+  "contentVersion": "0.1.37",
   "contentEpoch": 1,
   "skillfulNativeDataRevision": 0,
-  "publishedAtUtc": "2026-10-04T22:47:23.3918190Z",
-  "expiresAtUtc": "2026-11-03T22:47:23.3918190Z",
-  "minimumLauncherVersion": "2.3.1",
+  "publishedAtUtc": "2026-10-05T17:56:31.176648Z",
+  "expiresAtUtc": "2026-11-04T17:56:31.176648Z",
+  "minimumLauncherVersion": "2.3.3",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
   "signatureAlgorithm": "ECDSA_P256_SHA256_P1363",
@@ -18,9 +18,9 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "Project Reverie - Heritage progress and panel update",
-    "summary": "Heritage progress refreshes while the panel is open. The taller Reverie panel improves progress bars, Bloodline portraits, descriptions and Glossary rows.",
-    "updateKind": "hotfix",
+    "headline": "Project Reverie — Holy Archer and nameplate update",
+    "summary": "Adds reviewed nameplates, Holy Archer range support and a private local icon-library selector for both clients. Update the launcher, close WoW and use Prepare Client when prompted.",
+    "updateKind": "content",
     "requiresClientUpdate": true
   },
   "files": [
@@ -157,6 +157,60 @@
       "sha256": "9FBD852EAFEFD4FDE6CCF81CF39D5C100AD40A7EF4A0C34269BE6B1A17487AD9"
     },
     {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Plate-Frame.tga",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/Plate-Frame.tga",
+      "size": 32812,
+      "sha256": "3FBEB1C55CD0CD5C6707D5EDDB531B4A954D3CADD018DA41E1A4C8B75C593C3B"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Plate-Join.tga",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/Plate-Join.tga",
+      "size": 65580,
+      "sha256": "59576457158C25E2C0A304FB0D81D69FB184642F872F318566F3898CB8ACD4E1"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Plate-Ring.tga",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/Plate-Ring.tga",
+      "size": 65580,
+      "sha256": "3991BC77D1742C635073C69756E0BC9C427B26DF9344E763028B5B6D639DCC98"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Plate-RingWell.tga",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/Plate-RingWell.tga",
+      "size": 65580,
+      "sha256": "F03FE293C37530EDC571B7370D7CED05AA7FF59CF39251D0E1EA400F8F3B15FF"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Plate-Seat.tga",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/Plate-Seat.tga",
+      "size": 32812,
+      "sha256": "3ED7A3D37E798FE8735C201E1F05FEEA467581EFF2235A82E7DDD02A910473D5"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Plate-Skull.tga",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/Plate-Skull.tga",
+      "size": 65580,
+      "sha256": "C2B91A46810E04B66A0742B9455D7BB61613A74226384C77A002F7023FB59A68"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Plate-SkullCrowned.tga",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/Plate-SkullCrowned.tga",
+      "size": 65580,
+      "sha256": "9B697360441D3ED2E48CBA012935B155A0361BE39ABEB5B00A2D6E6951775620"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Plate-Star.tga",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/Plate-Star.tga",
+      "size": 65580,
+      "sha256": "11B71D6117BBCCC3359A0E828C5ABD65CF0556AF0AA3978E2FCE5834748FEB35"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Plate-Trough.tga",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/Plate-Trough.tga",
+      "size": 300,
+      "sha256": "2F407DBF17A78F23788009D9CAC675FC94AB7B91AA88113F72936DD6771DAF75"
+    },
+    {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Media/Primalist.tga",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Media/Primalist.tga",
       "size": 1572882,
@@ -193,6 +247,18 @@
       "sha256": "E5B8DB284A875E78622673C93B87DC05D92193701FA1B86318F3839285668EFA"
     },
     {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/NameplateData.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/NameplateData.lua",
+      "size": 980996,
+      "sha256": "4F208821CBAAC6695DBDB550BEB497EA90AAE750D32CAD2A0179843CD44F2735"
+    },
+    {
+      "path": "Interface/AddOns/ProjectRebirthTooltips/Nameplates.lua",
+      "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Nameplates.lua",
+      "size": 17659,
+      "sha256": "84EF1B8EB3866E6B3B847B3052287EDDB86F6D086314BBEA6E1B4395C393247F"
+    },
+    {
       "path": "Interface/AddOns/ProjectRebirthTooltips/PanelProtocol.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/PanelProtocol.lua",
       "size": 9882,
@@ -207,8 +273,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
-      "size": 945,
-      "sha256": "1C41CC9D80847CB5CDA3304AF54B255F8AB18AF376D30F39F2F7561015CA3C2C"
+      "size": 1029,
+      "sha256": "D198B5044ACE4878311E055F84C4DADB01C2732915E7F2D4DB2E2D91845716FC"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/RankData.lua",
