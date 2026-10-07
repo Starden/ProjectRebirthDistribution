@@ -2,11 +2,11 @@
   "schemaVersion": 1,
   "product": "Project Reverie",
   "channel": "stable",
-  "contentVersion": "0.1.38",
+  "contentVersion": "0.1.39",
   "contentEpoch": 1,
   "skillfulNativeDataRevision": 0,
-  "publishedAtUtc": "2026-10-06T22:11:46.5206846Z",
-  "expiresAtUtc": "2026-11-05T22:11:46.5206846Z",
+  "publishedAtUtc": "2026-10-07T00:35:51.7438701Z",
+  "expiresAtUtc": "2026-11-06T00:35:51.7438701Z",
   "minimumLauncherVersion": "2.3.3",
   "cleanWowSha256": "AA63A5750D60EF16746C686B3D5E26876D98953EAB08B1C026CD0FAF78E88CB8",
   "requiredWowBuild": 12340,
@@ -18,8 +18,8 @@
     "worldPort": 8087
   },
   "release": {
-    "headline": "Nameplate settings and in-game AddOns",
-    "summary": "Use /splates for plate and text sizes. Esc > AddOns changes addon selections with Reload UI. Includes the combat-glow correction.",
+    "headline": "Optional Rebirth nameplates",
+    "summary": "Use /splates to turn Rebirth nameplates on or off, then Reload UI. When off, use Blizzard plates or another nameplate addon. Size preferences are retained.",
     "updateKind": "content",
     "requiresClientUpdate": true
   },
@@ -261,8 +261,8 @@
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/Nameplates.lua",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/Nameplates.lua",
-      "size": 24166,
-      "sha256": "62C03BAB489A95A037EC34DFC36905EA7A9FC570D0F3D0C43D8DCB598FF0AC1F"
+      "size": 26931,
+      "sha256": "E15D37AB4D6D1C38AE887B0C160CF7223B93ED9EB2F62BCF12AEC416E20C90AE"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/PanelProtocol.lua",
@@ -280,7 +280,7 @@
       "path": "Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "url": "payload/Interface/AddOns/ProjectRebirthTooltips/ProjectRebirthTooltips.toc",
       "size": 1046,
-      "sha256": "87F0B36601C4CDDBE8126AD2E13BC38D98032555B3F15F3168C772C49868116C"
+      "sha256": "BFA99EDCEB45BD416810E6DE47C579346952D9616DD7733986635E4A204E75AA"
     },
     {
       "path": "Interface/AddOns/ProjectRebirthTooltips/RankData.lua",

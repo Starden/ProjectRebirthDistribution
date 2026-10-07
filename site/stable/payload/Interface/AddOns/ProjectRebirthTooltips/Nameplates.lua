@@ -43,6 +43,12 @@ P.OPTIONS = {
 }
 P.nameScale, P.levelScale, P.badgeScale = 1, 1, 1
 P.settingsRevision = 0
+P.enabled = true
+
+function P.SavedEnabled()
+    return type(ProjectRebirthNameplateSettings) ~= "table" or
+        ProjectRebirthNameplateSettings.enabled ~= false
+end
 
 local ART = {
     star = {file = "Star", bounds = {4, 5, 59, 57}},
@@ -158,6 +164,7 @@ local LEFT, MIDDLE, RIGHT = {0, .25, 0, 1}, {.25, .75, 0, 1}, {.75, 1, 0, 1}
 P.STOCK_ART = {"border", "castBorder", "elite", "highlight", "threat", "shield"}
 
 function P.Skin(plate)
+    if not P.enabled then return nil end
     local s = P.Parts(plate)
     -- A plate without the parts we draw around is left stock rather than half-skinned.
     local width = plate:GetWidth()
@@ -217,6 +224,7 @@ local function Anchored(region, point, relative, relativePoint, x, y)
 end
 
 function P.Refresh(s, force)
+    if not P.enabled then return end
     local plate = s.plate
     local width = plate:GetWidth()
     if not width or width ~= width or width <= 0 or width == math.huge then return end
@@ -348,6 +356,7 @@ end
 -- Incomplete plates stay stock and are retried without allocating their replacement art.
 P.seen, P.plates, P.pending = 0, {}, {}
 function P.Scan()
+    if not P.enabled then return end
     local n = WorldFrame:GetNumChildren()
     if n ~= P.seen then
         local kids = {WorldFrame:GetChildren()}
@@ -393,13 +402,44 @@ end
 
 local function Active() return GetRealmName and GetRealmName() == "Rebirth" end
 
--- A small stock-style dialog. Changes apply immediately; no reload or gameplay command.
+-- Changing the skin requires a clean UI load: the stock frames then start unmodified,
+-- and other plate addons can initialize without our anchors, fonts or hidden stock art.
+function P.SetEnabled(value)
+    if not Active() or type(value) ~= "boolean" then return false end
+    if type(ProjectRebirthNameplateSettings) ~= "table" then ProjectRebirthNameplateSettings = {} end
+    ProjectRebirthNameplateSettings.enabled = value
+    P.UpdateOptions()
+    return true
+end
+
+function P.ReloadOptions()
+    if not Active() or P.SavedEnabled() == P.enabled or
+        (InCombatLockdown and InCombatLockdown()) or not ReloadUI then return false end
+    ReloadUI()
+    return true
+end
+
+-- Stock-style dialog. Size changes apply immediately; the skin checkbox saves for reload.
 function P.UpdateOptions()
     if not P.options then return end
     P.options.syncing = true
     for _, slider in ipairs(P.options.sliders) do
         slider:SetValue(P[slider.option.key] * 100)
         slider.valueText:SetText(string.format("%d%%", math.floor(P[slider.option.key] * 100 + .5)))
+    end
+    local pending = P.SavedEnabled() ~= P.enabled
+    P.options.enabled:SetChecked(P.SavedEnabled())
+    if pending then
+        P.options.note:SetText("Reload UI to apply. When off, Blizzard or another addon controls nameplates.")
+    elseif not P.enabled then
+        P.options.note:SetText("Rebirth nameplates are off. Blizzard or another addon controls nameplates.")
+    else
+        P.options.note:SetText("Sizes apply immediately. Turning the skin on or off requires Reload UI.")
+    end
+    if pending and not (InCombatLockdown and InCombatLockdown()) then
+        P.options.reload:Enable()
+    else
+        P.options.reload:Disable()
     end
     P.options.syncing = false
 end
@@ -409,7 +449,7 @@ function P.OpenOptions()
     if not P.options then
         local f = CreateFrame("Frame", "ProjectRebirthNameplateOptions", UIParent)
         P.options = f
-        f:SetWidth(390); f:SetHeight(350)
+        f:SetWidth(390); f:SetHeight(410)
         f:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
         f:SetFrameStrata("DIALOG"); f:SetToplevel(true)
         f:EnableMouse(true); f:SetMovable(true); f:RegisterForDrag("LeftButton")
@@ -422,7 +462,14 @@ function P.OpenOptions()
         f.title:SetPoint("TOP", f, "TOP", 0, -22); f.title:SetText("Rebirth Nameplates")
         f.note = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
         f.note:SetPoint("TOPLEFT", f, "TOPLEFT", 26, -53); f.note:SetWidth(338)
-        f.note:SetText("Changes apply immediately and save automatically.")
+        f.note:SetHeight(36); f.note:SetJustifyH("LEFT")
+        f.enabled = CreateFrame("CheckButton", "ProjectRebirthNameplatesEnabled", f, "UICheckButtonTemplate")
+        f.enabled:SetWidth(26); f.enabled:SetHeight(26)
+        f.enabled:SetPoint("TOPLEFT", f, "TOPLEFT", 25, -94)
+        f.enabled.label = f:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        f.enabled.label:SetPoint("LEFT", f.enabled, "RIGHT", 3, 0)
+        f.enabled.label:SetText("Use Rebirth nameplates")
+        f.enabled:SetScript("OnClick", function(self) P.SetEnabled(self:GetChecked() and true or false) end)
         local close = CreateFrame("Button", nil, f, "UIPanelCloseButton")
         close:SetPoint("TOPRIGHT", f, "TOPRIGHT", -4, -4)
         close:SetScript("OnClick", function() f:Hide() end)
@@ -431,7 +478,7 @@ function P.OpenOptions()
             local slider = CreateFrame("Slider", "ProjectRebirthPlateOption" .. i, f, "OptionsSliderTemplate")
             slider.option = option
             slider:SetWidth(275); slider:SetHeight(16)
-            slider:SetPoint("TOPLEFT", f, "TOPLEFT", 30, -100 - (i - 1) * 52)
+            slider:SetPoint("TOPLEFT", f, "TOPLEFT", 30, -150 - (i - 1) * 52)
             slider:SetMinMaxValues(option.min * 100, option.max * 100); slider:SetValueStep(5)
             _G[slider:GetName() .. "Text"]:SetText(option.label)
             _G[slider:GetName() .. "Low"]:SetText(string.format("%d%%", option.min * 100))
@@ -444,10 +491,14 @@ function P.OpenOptions()
             f.sliders[i] = slider
         end
         local reset = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
-        reset:SetWidth(145); reset:SetHeight(24); reset:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 26, 22)
-        reset:SetText("Reset defaults"); reset:SetScript("OnClick", P.ResetOptions)
+        reset:SetWidth(110); reset:SetHeight(24); reset:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 26, 22)
+        reset:SetText("Reset sizes"); reset:SetScript("OnClick", P.ResetOptions)
+        f.reload = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+        f.reload:SetWidth(100); f.reload:SetHeight(24)
+        f.reload:SetPoint("BOTTOMLEFT", f, "BOTTOMLEFT", 146, 22)
+        f.reload:SetText("Reload UI"); f.reload:SetScript("OnClick", P.ReloadOptions)
         local done = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
-        done:SetWidth(100); done:SetHeight(24); done:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -26, 22)
+        done:SetWidth(90); done:SetHeight(24); done:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT", -26, 22)
         done:SetText("Close"); done:SetScript("OnClick", function() f:Hide() end)
         table.insert(UISpecialFrames, f:GetName())
     end
@@ -458,7 +509,14 @@ end
 P.driver = CreateFrame("Frame", "ProjectRebirthNameplateDriver")
 P.driver:RegisterEvent("VARIABLES_LOADED")
 P.driver:RegisterEvent("PLAYER_ENTERING_WORLD")
+P.driver:RegisterEvent("PLAYER_REGEN_DISABLED")
+P.driver:RegisterEvent("PLAYER_REGEN_ENABLED")
 P.driver:SetScript("OnEvent", function(self, event)
+    if event == "PLAYER_REGEN_DISABLED" or event == "PLAYER_REGEN_ENABLED" then
+        P.UpdateOptions()
+        return
+    end
+    if event == "VARIABLES_LOADED" then P.enabled = P.SavedEnabled() end
     if event == "VARIABLES_LOADED" and type(ProjectRebirthNameplateSettings) == "table" then
         for _, option in ipairs(P.OPTIONS) do
             local saved = ProjectRebirthNameplateSettings[option.key]
@@ -466,10 +524,11 @@ P.driver:SetScript("OnEvent", function(self, event)
         end
     end
     -- Only on the Rebirth realm, as the rest of this addon.
-    if Active() then self:SetScript("OnUpdate", P.Scan) else
+    if Active() and P.enabled then self:SetScript("OnUpdate", P.Scan) else
         self:SetScript("OnUpdate", nil)
-        if P.options then P.options:Hide() end
+        if not Active() and P.options then P.options:Hide() end
     end
+    P.UpdateOptions()
 end)
 
 local function Say(text) DEFAULT_CHAT_FRAME:AddMessage("Reverie nameplates: " .. text) end

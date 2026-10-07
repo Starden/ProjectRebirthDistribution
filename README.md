@@ -7,14 +7,14 @@ Choose **Rebirth** or **Skillful** in the launcher before opening WoW. Each game
 ## Current release
 
 - Launcher **2.3.3**, with rounded realm cards and **Settings → Game client** for Client Location. Goldleaf, Follow Realm and owner-painted game emblems remain available. The Skillful feed requires launcher 2.2.0 or newer.
-- Rebirth content **0.1.38**, with `/splates` size settings, **Esc → AddOns** controls and the corrected nameplate combat glow. Holy Archer training and range support, automatic Heritage progress refreshes and the taller Reverie panel remain available. Bot Manager supports party formation, bag upgrades and paid vendor repair; Wardrobe remains removed.
+- Rebirth content **0.1.39**, with a saved `/splates` toggle for Rebirth nameplates, size settings, **Esc → AddOns** controls and the corrected nameplate combat glow. Holy Archer training and range support, automatic Heritage progress refreshes and the taller Reverie panel remain available. Bot Manager supports party formation, bag upgrades and paid vendor repair; Wardrobe remains removed.
 - Skillful addon **0.12.1**, with compact Skills tiles, stacked levels, new Strength/Vitality/Devotion icons, and totals for level, combat level and completed quests. The accepted Northshire item tooltips, 167 physical affix variants and equipment-bonuses pane remain available.
 
 Choose **Settings → Appearance → Follow Realm** for Void on Rebirth and Goldleaf on Skillful; the palette follows the selected game. Follow Windows, Void, Moonstone and Goldleaf can also be selected directly. Your existing preference is retained.
 
 Existing player accounts now have Skillful access. Rebirth accounts newly copied to Skillful use the same password; accounts that already existed on Skillful retain their Skillful password. No password reset is required for this update.
 
-See the [2.3.3 launcher notes](docs/RELEASE-NOTES-launcher-v2.3.3.md) and [0.1.38 content notes](docs/RELEASE-NOTES-content-0.1.38.md). Both games remain in testing; availability is controlled by the server operator.
+See the [2.3.3 launcher notes](docs/RELEASE-NOTES-launcher-v2.3.3.md) and [0.1.39 content notes](docs/RELEASE-NOTES-content-0.1.39.md). Both games remain in testing; availability is controlled by the server operator.
 
 ## Play
 
