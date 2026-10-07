@@ -1,6 +1,6 @@
 # Project Reverie — Rebirth and Skillful
 
-Download the latest **Project-Reverie-Launcher-2.3.3-win-x64.zip** from the [Releases page](https://github.com/Starden/ProjectRebirthDistribution/releases/latest), extract it into its own writable folder outside WoW, and run `ProjectReverie.Launcher.exe`.
+Download the [latest Project Reverie Launcher ZIP](https://github.com/Starden/ProjectRebirthDistribution/releases/latest/download/Project-Reverie-Launcher-win-x64.zip), extract it into its own writable folder outside WoW, and run `ProjectReverie.Launcher.exe`.
 
 Choose **Rebirth** or **Skillful** in the launcher before opening WoW. Each game uses a separate client folder. You need your own lawful, clean English enUS ChromieCraft WoW 3.3.5a client, build 12340, and an approved game account. Players need no VPN or separate patcher. The launcher does not include or download a game client or Blizzard archives.
 
